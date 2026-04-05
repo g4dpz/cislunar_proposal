@@ -1,0 +1,30 @@
+## Bundle Protocol configuration for Node A (Engine 1)
+## BPv7 with LTP transport over KISS CLA
+
+## Initialize BP
+1
+
+## Add IPN scheme with forwarding and admin endpoint
+a scheme ipn 'ipnfw' 'ipnadminep'
+
+## Add local endpoints
+## Format: a endpoint <eid> <disposition>
+## q = queue bundles for this endpoint (don't discard)
+a endpoint ipn:1.0 q
+a endpoint ipn:1.1 q
+a endpoint ipn:1.2 q
+
+## Add LTP protocol
+## Format: a protocol ltp <estimatedMaxPayload> <overheadPerFrame>
+a protocol ltp 1400 100
+
+## Add LTP induct (receive from any LTP engine)
+## Format: a induct ltp <ownEngineId> <cliCommand>
+a induct ltp 1 ltpcli
+
+## Add LTP outduct to Node B (Engine 2)
+## Format: a outduct ltp <remoteEngineId> <cloCommand>
+a outduct ltp 2 ltpclo
+
+## Start BP
+s

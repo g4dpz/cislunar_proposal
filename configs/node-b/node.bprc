@@ -1,0 +1,25 @@
+## Bundle Protocol configuration for Node B (Engine 2)
+## BPv7 with LTP transport over KISS CLA
+
+## Initialize BP
+1
+
+## Add IPN scheme
+a scheme ipn 'ipnfw' 'ipnadminep'
+
+## Add local endpoints
+a endpoint ipn:2.0 q
+a endpoint ipn:2.1 q
+a endpoint ipn:2.2 q
+
+## Add LTP protocol
+a protocol ltp 1400 100
+
+## Add LTP induct
+a induct ltp 2 ltpcli
+
+## Add LTP outduct to Node A (Engine 1)
+a outduct ltp 1 ltpclo
+
+## Start BP
+s

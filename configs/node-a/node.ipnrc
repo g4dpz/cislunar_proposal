@@ -1,0 +1,6 @@
+## IPN routing configuration for Node A (Engine 1)
+## Static routes for the two-node terrestrial setup
+
+## Route to Node B (ipn:2.*) via LTP outduct to engine 2
+## Format: a plan <nodeNbr> ltp/<remoteEngineId>
+a plan 2 ltp/2

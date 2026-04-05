@@ -1,0 +1,20 @@
+## ION initialization for Node B (Engine 2)
+## Terrestrial DTN Phase 1 — two-node KISS CLA setup
+
+## Initialize this node as engine 2
+1 2 ''
+
+## Start ION
+s
+
+## Add contacts (symmetric with Node A)
+a contact +0 +86400 2 1 120
+a contact +0 +86400 1 2 120
+
+## Add ranges (symmetric with Node A)
+a range +0 +86400 2 1 1
+a range +0 +86400 1 2 1
+
+## Set production and consumption rates
+m production 1000000
+m consumption 1000000

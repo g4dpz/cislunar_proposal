@@ -1,0 +1,11 @@
+## LTP configuration for Node B (Engine 2)
+## Uses KISS CLA for serial TNC communication
+
+## Initialize LTP engine
+1 32
+
+## Add span to Node A (Engine 1)
+a span 1 10 10 64 64 5 'ltpkissclo 1'
+
+## Start LTP input for this engine
+s 'ltpkisscli 2'

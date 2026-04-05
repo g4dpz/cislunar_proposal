@@ -1,0 +1,29 @@
+# ION-DTN build artifacts (rebuild with scripts/build-ion.sh)
+ion-build/
+
+# ION-DTN source (symlink — clone separately on each machine)
+ION-DTN
+
+# ION-DTN runtime files
+ion.log
+ion_working_memory
+*.sdrlog
+
+# Go binaries
+ax25send
+ax25recv
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# KISS ionconfig copied to working directory by start scripts
+kiss.ionconfig

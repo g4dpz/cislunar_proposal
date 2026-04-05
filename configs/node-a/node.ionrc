@@ -1,0 +1,25 @@
+## ION initialization for Node A (Engine 1)
+## Terrestrial DTN Phase 1 — two-node KISS CLA setup
+
+## Initialize this node as engine 1
+## Format: 1 <nodeNbr> <configFlags>
+1 1 ''
+
+## Start ION
+s
+
+## Add contact: Node A (1) can reach Node B (2)
+## Format: a contact <fromTime> <toTime> <fromNode> <toNode> <xmitRate>
+## +0 = now, +86400 = 24 hours from now, rate in bytes/sec
+## 120 bytes/sec = 1200 baud with ~10% overhead
+a contact +0 +86400 1 2 120
+a contact +0 +86400 2 1 120
+
+## Add range: distance between nodes (1 = 1 light-second, effectively 0 for terrestrial)
+## Format: a range <fromTime> <toTime> <fromNode> <toNode> <owlt>
+a range +0 +86400 1 2 1
+a range +0 +86400 2 1 1
+
+## Set production and consumption rates
+m production 1000000
+m consumption 1000000

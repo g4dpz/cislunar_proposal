@@ -1,0 +1,20 @@
+## LTP configuration for Node A (Engine 1)
+## Uses KISS CLA (ltpkisscli/ltpkissclo) for serial TNC communication
+
+## Initialize LTP engine
+## Format: 1 <estMaxExportSessions>
+1 32
+
+## Add span to Node B (Engine 2)
+## Format: a span <remoteEngineId> <maxExportSessions> <maxImportSessions>
+##         <maxSegmentSize> <aggrSizeThreshold> <aggrTimeLimit> '<lsoCommand>'
+##
+## maxSegmentSize: 64 (matches MTU in kiss.ionconfig for 1200 baud)
+## aggrSizeThreshold: 64 (aggregate and send when this many bytes queued)
+## aggrTimeLimit: 5 (or after 5 seconds — longer for slow 1200 baud link)
+## lsoCommand: ltpkissclo with remote engine ID
+a span 2 10 10 64 64 5 'ltpkissclo 2'
+
+## Start LTP input (listener) for this engine
+## Format: s '<lsiCommand>'
+s 'ltpkisscli 1'
