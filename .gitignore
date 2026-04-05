@@ -30,4 +30,4 @@ ax25recv
 .kiro/
 
 # KISS ionconfig copied to working directory by start scripts
-kiss.ionconfig
+/kiss.ionconfig

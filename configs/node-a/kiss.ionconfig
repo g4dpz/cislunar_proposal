@@ -1,0 +1,5 @@
+# KISS CLA configuration for Node A (Engine 1)
+# Format: <engineId> <device> <baudRate> <mtu> <maxRate> <flowControl> <srcCall> <srcSSID> <dstCall> <dstSSID>
+#
+# 1200 baud AFSK, MTU 64 bytes, maxRate 120 bytes/sec (1200/10)
+2 /dev/tty.usbmodem20A5329335531 1200 64 120 0 G4DPZ 1 G4DPZ 2
