@@ -14,6 +14,12 @@ echo "Install: $INSTALL_DIR"
 
 mkdir -p "$BUILD_DIR"
 
+# Clean any stale config in the source tree
+if [ -f "$ION_SRC/Makefile" ]; then
+  echo "--- Cleaning stale ION-DTN config ---"
+  make -C "$ION_SRC" distclean 2>/dev/null || true
+fi
+
 # Configure
 echo "--- Configuring ---"
 (
