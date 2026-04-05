@@ -5,7 +5,7 @@
 1 32
 
 ## Add span to Node A (Engine 1)
-a span 1 10 10 64 64 5 'ltpkissclo 1'
+a span 1 10 10 64 64 5 'ltpkisslso 1'
 
 ## Start LTP input for this engine
-s 'ltpkisscli 2'
+s 'ltpkisslsi 1'

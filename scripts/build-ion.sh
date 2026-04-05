@@ -20,6 +20,12 @@ if [ -f "$ION_SRC/Makefile" ]; then
   make -C "$ION_SRC" distclean 2>/dev/null || true
 fi
 
+# Generate configure script if missing
+if [ ! -f "$ION_SRC/configure" ]; then
+  echo "--- Generating configure script (autoreconf) ---"
+  (cd "$ION_SRC" && autoreconf -fi)
+fi
+
 # Configure
 echo "--- Configuring ---"
 (
@@ -55,7 +61,7 @@ make -C "$BUILD_DIR" install
 
 # Verify key binaries
 echo "--- Verifying key binaries ---"
-for bin in ionadmin ltpadmin bpadmin bping bpsink bpsendfile bprecvfile ltpkisscli ltpkissclo; do
+for bin in ionadmin ltpadmin bpadmin bping bpsink bpsendfile bprecvfile ltpkisslsi ltpkisslso; do
   if [ -f "$INSTALL_DIR/bin/$bin" ]; then
     echo "  OK: $bin"
   else

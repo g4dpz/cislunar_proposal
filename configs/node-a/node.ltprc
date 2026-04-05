@@ -13,8 +13,8 @@
 ## aggrSizeThreshold: 64 (aggregate and send when this many bytes queued)
 ## aggrTimeLimit: 5 (or after 5 seconds — longer for slow 1200 baud link)
 ## lsoCommand: ltpkissclo with remote engine ID
-a span 2 10 10 64 64 5 'ltpkissclo 2'
+a span 2 10 10 64 64 5 'ltpkisslso 2'
 
 ## Start LTP input (listener) for this engine
 ## Format: s '<lsiCommand>'
-s 'ltpkisscli 1'
+s 'ltpkisslsi 2'

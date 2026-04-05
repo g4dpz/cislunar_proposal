@@ -5,8 +5,8 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-ION_BIN="$PROJECT_DIR/ion-build/ion-install/bin"
-ION_LIB="$PROJECT_DIR/ion-build/ion-install/lib"
+ION_BIN="$PROJECT_DIR/ion-install/bin"
+ION_LIB="$PROJECT_DIR/ion-install/lib"
 CONFIG_DIR="$PROJECT_DIR/configs/node-a"
 
 export PATH="$ION_BIN:$PATH"

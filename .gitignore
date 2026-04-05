@@ -1,5 +1,6 @@
 # ION-DTN build artifacts (rebuild with scripts/build-ion.sh)
 ion-build/
+ion-install/
 
 # ION-DTN source (symlink — clone separately on each machine)
 ION-DTN

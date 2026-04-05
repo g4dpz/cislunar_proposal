@@ -4,8 +4,8 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-ION_BIN="$PROJECT_DIR/ion-build/ion-install/bin"
-ION_LIB="$PROJECT_DIR/ion-build/ion-install/lib"
+ION_BIN="$PROJECT_DIR/ion-install/bin"
+ION_LIB="$PROJECT_DIR/ion-install/lib"
 
 export PATH="$ION_BIN:$PATH"
 export DYLD_LIBRARY_PATH="$ION_LIB:$DYLD_LIBRARY_PATH"
