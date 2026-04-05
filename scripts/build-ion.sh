@@ -31,6 +31,18 @@ echo "--- Configuring ---"
 
 # Create missing directories for man pages
 mkdir -p "$BUILD_DIR/ltp/kiss/doc"
+mkdir -p "$BUILD_DIR/ltp/doc"
+mkdir -p "$BUILD_DIR/ici/doc"
+mkdir -p "$BUILD_DIR/dgr/doc"
+mkdir -p "$BUILD_DIR/bpv7/doc"
+mkdir -p "$BUILD_DIR/tc/doc"
+mkdir -p "$BUILD_DIR/bss/doc"
+mkdir -p "$BUILD_DIR/dtpc/doc"
+mkdir -p "$BUILD_DIR/bssp/doc"
+mkdir -p "$BUILD_DIR/ams/doc"
+mkdir -p "$BUILD_DIR/cfdp/doc"
+mkdir -p "$BUILD_DIR/nm/doc"
+mkdir -p "$BUILD_DIR/restart/doc"
 
 # Build
 echo "--- Building (this may take a few minutes) ---"
