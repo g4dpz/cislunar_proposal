@@ -26,7 +26,8 @@ echo "--- Configuring ---"
   cd "$BUILD_DIR"
   CFLAGS="-g -O2 -Wno-error" "$ION_SRC/configure" \
     --prefix="$INSTALL_DIR" \
-    --disable-sysctl-check
+    --disable-sysctl-check \
+    --enable-manpages=no
 )
 
 # Create missing directories for man pages
