@@ -1,6 +1,8 @@
 # KISS CLA configuration for Node B (Engine 2)
 # Format: <engineId> <device> <baudRate> <mtu> <maxRate> <flowControl> <srcCall> <srcSSID> <dstCall> <dstSSID>
 #
-# 1200 baud AFSK, MTU 64 bytes, maxRate 120 bytes/sec (1200/10)
-# UPDATE callsigns and device path for your setup
-1 /dev/tty.usbmodem20A5329335531 1200 64 120 0 G4DPZ 2 G4DPZ 1
+# Entry for CLI (own engine ID = 2) and CLO (remote engine ID = 1)
+# Both use the same serial device
+# UPDATE device path for your system (Linux: /dev/ttyACM0 or /dev/ttyUSB0)
+1 /dev/ttyACM0 1200 64 120 0 G4DPZ 2 G4DPZ 1
+2 /dev/ttyACM0 1200 64 120 0 G4DPZ 2 G4DPZ 1
