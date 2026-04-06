@@ -1,7 +1,10 @@
 # KISS CLA configuration for Node A (Engine 1)
-# Format: <engineId> <device> <baudRate> <mtu> <maxRate> <flowControl> <srcCall> <srcSSID> <dstCall> <dstSSID>
+# Format: <engineId> <device> <baudRate> <mtu> <maxRate> <flowControl> <srcCall> <srcSSID> <dstCall> <dstSSID> <burstSize> <listenWindowMs>
+#
+# burstSize:      max segments per TX burst before yielding the channel (default 4)
+# listenWindowMs: RX listen pause in milliseconds after each burst (default 500, 0 = disabled)
 #
 # Entry for CLI (own engine ID = 1) and CLO (remote engine ID = 2)
 # Both use the same serial device
-1 /dev/ttyACM0 1200 64 120 0 G4DPZ 1 G4DPZ 2
-2 /dev/ttyACM0 1200 64 120 0 G4DPZ 1 G4DPZ 2
+1 /dev/ttyACM0 1200 64 120 0 G4DPZ 1 G4DPZ 2 4 500
+2 /dev/ttyACM0 1200 64 120 0 G4DPZ 1 G4DPZ 2 4 500
