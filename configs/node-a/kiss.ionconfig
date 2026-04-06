@@ -3,5 +3,5 @@
 #
 # Entry for CLI (own engine ID = 1) and CLO (remote engine ID = 2)
 # Both use the same serial device
-1 /dev/tty.usbmodem20A5329335531 1200 64 120 0 G4DPZ 1 G4DPZ 2
-2 /dev/tty.usbmodem20A5329335531 1200 64 120 0 G4DPZ 1 G4DPZ 2
+1 /dev/ttyACM0 1200 64 120 0 G4DPZ 1 G4DPZ 2
+2 /dev/ttyACM0 1200 64 120 0 G4DPZ 1 G4DPZ 2
