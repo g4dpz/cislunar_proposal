@@ -4,6 +4,7 @@ ion-install/
 
 # ION-DTN source (symlink — clone separately on each machine)
 ION-DTN
+ION-DTN-1
 
 # ION-DTN runtime files
 ion.log

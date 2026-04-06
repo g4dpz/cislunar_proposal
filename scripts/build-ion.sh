@@ -61,7 +61,7 @@ make -C "$BUILD_DIR" install
 
 # Verify key binaries
 echo "--- Verifying key binaries ---"
-for bin in ionadmin ltpadmin bpadmin bping bpsink bpsendfile bprecvfile ltpkisslsi ltpkisslso; do
+for bin in ionadmin ltpadmin bpadmin bping bpsink bpsendfile bprecvfile ltpkisscli ltpkissclo; do
   if [ -f "$INSTALL_DIR/bin/$bin" ]; then
     echo "  OK: $bin"
   else
