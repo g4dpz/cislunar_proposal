@@ -1,0 +1,20 @@
+## ltprc configuration for cislunar node cislunar-xband-01
+## LTP over AX.25 via X-band 8.4 GHz IQ baseband
+## CGR-predicted contact windows with 1-2 second light-time delay
+## Long-delay session management for deep-space links
+
+## Initialize LTP engine with larger segment size for deep-space
+1 1400
+
+## Add LTP spans for CGR-predicted cislunar contacts
+
+## Contact with node 200 (W4GHI)
+## Start: 01:51:35, Duration: 5h0m0s, Elevation: 80°
+## Light-time delay: 1.28s one-way, RTT: 2.56s
+## Confidence: 0.92
+## LTP timeout configured for deep-space delay (12.56s)
+a span 200 50000 20 500 500 100 5000 'udplso localhost:1113'
+
+
+## Start LTP
+s

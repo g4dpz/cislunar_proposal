@@ -1,0 +1,10 @@
+## ipnrc configuration for cislunar node cislunar-xband-01
+## IPN scheme configuration
+## CGR-predicted contact plans for deep-space communication
+
+## Add plans for CGR-predicted cislunar contacts
+
+## Plan to node 200 (W4GHI)
+## Confidence: 0.92 (degrades faster for cislunar)
+a plan 200 ltp/200
+

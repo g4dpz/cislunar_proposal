@@ -1,0 +1,46 @@
+## ipnrc configuration for LEO node leo-cubesat-01
+## IPN scheme configuration
+## CGR-predicted contact plans
+
+## Add plans for CGR-predicted contacts
+
+## Plan to node 2 (KB2XYZ)
+## Confidence: 0.9992710991107446
+a plan 2 ltp/2
+
+## Plan to node 2 (KB2XYZ)
+## Confidence: 0.9926659155113009
+a plan 2 ltp/2
+
+## Plan to node 1 (KA1ABC)
+## Confidence: 0.9866523801644776
+a plan 1 ltp/1
+
+## Plan to node 2 (KB2XYZ)
+## Confidence: 0.9859674427534906
+a plan 2 ltp/2
+
+## Plan to node 1 (KA1ABC)
+## Confidence: 0.9800965745960194
+a plan 1 ltp/1
+
+## Plan to node 2 (KB2XYZ)
+## Confidence: 0.9793481755958803
+a plan 2 ltp/2
+
+## Plan to node 2 (KB2XYZ)
+## Confidence: 0.9728409027689899
+a plan 2 ltp/2
+
+## Plan to node 2 (KB2XYZ)
+## Confidence: 0.9663097603011461
+a plan 2 ltp/2
+
+## Plan to node 1 (KA1ABC)
+## Confidence: 0.9603891936096217
+a plan 1 ltp/1
+
+## Plan to node 1 (KA1ABC)
+## Confidence: 0.9540078936199501
+a plan 1 ltp/1
+

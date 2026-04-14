@@ -1,0 +1,28 @@
+# Terrestrial DTN Contact Plan
+# Always-on contact between Node A (1) and Node B (2)
+plan_id: "terrestrial-always-on"
+valid_from: 0
+valid_to: 2147483647  # Max int32 - effectively always valid
+
+contacts:
+  - id: "node-a-to-node-b"
+    start_time: 0
+    end_time: 2147483647
+    from_node: 1
+    to_node: 2
+    data_rate: 9600  # 9600 baud
+    confidence: 1.0
+
+  - id: "node-b-to-node-a"
+    start_time: 0
+    end_time: 2147483647
+    from_node: 2
+    to_node: 1
+    data_rate: 9600  # 9600 baud
+    confidence: 1.0
+
+ranges:
+  - start_time: 0
+    from_node: 1
+    to_node: 2
+    distance: 1  # 1 km for terrestrial nodes

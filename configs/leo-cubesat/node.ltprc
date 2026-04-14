@@ -1,0 +1,62 @@
+## ltprc configuration for LEO node leo-cubesat-01
+## LTP over AX.25 via UHF IQ baseband (flight transceiver)
+## CGR-predicted contact windows
+
+## Initialize LTP engine
+1 1400
+
+## Add LTP spans for CGR-predicted contacts
+
+## Contact with node 2 (KB2XYZ)
+## Start: 21:09:44, Duration: 5m0s, Elevation: 19.605061627985993°
+## Confidence: 0.9992710991107446
+a span 2 10000 10 100 9600 100 1000 'udplso localhost:1113'
+
+## Contact with node 2 (KB2XYZ)
+## Start: 22:45:14, Duration: 6m0s, Elevation: 49.17655126458889°
+## Confidence: 0.9926659155113009
+a span 2 10000 10 100 9600 100 1000 'udplso localhost:1113'
+
+## Contact with node 1 (KA1ABC)
+## Start: 00:12:44, Duration: 5m30s, Elevation: 23.49909651949259°
+## Confidence: 0.9866523801644776
+a span 1 10000 10 100 9600 100 1000 'udplso localhost:1113'
+
+## Contact with node 2 (KB2XYZ)
+## Start: 00:22:44, Duration: 4m30s, Elevation: 17.792351616864032°
+## Confidence: 0.9859674427534906
+a span 2 10000 10 100 9600 100 1000 'udplso localhost:1113'
+
+## Contact with node 1 (KA1ABC)
+## Start: 01:48:44, Duration: 6m0s, Elevation: 30.252496288288903°
+## Confidence: 0.9800965745960194
+a span 1 10000 10 100 9600 100 1000 'udplso localhost:1113'
+
+## Contact with node 2 (KB2XYZ)
+## Start: 01:59:44, Duration: 5m0s, Elevation: 17.98621797314158°
+## Confidence: 0.9793481755958803
+a span 2 10000 10 100 9600 100 1000 'udplso localhost:1113'
+
+## Contact with node 2 (KB2XYZ)
+## Start: 03:35:44, Duration: 6m30s, Elevation: 53.21573087211572°
+## Confidence: 0.9728409027689899
+a span 2 10000 10 100 9600 100 1000 'udplso localhost:1113'
+
+## Contact with node 2 (KB2XYZ)
+## Start: 05:12:44, Duration: 5m0s, Elevation: 18.83254854342892°
+## Confidence: 0.9663097603011461
+a span 2 10000 10 100 9600 100 1000 'udplso localhost:1113'
+
+## Contact with node 1 (KA1ABC)
+## Start: 06:41:14, Duration: 5m0s, Elevation: 18.75106687960789°
+## Confidence: 0.9603891936096217
+a span 1 10000 10 100 9600 100 1000 'udplso localhost:1113'
+
+## Contact with node 1 (KA1ABC)
+## Start: 08:17:14, Duration: 6m0s, Elevation: 51.24559536305834°
+## Confidence: 0.9540078936199501
+a span 1 10000 10 100 9600 100 1000 'udplso localhost:1113'
+
+
+## Start LTP
+s

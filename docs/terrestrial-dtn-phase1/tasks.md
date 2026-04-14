@@ -71,94 +71,94 @@ The ION-DTN KISS CLA is located at `ION-DTN/ltp/kiss/` and provides `ltpkissclo`
 
 - [x] 6. Checkpoint — ION-DTN configuration files created for two-node setup
 
-- [ ] 7. Test ION-DTN bping over KISS CLA
-  - [ ] 7.1 Start ION-DTN on both nodes
+- [x] 7. Test ION-DTN bping over KISS CLA
+  - [x] 7.1 Start ION-DTN on both nodes
     - Run startup scripts on Node A and Node B
     - Verify ION-DTN initializes without errors (`ion.log`)
     - Verify `ltpkisscli` and `ltpkissclo` processes are running
     - _Requirements: all_
 
-  - [ ] 7.2 Run bping from Node A to Node B
+  - [x] 7.2 Run bping from Node A to Node B
     - Execute `bping ipn:1.1 ipn:2.1 -c 5` on Node A
     - Verify ping responses received from Node B
     - Record round-trip times
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-  - [ ] 7.3 Run bping from Node B to Node A
+  - [x] 7.3 Run bping from Node B to Node A
     - Execute `bping ipn:2.1 ipn:1.1 -c 5` on Node B
     - Verify ping responses received from Node A
     - Confirm half-duplex DTN ping works in both directions
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 8. Checkpoint — DTN ping validated over KISS CLA + TNC4 + FT-817
+- [x] 8. Checkpoint — DTN ping validated over KISS CLA + TNC4 + FT-817
 
-- [ ] 9. Test ION-DTN store-and-forward over KISS CLA
-  - [ ] 9.1 Test bpsendfile / bprecvfile
+- [x] 9. Test ION-DTN store-and-forward over KISS CLA
+  - [x] 9.1 Test bpsendfile / bprecvfile
     - Start `bprecvfile ipn:2.1 1` on Node B
     - Send a test file from Node A: `bpsendfile ipn:1.1 ipn:2.1 testfile.txt`
     - Verify file received intact on Node B (checksum comparison)
     - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-  - [ ] 9.2 Test store-and-forward with delayed contact
+  - [x] 9.2 Test store-and-forward with delayed contact
     - Send a bundle from Node A while Node B is offline (no contact window active)
     - Verify bundle is stored by ION-DTN on Node A
     - Start Node B and establish contact
     - Verify bundle is delivered to Node B when contact opens
     - _Requirements: 2.1, 2.2, 5.2, 5.5_
 
-  - [ ] 9.3 Test priority-based delivery
+  - [x] 9.3 Test priority-based delivery
     - Send multiple bundles with different priorities (bulk, normal, expedited, critical)
     - Verify ION-DTN delivers them in priority order during the contact window
     - _Requirements: 5.3, 11.1, 11.2_
 
-  - [ ] 9.4 Test bundle lifetime expiry
+  - [x] 9.4 Test bundle lifetime expiry
     - Send a bundle with a short lifetime (e.g., 30 seconds)
     - Wait for the lifetime to expire before establishing contact
     - Verify the bundle is not delivered (expired and removed by ION-DTN)
     - _Requirements: 3.1, 3.2_
 
-- [ ] 10. Checkpoint — Store-and-forward validated over KISS CLA
+- [x] 10. Checkpoint — Store-and-forward validated over KISS CLA
 
-- [ ] 11. Test BPSec integrity over KISS CLA
-  - [ ] 11.1 Configure BPSec on both nodes
+- [x] 11. Test BPSec integrity over KISS CLA
+  - [x] 11.1 Configure BPSec on both nodes
     - Create `configs/node-a/node.bpsecrc` and `configs/node-b/node.bpsecrc`
     - Configure HMAC-SHA-256 integrity rules with pre-shared keys
     - No encryption (amateur radio compliance)
     - _Requirements: 10.1, 10.2, 10.4_
 
-  - [ ] 11.2 Test bundle integrity verification
+  - [x] 11.2 Test bundle integrity verification
     - Send a bundle with BPSec integrity from Node A to Node B
     - Verify Node B accepts the bundle (integrity check passes)
     - _Requirements: 10.1, 10.3_
 
-  - [ ]* 11.3 Test integrity failure detection
+  - [x]* 11.3 Test integrity failure detection
     - Attempt to send a bundle with an incorrect integrity key
     - Verify Node B rejects the bundle (integrity check fails)
     - _Requirements: 10.3_
 
-- [ ] 12. Checkpoint — BPSec integrity validated
+- [x] 12. Checkpoint — BPSec integrity validated
 
-- [ ] 13. Build Go orchestration wrapper
-  - [ ] 13.1 Create Go wrapper for ION-DTN node lifecycle
+- [x] 13. Build Go orchestration wrapper
+  - [x] 13.1 Create Go wrapper for ION-DTN node lifecycle
     - Implement `Start()` — execute ionadmin/ltpadmin/bpadmin with config files
     - Implement `Stop()` — execute ionstop for clean shutdown
     - Implement `IsRunning()` — check if ION-DTN processes are alive
     - Handle Ctrl+C for graceful shutdown
     - _Requirements: 14.3_
 
-  - [ ] 13.2 Create Go wrapper for telemetry collection
+  - [x] 13.2 Create Go wrapper for telemetry collection
     - Query ION-DTN status via `bpadmin`/`ltpadmin` commands
     - Parse output to extract: bundles stored, bundles sent, bundles received, contacts completed/missed
     - Expose telemetry via local interface (JSON file or HTTP endpoint)
     - _Requirements: 13.1, 13.2, 13.3, 13.4_
 
-  - [ ] 13.3 Create Go wrapper for contact plan management
+  - [x] 13.3 Create Go wrapper for contact plan management
     - Load contact plan from a YAML/JSON config file
     - Generate ION-DTN `ionadmin` contact/range commands
     - Support adding/removing contacts at runtime via `ionadmin`
     - _Requirements: 7.1, 7.2, 7.3, 7.6, 7.7_
 
-  - [ ] 13.4 Create unified CLI for node operation
+  - [x] 13.4 Create unified CLI for node operation
     - Create `cmd/dtn-node/main.go` — single entry point for starting a terrestrial DTN node
     - Parse config file (node ID, callsign, TNC device, contact plan, ION-DTN config paths)
     - Start ION-DTN, monitor health, expose telemetry, handle shutdown
@@ -170,27 +170,27 @@ The ION-DTN KISS CLA is located at `ION-DTN/ltp/kiss/` and provides `ltpkissclo`
     - Test telemetry parsing
     - _Requirements: 13.1, 13.2_
 
-- [ ] 14. Checkpoint — Go orchestration wrapper complete
+- [x] 14. Checkpoint — Go orchestration wrapper complete
 
-- [ ] 15. End-to-end integration validation
-  - [ ] 15.1 Run full end-to-end test using Go wrapper
+- [x] 15. End-to-end integration validation
+  - [x] 15.1 Run full end-to-end test using Go wrapper
     - Start both nodes using `cmd/dtn-node`
     - Run bping in both directions
     - Send files in both directions
     - Verify telemetry reports correct statistics
     - _Requirements: all_
 
-  - [ ] 15.2 Run extended duration test
+  - [x] 15.2 Run extended duration test
     - Run both nodes for 1+ hours with periodic bundle exchanges
     - Verify no memory leaks, no process crashes, telemetry remains accurate
     - _Requirements: 15.1, 13.1, 13.2_
 
-  - [ ]* 15.3 Document operational procedures
+  - [x]* 15.3 Document operational procedures
     - Write a README with setup instructions, configuration guide, and troubleshooting
     - Include device mapping for the two Mobilinkd TNC4 devices
     - _Requirements: all_
 
-- [ ] 16. Final checkpoint — Phase 1 terrestrial DTN validated
+- [x] 16. Final checkpoint — Phase 1 terrestrial DTN validated
 
 ## Notes
 

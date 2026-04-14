@@ -1,0 +1,10 @@
+# DTN Node Configuration - Node A
+node_id: "node-a"
+node_number: 1
+callsign: "G4DPZ-1"
+config_dir: "./configs/node-a"
+ion_install: "./ion-install"
+contact_plan_file: "./configs/terrestrial-contact-plan.yaml"
+telemetry_port: 8080
+telemetry_file: "./telemetry-node-a.json"
+health_interval: 10

@@ -1,0 +1,62 @@
+## bprc configuration for LEO node leo-cubesat-01
+## Bundle Protocol v7 configuration
+## CGR-predicted contact windows for autonomous store-and-forward
+
+## Initialize BP
+1
+
+## Add endpoints for this node
+a endpoint ipn:10.0 q
+a endpoint ipn:10.1 q
+a endpoint ipn:10.2 q
+a endpoint ipn:10.10 q  ## telemetry endpoint
+
+
+## Add protocols
+a protocol ipn:10 ltp/10
+
+## Add outducts for CGR-predicted contacts
+
+## Outduct to node 2 (KB2XYZ)
+## Pass window: 21:09:44 for 5m0s
+a outduct ltp/2 ltp/2
+
+## Outduct to node 2 (KB2XYZ)
+## Pass window: 22:45:14 for 6m0s
+a outduct ltp/2 ltp/2
+
+## Outduct to node 1 (KA1ABC)
+## Pass window: 00:12:44 for 5m30s
+a outduct ltp/1 ltp/1
+
+## Outduct to node 2 (KB2XYZ)
+## Pass window: 00:22:44 for 4m30s
+a outduct ltp/2 ltp/2
+
+## Outduct to node 1 (KA1ABC)
+## Pass window: 01:48:44 for 6m0s
+a outduct ltp/1 ltp/1
+
+## Outduct to node 2 (KB2XYZ)
+## Pass window: 01:59:44 for 5m0s
+a outduct ltp/2 ltp/2
+
+## Outduct to node 2 (KB2XYZ)
+## Pass window: 03:35:44 for 6m30s
+a outduct ltp/2 ltp/2
+
+## Outduct to node 2 (KB2XYZ)
+## Pass window: 05:12:44 for 5m0s
+a outduct ltp/2 ltp/2
+
+## Outduct to node 1 (KA1ABC)
+## Pass window: 06:41:14 for 5m0s
+a outduct ltp/1 ltp/1
+
+## Outduct to node 1 (KA1ABC)
+## Pass window: 08:17:14 for 6m0s
+a outduct ltp/1 ltp/1
+
+
+## Start BP
+s

@@ -1,0 +1,18 @@
+## ipnrc configuration for cislunar node cislunar-sband-01
+## IPN scheme configuration
+## CGR-predicted contact plans for deep-space communication
+
+## Add plans for CGR-predicted cislunar contacts
+
+## Plan to node 100 (W1ABC)
+## Confidence: 0.9 (degrades faster for cislunar)
+a plan 100 ltp/100
+
+## Plan to node 101 (K2XYZ)
+## Confidence: 0.85 (degrades faster for cislunar)
+a plan 101 ltp/101
+
+## Plan to node 102 (N3DEF)
+## Confidence: 0.75 (degrades faster for cislunar)
+a plan 102 ltp/102
+

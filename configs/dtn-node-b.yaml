@@ -1,0 +1,10 @@
+# DTN Node Configuration - Node B
+node_id: "node-b"
+node_number: 2
+callsign: "G4DPZ-2"
+config_dir: "./configs/node-b"
+ion_install: "./ion-install"
+contact_plan_file: "./configs/terrestrial-contact-plan.yaml"
+telemetry_port: 8081
+telemetry_file: "./telemetry-node-b.json"
+health_interval: 10

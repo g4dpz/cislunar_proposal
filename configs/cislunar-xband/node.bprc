@@ -1,0 +1,28 @@
+## bprc configuration for cislunar node cislunar-xband-01
+## Bundle Protocol v7 configuration
+## CGR-predicted contact windows for deep-space store-and-forward
+## Long-duration message storage for extended contact gaps
+
+## Initialize BP
+1
+
+## Add endpoints for this node
+a endpoint ipn:20.0 q
+a endpoint ipn:20.1 q
+a endpoint ipn:20.2 q
+a endpoint ipn:20.10 q  ## telemetry endpoint
+
+
+## Add protocols
+a protocol ipn:20 ltp/20
+
+## Add outducts for CGR-predicted cislunar contacts
+
+## Outduct to node 200 (W4GHI)
+## Pass window: 01:51:35 for 5h0m0s
+## Light-time delay: 1.28s one-way
+a outduct ltp/200 ltp/200
+
+
+## Start BP
+s

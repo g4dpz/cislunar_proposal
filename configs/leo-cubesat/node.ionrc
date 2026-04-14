@@ -1,0 +1,13 @@
+## ionrc configuration for LEO node leo-cubesat-01
+## STM32U585 OBC + Flight IQ Transceiver
+## Generated: 2026-04-13T20:59:14+01:00
+
+## Initialize ION node
+1 10 ''
+
+## Configure memory (SRAM: 804864 bytes, NVM: 134217728 bytes)
+## SRAM for in-flight bundles and IQ buffers
+## External NVM for persistent bundle storage
+s
+
+## Start ION

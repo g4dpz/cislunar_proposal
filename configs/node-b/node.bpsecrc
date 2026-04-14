@@ -1,0 +1,27 @@
+## node.bpsecrc for Node B (Engine 2)
+## BPSec (RFC 9172) configuration for bundle integrity protection
+## Amateur radio compliance: NO ENCRYPTION - integrity only (HMAC-SHA-256)
+
+## Initialize BPSec
+1
+
+## Add shared key for HMAC-SHA-256 integrity
+## Key name: INTEGRITY_KEY_AB
+## Key file: configs/node-b/bpsec_key.txt
+## IMPORTANT: This must be the SAME key as Node A for integrity verification
+a key INTEGRITY_KEY_AB configs/node-b/bpsec_key.txt
+
+## Add BIB (Block Integrity Block) rule
+## Protects bundles from Node B (ipn:2.*) to Node A (ipn:1.*)
+## Uses HMAC-SHA-256 (BIB-HMAC-SHA2 context)
+## Security context ID: 1 (BIB-HMAC-SHA2)
+## Target block: 1 (payload block)
+a bibrule ipn:2.* ipn:1.* 1 INTEGRITY_KEY_AB
+
+## Add BIB verification rule for incoming bundles
+## Verifies bundles from Node A (ipn:1.*) to Node B (ipn:2.*)
+a bibverify ipn:1.* ipn:2.* 1 INTEGRITY_KEY_AB
+
+## List all keys and rules (for verification)
+l key
+l bibrule

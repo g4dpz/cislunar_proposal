@@ -1,0 +1,14 @@
+## ionrc configuration for cislunar node cislunar-cgr-01
+## STM32U585 OBC (or higher-capability processor) + IQ Transceiver
+## Deep-space DTN with 1-2 second light-time delay
+## Generated: 2026-04-13T21:51:35+01:00
+
+## Initialize ION node
+1 30 ''
+
+## Configure memory for long-duration message storage
+## SRAM: 804864 bytes (in-flight bundles and IQ buffers)
+## NVM: 536870912 bytes (persistent bundle storage for extended contact gaps)
+s
+
+## Start ION

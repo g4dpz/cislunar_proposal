@@ -1,0 +1,38 @@
+## bprc configuration for cislunar node cislunar-sband-01
+## Bundle Protocol v7 configuration
+## CGR-predicted contact windows for deep-space store-and-forward
+## Long-duration message storage for extended contact gaps
+
+## Initialize BP
+1
+
+## Add endpoints for this node
+a endpoint ipn:10.0 q
+a endpoint ipn:10.1 q
+a endpoint ipn:10.2 q
+a endpoint ipn:10.10 q  ## telemetry endpoint
+
+
+## Add protocols
+a protocol ipn:10 ltp/10
+
+## Add outducts for CGR-predicted cislunar contacts
+
+## Outduct to node 100 (W1ABC)
+## Pass window: 23:51:35 for 3h0m0s
+## Light-time delay: 1.28s one-way
+a outduct ltp/100 ltp/100
+
+## Outduct to node 101 (K2XYZ)
+## Pass window: 09:51:35 for 4h0m0s
+## Light-time delay: 1.3s one-way
+a outduct ltp/101 ltp/101
+
+## Outduct to node 102 (N3DEF)
+## Pass window: 21:51:35 for 2h0m0s
+## Light-time delay: 1.32s one-way
+a outduct ltp/102 ltp/102
+
+
+## Start BP
+s

@@ -1,0 +1,55 @@
+## ionconfig for cislunar node cislunar-xband-01
+## CGR-predicted cislunar pass configuration
+## STM32U585 (or higher-capability processor) + IQ Transceiver
+## X-band 8.4 GHz with BPSK + LDPC/Turbo FEC
+
+## Node configuration
+NODE_NUMBER=20
+CALLSIGN=K0XRAY
+STORAGE_BYTES=1073741824
+SRAM_BYTES=2097152
+
+## X-band 8.4 GHz IQ transceiver configuration
+RADIO_TYPE=cislunar_iq
+CENTER_FREQ=8400000000
+SAMPLE_RATE=10000000
+TX_GAIN=15
+RX_GAIN=40
+MODULATION=BPSK
+FEC_TYPE=Turbo
+FEC_ENABLED=true
+
+## Orbital parameters (for CGR re-prediction)
+
+ORBITAL_EPOCH=2026-04-13T21:51:35+01:00
+SEMI_MAJOR_AXIS_M=3.844e+08
+ECCENTRICITY=0.05
+INCLINATION_DEG=5
+RAAN_DEG=45
+ARG_PERIAPSIS_DEG=90
+TRUE_ANOMALY_DEG=0
+
+
+## CGR-predicted cislunar passes (hours duration, 500 bps)
+
+CONTACT_0_REMOTE=200
+CONTACT_0_CALLSIGN=W4GHI
+CONTACT_0_START=2026-04-14T01:51:35+01:00
+CONTACT_0_DURATION=18000
+CONTACT_0_RATE=500
+CONTACT_0_MAX_ELEVATION=80
+CONTACT_0_CONFIDENCE=0.92
+CONTACT_0_LIGHT_TIME_DELAY=1.28
+
+
+## Telemetry configuration
+TELEMETRY_ENABLED=true
+
+TELEMETRY_ENDPOINT=ipn:20.10
+TELEMETRY_INTERVAL=300  ## seconds (5 min for cislunar)
+
+
+## Deep-space configuration
+LIGHT_TIME_DELAY=1.28  ## seconds (1-2s for Earth-Moon)
+LONG_DURATION_STORAGE=true
+EXTENDED_CONTACT_GAPS=true
