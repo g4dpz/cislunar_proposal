@@ -46,7 +46,7 @@ Built on NASA JPL's **ION-DTN** (Interplanetary Overlay Network), this project i
 
 - **Hardware**: STM32U585 OBC + Ettus B200mini SDR + External NVM
 - **Link**: UHF 437 MHz / S-band 2.2 GHz
-- **Purpose**: Validate flight software, power budget, thermal/vacuum readiness
+- **Purpose**: Validate flight software, power budget
 - **Key**: Identical software stack to flight unit, lab-grade RF front-end
 
 [📖 Phase 2 Documentation](docs/cubesat-em-phase2/)
