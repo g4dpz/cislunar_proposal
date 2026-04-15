@@ -49,7 +49,7 @@ Built on NASA JPL's **ION-DTN** (Interplanetary Overlay Network), this project i
 - **Purpose**: Validate DTN over real satellite link with constant visibility
 - **Key**: First space-based DTN demonstration before LEO orbital complexity
 
-[📖 Phase 1.5 Documentation](.kiro/specs/qo-100-geo-satellite-dtn/)
+[📖 Phase 1.5 Documentation](docs/qo-100-geo-satellite-dtn/)
 
 ---
 
@@ -408,7 +408,7 @@ For questions, issues, or collaboration:
 | Phase | Status | Hardware | Link | Documentation |
 |-------|--------|----------|------|---------------|
 | **Phase 1: Terrestrial** | ✅ Complete | RPi + TNC4 + FT-817 | VHF/UHF 9600 baud | [📖 Docs](docs/terrestrial-dtn-phase1/) |
-| **Phase 1.5: QO-100 GEO** | 📋 Planned | Ground station | 2.4 GHz up / 10 GHz down | [📖 Docs](.kiro/specs/qo-100-geo-satellite-dtn/) |
+| **Phase 1.5: QO-100 GEO** | 📋 Planned | Ground station | 2.4 GHz up / 10 GHz down | [📖 Docs](docs/qo-100-geo-satellite-dtn/) |
 | **Phase 2: EM** | 📋 Planned | STM32U585 + B200mini | UHF/S-band | [📖 Docs](docs/cubesat-em-phase2/) |
 | **Phase 3: LEO** | 📋 Planned | STM32U585 + IQ Radio | UHF 437 MHz | [📖 Docs](docs/leo-cubesat-phase3/) |
 | **Phase 4: Cislunar** | 📋 Planned | STM32U585+ | S/X-band | [📖 Docs](docs/cislunar-phase4/) |
