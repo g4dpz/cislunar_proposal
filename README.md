@@ -41,7 +41,7 @@ Built on NASA JPL's **ION-DTN** (Interplanetary Overlay Network), this project i
 
 ---
 
-### Phase 2: CubeSat Engineering Model (EM) 🔧 **IN PROGRESS**
+### Phase 2: CubeSat Engineering Model (EM) 🔧 **PLANNED**
 **Ground-based flatsat with flight-representative hardware**
 
 - **Hardware**: STM32U585 OBC + Ettus B200mini SDR + External NVM
