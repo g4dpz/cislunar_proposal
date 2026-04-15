@@ -27,7 +27,7 @@ Built on NASA JPL's **ION-DTN** (Interplanetary Overlay Network), this project i
 
 ---
 
-## 🚀 Four-Phase Roadmap
+## 🚀 Five-Phase Roadmap
 
 ### Phase 1: Terrestrial DTN Validation ✅ **COMPLETE**
 **Ground-based validation using commercial amateur radio equipment**
@@ -41,12 +41,24 @@ Built on NASA JPL's **ION-DTN** (Interplanetary Overlay Network), this project i
 
 ---
 
-### Phase 2: CubeSat Engineering Model (EM) 🔧 **PLANNED**
+### Phase 1.5: QO-100 GEO Satellite DTN 🛰️ **PLANNED**
+**Geostationary satellite demonstration using QO-100 amateur transponder**
+
+- **Hardware**: Ground station with 2.4 GHz uplink + 10 GHz downlink
+- **Link**: QO-100 narrowband transponder (Es'hail-2 satellite)
+- **Purpose**: Validate DTN over real satellite link with constant visibility
+- **Key**: First space-based DTN demonstration before LEO orbital complexity
+
+[📖 Phase 1.5 Documentation](.kiro/specs/qo-100-geo-satellite-dtn/)
+
+---
+
+### Phase 2: CubeSat Engineering Model (EM) 📋 **PLANNED**
 **Ground-based flatsat with flight-representative hardware**
 
 - **Hardware**: STM32U585 OBC + Ettus B200mini SDR + External NVM
 - **Link**: UHF 437 MHz / S-band 2.2 GHz
-- **Purpose**: Validate flight software, power budget
+- **Purpose**: Validate flight software, power budget, thermal/vacuum readiness
 - **Key**: Identical software stack to flight unit, lab-grade RF front-end
 
 [📖 Phase 2 Documentation](docs/cubesat-em-phase2/)
@@ -396,7 +408,8 @@ For questions, issues, or collaboration:
 | Phase | Status | Hardware | Link | Documentation |
 |-------|--------|----------|------|---------------|
 | **Phase 1: Terrestrial** | ✅ Complete | RPi + TNC4 + FT-817 | VHF/UHF 9600 baud | [📖 Docs](docs/terrestrial-dtn-phase1/) |
-| **Phase 2: EM** | 🔧 In Progress | STM32U585 + B200mini | UHF/S-band | [📖 Docs](docs/cubesat-em-phase2/) |
+| **Phase 1.5: QO-100 GEO** | 📋 Planned | Ground station | 2.4 GHz up / 10 GHz down | [📖 Docs](.kiro/specs/qo-100-geo-satellite-dtn/) |
+| **Phase 2: EM** | 📋 Planned | STM32U585 + B200mini | UHF/S-band | [📖 Docs](docs/cubesat-em-phase2/) |
 | **Phase 3: LEO** | 📋 Planned | STM32U585 + IQ Radio | UHF 437 MHz | [📖 Docs](docs/leo-cubesat-phase3/) |
 | **Phase 4: Cislunar** | 📋 Planned | STM32U585+ | S/X-band | [📖 Docs](docs/cislunar-phase4/) |
 
