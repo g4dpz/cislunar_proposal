@@ -28,6 +28,7 @@ integration.test
 
 # IDE
 .idea/
+.vscode/
 *.swp
 *.swo
 *~
