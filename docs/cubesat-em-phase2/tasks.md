@@ -2,7 +2,7 @@
 
 ## Overview
 
-This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C firmware on the STM32U585 (ION-DTN BPv7/LTP, AX.25 CLA, IQ baseband DSP, NVM bundle store, TrustZone crypto, power management, static pool allocator) and Go orchestration on the Companion Host (Node Controller, Contact Plan Manager, IQ Bridge, telemetry, test orchestration). Tasks are ordered so each builds on the previous, with property-based tests (theft for C, rapid for Go) placed close to the code they validate.
+This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C firmware on the STM32U585 (ION-DTN BPv7/LTP, AX.25 CLA, IQ baseband DSP, NVM bundle store, power management, static pool allocator) and Go orchestration on the Companion Host (Node Controller, Contact Plan Manager, IQ Bridge, telemetry, test orchestration). Tasks are ordered so each builds on the previous, with property-based tests (theft for C, rapid for Go) placed close to the code they validate.
 
 ## Tasks
 
@@ -58,22 +58,6 @@ This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C fir
     - Multi-pool isolation (allocating from one pool does not affect another)
     - _Requirements: 14.2_
 
-- [ ] 4. TrustZone Secure Crypto Service (C — STM32U585)
-  - [ ] 2.1 Implement TrustZone secure/non-secure partition and secure API
-    - Configure SAU/IDAU for secure/non-secure memory regions
-    - Implement `secure_hmac_sign`, `secure_hmac_verify`, `secure_provision_key`, `secure_get_key_count` as Non-Secure Callable (NSC) functions
-    - Use STM32U585 HASH peripheral (hardware crypto accelerator) for HMAC-SHA-256
-    - Store keys in secure flash, never exposed to non-secure world
-    - Log SecureFault on unauthorized access attempts
-    - _Requirements: 12.1, 12.2, 12.3, 12.4, 11.3, 11.5_
-
-  - [ ]* 2.2 Write unit tests for TrustZone secure API
-    - HMAC sign/verify with known NIST test vectors
-    - Key provisioning and retrieval by key_id
-    - Rejection of invalid key_id
-    - _Requirements: 12.2_
-
-
 - [ ] 5. Bundle Protocol Agent — Core (C — STM32U585)
   - [ ] 3.1 Implement BPA data types and bundle creation (`bpa_create_bundle`, `bpa_create_ping`)
     - Define `endpoint_id_t`, `bundle_id_t`, `priority_t`, `bundle_type_t`, `bundle_t`, `bpa_error_t`
@@ -92,7 +76,7 @@ This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C fir
   - [ ] 3.3 Implement BPv7 CBOR serialization/deserialization (`bpa_serialize`, `bpa_deserialize`)
     - Serialize bundle to BPv7 CBOR wire format into caller-provided buffer
     - Deserialize CBOR wire format into `bundle_t`, allocating payload from pool
-    - Include primary block, payload block, and optional BPSec BIB
+    - Include primary block, payload block
     - _Requirements: 1.5_
 
   - [ ]* 3.4 Write property test: Bundle Creation Correctness (theft)
@@ -125,21 +109,9 @@ This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C fir
     - Verify exactly one response with correct destination and request bundle ID in payload
     - **Validates: Requirements 4.1, 4.2, 4.4**
 
-  - [ ] 3.9 Implement BPSec integrity (`bpa_apply_integrity`, `bpa_verify_integrity`)
-    - Apply BPSec BIB (HMAC-SHA-256) via TrustZone secure API call (`secure_hmac_sign`)
-    - Verify BIB via TrustZone secure API call (`secure_hmac_verify`)
-    - No BCB/encryption — amateur radio compliance
-    - Discard bundles that fail integrity verification, log with source EID
-    - _Requirements: 11.1, 11.2, 11.3, 11.4_
-
-  - [ ]* 3.10 Write property test: BPSec Integrity Round-Trip (theft)
-    - **Property 20: BPSec Integrity Round-Trip**
-    - Generate random bundles and keys. Apply integrity via TrustZone mock. Verify passes. Mutate bundle. Verify fails
-    - **Validates: Requirements 11.1, 11.4**
-
-  - [ ]* 3.11 Write property test: No Encryption Constraint (theft)
+  - [ ]* 3.9 Write property test: No Encryption Constraint (theft)
     - **Property 21: No Encryption Constraint**
-    - Generate random bundles. Process through BPA. Verify no BCB blocks present in output
+    - Generate random bundles. Process through BPA. Verify no encrypted blocks present in output
     - **Validates: Requirements 11.2**
 
   - [ ] 3.12 Implement rate limiting and bundle size enforcement
@@ -181,7 +153,7 @@ This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C fir
     - Free pool-allocated payload and raw_cbor buffers
     - _Requirements: 14.2_
 
-- [ ] 6. Checkpoint — Pool allocator, TrustZone, and BPA core
+- [ ] 6. Checkpoint — Pool allocator and BPA core
   - Ensure all tests pass, ask the user if questions arise.
 
 
@@ -352,7 +324,7 @@ This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C fir
 
 - [ ] 13. Firmware Main Loop and Operation Cycle (C — STM32U585)
   - [ ] 11.1 Implement firmware main loop integrating all C subsystems
-    - Initialize: pool allocator → TrustZone → NVM store reload → BPA → CLA → DSP → power manager → UART handler
+    - Initialize: pool allocator → NVM store reload → BPA → CLA → DSP → power manager → UART handler
     - Main loop: process UART commands → check contacts → transmit queued bundles via IQ baseband → process received bundles → run cleanup → check sleep condition
     - Complete full operation cycle within 1 second
     - Handle error scenarios: NVM full (evict + reject), CRC failure (discard + log), pool exhaustion (reject + log)

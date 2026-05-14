@@ -19,7 +19,7 @@ Built on NASA JPL's **ION-DTN** (Interplanetary Overlay Network), this project i
 
 **Key Features:**
 - 📡 AX.25 link-layer framing with callsign addressing (amateur radio compliance)
-- 🔐 BPSec integrity protection (HMAC-SHA256, no encryption per regulations)
+- 🚫 No cryptography (amateur radio regulatory compliance)
 - 🛰️ Automated orbital pass prediction using Contact Graph Routing (CGR)
 - 🔄 Priority-based bundle handling (critical, expedited, normal, bulk)
 - 💾 Persistent bundle storage surviving power cycles
@@ -35,7 +35,7 @@ Built on NASA JPL's **ION-DTN** (Interplanetary Overlay Network), this project i
 - **Hardware**: Raspberry Pi + Mobilinkd TNC4 + Yaesu FT-817
 - **Link**: VHF/UHF at 9600 baud (G3RUH GFSK)
 - **Status**: Two-node terrestrial network operational
-- **Validated**: Ping, store-and-forward, BPSec integrity, telemetry
+- **Validated**: Ping, store-and-forward, telemetry
 
 [📖 Phase 1 Documentation](docs/terrestrial-dtn-phase1/) | [🎯 Quick Start](#quick-start-phase-1)
 
@@ -163,8 +163,6 @@ bpsendfile ipn:1.1 ipn:2.1 test-message.txt
 ├─────────────────────────────────────┤
 │   BPv7 (Bundle Protocol)            │
 ├─────────────────────────────────────┤
-│   BPSec (Integrity - HMAC-SHA-256)  │
-├─────────────────────────────────────┤
 │   LTP (Licklider Transmission)      │
 ├─────────────────────────────────────┤
 │   AX.25 (Amateur Radio Link Layer)  │
@@ -200,7 +198,7 @@ bpsendfile ipn:1.1 ipn:2.1 test-message.txt
 ├── pkg/
 │   ├── ion/                    # ION-DTN Go wrapper
 │   ├── contact/                # Contact plan manager + CGR
-│   ├── security/               # BPSec + rate limiting
+│   ├── security/               # Rate limiting
 │   ├── iq/                     # IQ baseband processing
 │   ├── linkbudget/             # Link budget calculations
 │   └── store/                  # Bundle storage
@@ -285,14 +283,9 @@ go test -v ./pkg/store -run Property -gopter.minSuccessfulTests=1000
 
 ## 🔐 Security
 
-### BPSec Integrity Protection
+### Amateur Radio Regulatory Compliance
 
-All bundles can be protected with HMAC-SHA256 integrity blocks:
-
-- ✅ Bundle origin authentication
-- ✅ Tamper detection
-- ✅ Pre-shared key management
-- ❌ No encryption (amateur radio regulations require unencrypted transmissions)
+No cryptographic operations are used in this project. Amateur radio regulations prohibit encryption and cryptography on transmitted signals.
 
 ### Rate Limiting
 
@@ -301,14 +294,6 @@ Configurable rate limiting prevents bundle flooding attacks:
 - Per-source endpoint rate limits
 - Maximum bundle size enforcement
 - Storage capacity protection
-
-### Hardware Security (Phases 2-4)
-
-STM32U585-based nodes leverage hardware security features:
-
-- **Hardware Crypto Accelerator**: AES-256, SHA-256, PKA
-- **TrustZone**: Secure key storage isolated from application code
-- **Secure Boot**: Verified firmware loading
 
 ---
 
@@ -337,7 +322,6 @@ STM32U585-based nodes leverage hardware security features:
 
 - [ION-DTN Documentation](https://sourceforge.net/projects/ion-dtn/)
 - [RFC 9171: Bundle Protocol Version 7](https://www.rfc-editor.org/rfc/rfc9171.html)
-- [RFC 9172: Bundle Protocol Security (BPSec)](https://www.rfc-editor.org/rfc/rfc9172.html)
 - [RFC 5326: Licklider Transmission Protocol (LTP)](https://www.rfc-editor.org/rfc/rfc5326.html)
 - [AX.25 Link Access Protocol](http://www.ax25.net/AX25.2.2-Jul%2098-2.pdf)
 

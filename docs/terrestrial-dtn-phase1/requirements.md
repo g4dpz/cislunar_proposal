@@ -6,7 +6,7 @@ This document specifies the requirements for Phase 1 of the cislunar amateur DTN
 
 The system supports two core operations: ping (DTN reachability test) and store-and-forward (point-to-point bundle delivery). There is no relay functionality — nodes do not forward bundles on behalf of other nodes. All bundle delivery is direct (source → destination).
 
-The protocol stack is BPv7 bundles over LTP sessions over AX.25 frames. AX.25 provides callsign-based source/destination addressing for amateur radio regulatory compliance. LTP provides reliable transfer with deferred acknowledgment. BPSec provides integrity protection (no encryption, per amateur radio regulations requiring transmissions to be unencrypted).
+The protocol stack is BPv7 bundles over LTP sessions over AX.25 frames. AX.25 provides callsign-based source/destination addressing for amateur radio regulatory compliance. LTP provides reliable transfer with deferred acknowledgment. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
 
 This spec is scoped exclusively to terrestrial ground nodes. STM32U585 OBC, IQ baseband/SDR, Ettus B200mini, CGR contact prediction, orbital mechanics, space segment (CubeSat, cislunar), S-band/X-band communications, and flight-qualified hardware are out of scope.
 
@@ -23,7 +23,6 @@ This spec is scoped exclusively to terrestrial ground nodes. STM32U585 OBC, IQ b
 - **AX.25**: Link-layer framing protocol providing callsign-based source/destination addressing for amateur radio compliance
 - **TNC4**: Mobilinkd TNC4 terminal node controller — USB-connected TNC interfacing with the FT-817 radio
 - **FT-817**: Yaesu FT-817 portable transceiver with 9600 baud data port for G3RUH-compatible GFSK modulation
-- **BPSec**: Bundle Protocol Security (RFC 9172) — provides integrity blocks for bundle origin authentication
 - **Ping**: DTN reachability test — send a bundle echo request and receive an echo response
 - **Store_and_Forward**: Point-to-point bundle delivery where a source node sends a bundle directly to a destination node during a contact window
 - **Contact_Window**: A scheduled time interval during which two ground nodes can communicate over their radio link
@@ -137,16 +136,15 @@ This spec is scoped exclusively to terrestrial ground nodes. STM32U585 OBC, IQ b
 5. THE CLA SHALL drive the FT-817 radio at 9600 baud through its 9600 baud data port using G3RUH-compatible GFSK modulation
 6. FOR ALL valid Bundle objects, encapsulating a bundle into AX.25/LTP frames and then reassembling the frames back into a bundle SHALL produce a bundle equivalent to the original (round-trip property)
 
-### Requirement 10: BPSec Integrity Protection
+### Requirement 10: No Cryptography (Amateur Radio Compliance)
 
-**User Story:** As a network operator, I want bundle integrity protection using BPSec, so that the DTN network is protected against spoofing and tampering while complying with amateur radio regulations that prohibit encryption.
+**User Story:** As a network operator, I want to ensure the system complies with amateur radio regulations that prohibit encryption and cryptography on transmitted signals.
 
 #### Acceptance Criteria
 
-1. THE BPA SHALL support BPSec (RFC 9172) Block Integrity Blocks (BIB) for bundle origin authentication using HMAC-SHA-256
-2. THE BPA SHALL NOT apply BPSec Block Confidentiality Blocks (BCB) or any form of payload encryption, in compliance with amateur radio regulations requiring transmissions to be unencrypted
-3. WHEN a bundle with a BIB is received, THE BPA SHALL verify the integrity block and discard the bundle if verification fails, logging the integrity failure with the source Endpoint_ID
-4. THE Node_Controller SHALL store BPSec shared keys in a configuration file on the local filesystem with file permissions restricted to the node operator's user account
+1. THE system SHALL NOT use any cryptographic operations (encryption, HMAC, digital signatures) on transmitted signals, in compliance with amateur radio regulations
+2. THE system SHALL NOT apply any form of payload encryption or integrity blocks that use cryptographic algorithms
+3. THE system SHALL rely on rate limiting and CRC validation for protection against flooding and corruption
 
 ### Requirement 11: Priority-Based Message Handling
 

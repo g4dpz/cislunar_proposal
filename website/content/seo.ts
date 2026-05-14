@@ -83,12 +83,11 @@ const pageMeta: Record<string, PageMeta> = {
     title: "Documentation — Amateur Radio DTN Pathfinder",
     description:
       "Technical documentation including phase-specific requirements, design documents, " +
-      "RFC references for Bundle Protocol (BPv7), BPSec, LTP, and AX.25.",
+      "RFC references for Bundle Protocol (BPv7), LTP, and AX.25.",
     keywords: [
       ...BASE_KEYWORDS,
       "documentation",
       "RFC 9171",
-      "RFC 9172",
       "RFC 5326",
       "AX.25",
       "LTP",

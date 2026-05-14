@@ -6,7 +6,7 @@ This document specifies the requirements for Phase 1.5 of the cislunar amateur D
 
 QO-100 is a geostationary satellite at 25.9°E providing amateur radio transponder services with a 2.4 GHz uplink and 10.45 GHz downlink. The satellite introduces approximately 500ms round-trip time (250ms one-way light time) and validates DTN operation over a real space link before progressing to LEO CubeSat missions.
 
-The system reuses the Phase 1 software stack: ION-DTN (BPv7, LTP, BPSec), the dtn-node Go orchestrator, and AX.25 framing. The primary changes are hardware-specific: 2.4 GHz uplink transmitter, 10.45 GHz downlink receiver (LNB + SDR), and QO-100 modem or SDR for digital mode operation. The geostationary orbit eliminates pass prediction complexity — the satellite is always visible from the ground station's location, providing an always-on contact window with minimal Doppler shift.
+The system reuses the Phase 1 software stack: ION-DTN (BPv7, LTP), the dtn-node Go orchestrator, and AX.25 framing. The primary changes are hardware-specific: 2.4 GHz uplink transmitter, 10.45 GHz downlink receiver (LNB + SDR), and QO-100 modem or SDR for digital mode operation. The geostationary orbit eliminates pass prediction complexity — the satellite is always visible from the ground station's location, providing an always-on contact window with minimal Doppler shift.
 
 This spec validates DTN ping and store-and-forward operations over the QO-100 satellite link, demonstrating that the protocol stack handles real space delays and RF propagation characteristics before advancing to LEO orbital mechanics and CubeSat hardware.
 
@@ -28,7 +28,6 @@ This spec validates DTN ping and store-and-forward operations over the QO-100 sa
 - **Contact_Plan_Manager**: Manages communication windows (reused from Phase 1, simplified for always-on GEO contact)
 - **CLA**: Convergence Layer Adapter — interfaces ION-DTN with radio hardware (reused from Phase 1)
 - **Node_Controller**: Top-level orchestrator (reused from Phase 1)
-- **BPSec**: Bundle Protocol Security providing HMAC-SHA-256 integrity (reused from Phase 1)
 
 ## Requirements
 
@@ -112,16 +111,15 @@ This spec validates DTN ping and store-and-forward operations over the QO-100 sa
 4. FOR ALL valid data bundles transmitted through QO-100, the bundle received at the remote ground station SHALL be identical to the bundle sent by the originating ground station (end-to-end integrity property)
 5. THE Node_Controller SHALL measure and report the end-to-end delivery latency for each bundle transmitted through QO-100
 
-### Requirement 8: BPSec Integrity Over QO-100
+### Requirement 8: No Cryptography (Amateur Radio Compliance)
 
-**User Story:** As a network operator, I want BPSec integrity protection to work over the QO-100 satellite link, so that I can detect any tampering or corruption during space link transmission.
+**User Story:** As a network operator, I want to ensure the QO-100 system complies with amateur radio regulations that prohibit encryption and cryptography on transmitted signals.
 
 #### Acceptance Criteria
 
-1. WHEN a bundle with a BPSec Block Integrity Block (BIB) is transmitted through QO-100, THE remote ground station SHALL verify the integrity block and accept the bundle if verification succeeds
-2. IF a bundle's BPSec integrity verification fails at the remote ground station, THEN THE BPA SHALL discard the bundle and log the integrity failure
-3. THE BPA SHALL NOT apply BPSec encryption (Block Confidentiality Blocks) in compliance with amateur radio regulations requiring transmissions to be unencrypted
-4. FOR ALL bundles transmitted through QO-100 with BPSec integrity blocks, the HMAC-SHA-256 verification SHALL succeed at the remote ground station if the bundle was not corrupted or tampered with during transmission
+1. THE system SHALL NOT use any cryptographic operations (encryption, HMAC, digital signatures) on transmitted signals, in compliance with amateur radio regulations
+2. THE system SHALL NOT apply any form of payload encryption or integrity blocks that use cryptographic algorithms
+3. THE system SHALL rely on CRC validation for corruption detection during space link transmission
 
 ### Requirement 9: Frequency Coordination and Interference Avoidance
 
@@ -174,7 +172,7 @@ This spec validates DTN ping and store-and-forward operations over the QO-100 sa
 
 1. THE QO-100 system SHALL reuse the Phase 1 BPA, Bundle_Store, Contact_Plan_Manager, CLA, and Node_Controller components without modification to their core logic
 2. THE QO-100 system SHALL extend the CLA to support the QO-100 uplink transmitter and downlink receiver hardware interfaces in addition to the Phase 1 TNC4 interface
-3. THE QO-100 system SHALL reuse the Phase 1 ION-DTN configuration format (ionrc, ltprc, bprc, bpsecrc) with QO-100-specific contact plan entries
+3. THE QO-100 system SHALL reuse the Phase 1 ION-DTN configuration format (ionrc, ltprc, bprc) with QO-100-specific contact plan entries
 4. THE QO-100 system SHALL reuse the Phase 1 dtn-node Go orchestrator CLI with a QO-100-specific configuration file
 
 ### Requirement 14: QO-100 Error Handling and Recovery

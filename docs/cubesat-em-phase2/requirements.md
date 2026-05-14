@@ -2,11 +2,11 @@
 
 ## Introduction
 
-This document specifies the requirements for Phase 2 of the cislunar amateur DTN project: the CubeSat Engineering Model (EM). Phase 2 validates the flight software stack on ground-based, flight-representative hardware before committing to orbital deployment. The EM uses an STM32U585 ultra-low-power ARM Cortex-M33 OBC (160 MHz, 2 MB flash, 786 KB SRAM, hardware crypto AES/SHA/PKA, TrustZone) running ION-DTN (BPv7/LTP over AX.25) on bare metal or a lightweight RTOS, with C firmware for the DTN/radio stack and Go orchestration on a companion host.
+This document specifies the requirements for Phase 2 of the cislunar amateur DTN project: the CubeSat Engineering Model (EM). Phase 2 validates the flight software stack on ground-based, flight-representative hardware before committing to orbital deployment. The EM uses an STM32U585 ultra-low-power ARM Cortex-M33 OBC (160 MHz, 2 MB flash, 786 KB SRAM) running ION-DTN (BPv7/LTP over AX.25) on bare metal or a lightweight RTOS, with C firmware for the DTN/radio stack and Go orchestration on a companion host.
 
 The RF front-end is an Ettus Research USRP B200mini SDR (USB 3.0, 12-bit ADC/DAC, 70 MHz–6 GHz, full-duplex IQ), connected to a companion Raspberry Pi or PC running the UHD driver. The companion host bridges IQ samples to/from the STM32U585 via SPI/UART/DMA. The STM32U585 generates TX IQ samples and processes RX IQ samples directly via its DMA engine — the same baseband DSP code that will fly. The B200mini is EM-only; the flight unit replaces it with a dedicated IQ transceiver IC. External SPI/QSPI NVM (64–256 MB) provides persistent bundle storage.
 
-The system supports two core operations: ping (DTN reachability test) and store-and-forward (point-to-point bundle delivery). There is no relay functionality. All bundle delivery is direct (source → destination). The protocol stack is BPv7 bundles over LTP sessions over AX.25 frames with callsign-based addressing for amateur radio regulatory compliance. BPSec provides integrity protection using HMAC-SHA-256 via the STM32U585 hardware crypto accelerator (no encryption, per amateur radio regulations).
+The system supports two core operations: ping (DTN reachability test) and store-and-forward (point-to-point bundle delivery). There is no relay functionality. All bundle delivery is direct (source → destination). The protocol stack is BPv7 bundles over LTP sessions over AX.25 frames with callsign-based addressing for amateur radio regulatory compliance. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
 
 Phase 2 operates at UHF 437 MHz at 9.6 kbps, matching the flight configuration. Simulated orbital pass testing validates store-and-forward under realistic contact windows (5–10 min, 4–6 passes/day). Power budget profiling validates STM32U585 Stop 2 ultra-low-power mode (~16 µA idle) and active power consumption (5–10 W average).
 
@@ -16,11 +16,11 @@ Out of scope: flight-qualified IQ transceiver IC (Phase 3), orbital deployment (
 
 ### Development Hardware Note
 
-Phase 2 EM development and testing uses an **ST NUCLEO-F753ZI** development board (STM32F753, ARM Cortex-M7, 216 MHz, 512 KB SRAM, 1 MB flash) as the initial test platform. The NUCLEO-F753ZI provides more headroom than the flight-target STM32U585 (Cortex-M33, 160 MHz, 786 KB SRAM), allowing firmware bring-up and debugging before constraining to the U585's tighter resource budget. The firmware is written to be portable between the F7 and U585 — peripheral abstraction via STM32 HAL ensures the same application code runs on both. TrustZone and hardware crypto features are validated on the U585 target once the core firmware is stable on the NUCLEO-F753ZI. SRAM budget validation (786 KB constraint) is enforced via pool allocator configuration even when running on the larger-SRAM F753.
+Phase 2 EM development and testing uses an **ST NUCLEO-F753ZI** development board (STM32F753, ARM Cortex-M7, 216 MHz, 512 KB SRAM, 1 MB flash) as the initial test platform. The NUCLEO-F753ZI provides more headroom than the flight-target STM32U585 (Cortex-M33, 160 MHz, 786 KB SRAM), allowing firmware bring-up and debugging before constraining to the U585's tighter resource budget. The firmware is written to be portable between the F7 and U585 — peripheral abstraction via STM32 HAL ensures the same application code runs on both. SRAM budget validation (786 KB constraint) is enforced via pool allocator configuration even when running on the larger-SRAM F753.
 
 ## Glossary
 
-- **STM32U585**: Ultra-low-power ARM Cortex-M33 MCU — 160 MHz, 2 MB flash, 786 KB SRAM, hardware crypto accelerator (AES-256, SHA-256, PKA), TrustZone security — the flight-target OBC for EM and flight nodes
+- **STM32U585**: Ultra-low-power ARM Cortex-M33 MCU — 160 MHz, 2 MB flash, 786 KB SRAM — the flight-target OBC for EM and flight nodes
 - **NUCLEO_F753ZI**: ST NUCLEO-F753ZI development board (STM32F753, ARM Cortex-M7, 216 MHz, 512 KB SRAM, 1 MB flash) — the initial development and testing platform for Phase 2 EM firmware before transitioning to the STM32U585 flight target
 - **B200mini**: Ettus Research USRP B200mini SDR — USB 3.0, 12-bit ADC/DAC, 70 MHz–6 GHz, full-duplex IQ streaming — EM-only RF front-end
 - **Companion_Host**: Raspberry Pi or PC running the UHD driver, acting as USB host for the B200mini and bridging IQ samples to/from the STM32U585 via SPI/UART/DMA
@@ -36,8 +36,6 @@ Phase 2 EM development and testing uses an **ST NUCLEO-F753ZI** development boar
 - **ION-DTN**: NASA JPL's Interplanetary Overlay Network — the DTN implementation providing BPv7, LTP, and related protocols, cross-compiled for STM32U585
 - **LTP**: Licklider Transmission Protocol — runs on top of AX.25 providing reliable transfer with deferred acknowledgment
 - **AX.25**: Link-layer framing protocol providing callsign-based source/destination addressing for amateur radio compliance
-- **BPSec**: Bundle Protocol Security (RFC 9172) — provides integrity blocks (HMAC-SHA-256) for bundle origin authentication
-- **TrustZone**: ARM TrustZone hardware isolation on the STM32U585 — partitions the MCU into secure and non-secure worlds for key storage and crypto operations
 - **Stop_2_Mode**: STM32U585 ultra-low-power sleep mode (~16 µA) with SRAM retention, used between simulated contact windows
 - **DMA**: Direct Memory Access — STM32U585 peripheral for streaming IQ samples between memory and the IQ_Bridge interface without CPU intervention
 - **Ping**: DTN reachability test — send a bundle echo request and receive an echo response
@@ -167,30 +165,17 @@ Phase 2 EM development and testing uses an **ST NUCLEO-F753ZI** development boar
 3. WHEN a Contact_Window completes, THE Node_Controller SHALL record link metrics (bytes transferred, duration, bundles sent, bundles received, IQ signal quality) and update contact statistics
 4. IF the CLA fails to establish the IQ baseband link during a scheduled Contact_Window (B200mini not responding, IQ_Bridge failure, or no AX.25 connection established), THEN THE Node_Controller SHALL mark the contact as missed, retain all queued bundles for the next window, and increment the contacts-missed counter
 
-### Requirement 11: BPSec Integrity with Hardware Crypto
+### Requirement 11: No Cryptography (Amateur Radio Compliance)
 
-**User Story:** As a network operator, I want bundle integrity protection using BPSec with the STM32U585 hardware crypto accelerator, so that the EM validates the same security path that will fly while complying with amateur radio regulations.
-
-#### Acceptance Criteria
-
-1. THE BPA SHALL support BPSec (RFC 9172) Block Integrity Blocks (BIB) for bundle origin authentication using HMAC-SHA-256
-2. THE BPA SHALL NOT apply BPSec Block Confidentiality Blocks (BCB) or any form of payload encryption, in compliance with amateur radio regulations requiring transmissions to be unencrypted
-3. THE BPA SHALL use the STM32U585 hardware crypto accelerator (SHA-256, AES-256, PKA) for all BPSec HMAC-SHA-256 computations instead of software implementations
-4. WHEN a bundle with a BIB is received, THE BPA SHALL verify the integrity block using the hardware crypto accelerator and discard the bundle if verification fails, logging the integrity failure with the source Endpoint_ID
-5. THE Firmware SHALL store BPSec shared keys in the STM32U585 TrustZone secure world, isolated from non-secure application code
-
-### Requirement 12: TrustZone Secure Key Storage
-
-**User Story:** As a security engineer, I want cryptographic keys stored in the STM32U585 TrustZone secure world, so that the EM validates the flight security architecture where keys are hardware-isolated from application firmware.
+**User Story:** As a network operator, I want to ensure the EM system complies with amateur radio regulations that prohibit encryption and cryptography on transmitted signals.
 
 #### Acceptance Criteria
 
-1. THE Firmware SHALL partition the STM32U585 into TrustZone secure and non-secure worlds, with BPSec keys and crypto operations executing in the secure world
-2. THE Firmware SHALL expose a secure API from the TrustZone secure world that the non-secure BPA can call to request HMAC-SHA-256 signing and verification without exposing raw key material
-3. IF non-secure code attempts to read TrustZone secure memory directly, THEN THE STM32U585 SHALL generate a hardware fault and the Firmware SHALL log the access violation
-4. THE Firmware SHALL provision BPSec keys into the TrustZone secure world during initial firmware flashing or via a secure key injection protocol over the debug interface
+1. THE system SHALL NOT use any cryptographic operations (encryption, HMAC, digital signatures) on transmitted signals, in compliance with amateur radio regulations
+2. THE system SHALL NOT apply any form of payload encryption or integrity blocks that use cryptographic algorithms
+3. THE system SHALL rely on rate limiting and CRC validation for protection against flooding and corruption
 
-### Requirement 13: Power Management and Stop 2 Mode
+### Requirement 12: Power Management and Stop 2 Mode
 
 **User Story:** As an EM test operator, I want to profile the STM32U585 power consumption across active and idle states, so that I can validate the power budget for the flight mission (5–10 W average active, ~16 µA Stop 2 idle).
 
@@ -208,9 +193,9 @@ Phase 2 EM development and testing uses an **ST NUCLEO-F753ZI** development boar
 
 #### Acceptance Criteria
 
-1. THE Firmware SHALL operate within the STM32U585 786 KB SRAM for all concurrent operations: ION-DTN runtime, IQ sample buffers (TX and RX), AX.25/LTP frame buffers, bundle metadata index, and TrustZone secure world allocations
+1. THE Firmware SHALL operate within the STM32U585 786 KB SRAM for all concurrent operations: ION-DTN runtime, IQ sample buffers (TX and RX), AX.25/LTP frame buffers, and bundle metadata index
 2. THE Firmware SHALL use static or pool-based memory allocation for all runtime data structures, avoiding dynamic heap allocation that could cause fragmentation on the constrained MCU
-3. THE Firmware SHALL report peak and current SRAM utilization as part of telemetry, broken down by subsystem (ION-DTN, IQ buffers, bundle index, TrustZone)
+3. THE Firmware SHALL report peak and current SRAM utilization as part of telemetry, broken down by subsystem (ION-DTN, IQ buffers, bundle index)
 4. IF an operation would exceed the SRAM budget, THEN THE Firmware SHALL reject the operation and log the memory exhaustion event rather than corrupting adjacent memory regions
 
 ### Requirement 15: Split Architecture — Go Orchestration and C Firmware

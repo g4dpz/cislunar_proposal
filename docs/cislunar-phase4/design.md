@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design describes the Phase 4 Cislunar Mission system — the final phase extending DTN operations from LEO (Phase 3) to cislunar distances (~384,000 km). The OBC runs the complete flight software stack autonomously: ION-DTN (BPv7/LTP over AX.25), IQ baseband DSP with BPSK modulation, LDPC/Turbo FEC encoding/decoding, NVM bundle store (256 MB–1 GB), CGR contact prediction adapted for cislunar orbits, Doppler compensation at S-band 2.2 GHz, power management (10–20 W), TrustZone secure crypto, and enhanced radiation tolerance for the cislunar environment.
+This design describes the Phase 4 Cislunar Mission system — the final phase extending DTN operations from LEO (Phase 3) to cislunar distances (~384,000 km). The OBC runs the complete flight software stack autonomously: ION-DTN (BPv7/LTP over AX.25), IQ baseband DSP with BPSK modulation, LDPC/Turbo FEC encoding/decoding, NVM bundle store (256 MB–1 GB), CGR contact prediction adapted for cislunar orbits, Doppler compensation at S-band 2.2 GHz, power management (10–20 W), and enhanced radiation tolerance for the cislunar environment.
 
 The baseline OBC is the STM32U585 (same as Phase 3), with the option to upgrade to a more capable processor. All interfaces are designed to work on the STM32U585 while accommodating a higher-capability OBC. The design uses `obc_` prefixes instead of `stm32_` to maintain processor flexibility.
 
@@ -18,7 +18,7 @@ The key architectural changes from Phase 3 are:
 8. **Slower Doppler dynamics**: Doppler at S-band is ±5 kHz (vs. ±10 kHz at UHF in LEO), with slower rate of change. Update rate relaxed to once per 10 seconds.
 9. **Power budget**: 10–20 W (vs. 5–10 W in Phase 3).
 
-Phase 3 components carried forward unchanged: ION-DTN BPA (BPv7 creation/validation/serialization), NVM Bundle Store (atomic writes, priority index, eviction), AX.25 CLA plugin architecture, TrustZone secure crypto (HMAC-SHA-256), pool allocator, BPSec integrity, rate limiting, bundle size limits, priority ordering, watchdog manager, time manager, node health/telemetry framework.
+Phase 3 components carried forward unchanged: ION-DTN BPA (BPv7 creation/validation/serialization), NVM Bundle Store (atomic writes, priority index, eviction), AX.25 CLA plugin architecture, pool allocator, rate limiting, bundle size limits, priority ordering, watchdog manager, time manager, node health/telemetry framework.
 
 ### Scope Boundaries
 
@@ -51,9 +51,6 @@ graph TD
             WDT[Watchdog Manager<br/>IWDG — 30s default timeout<br/>Periodic kick from main loop]
             POOL[Pool Allocator<br/>Static memory pools<br/>No dynamic heap]
         end
-        subgraph "TrustZone Secure World"
-            TZ[Secure Crypto Service<br/>HMAC-SHA-256 via HW accelerator<br/>Key storage — isolated from NS]
-        end
     end
 
     subgraph "Flight RF Front-End"
@@ -69,7 +66,6 @@ graph TD
     NC --> WDT
 
     BPA --> LTP_E
-    BPA -->|secure call| TZ
     BPA --> BS
 
     LTP_E --> CLA
@@ -101,7 +97,6 @@ graph TD
     style RAD fill:#8b4500,color:#fff
     style WDT fill:#8b4500,color:#fff
     style POOL fill:#3a5c1a,color:#fff
-    style TZ fill:#8b0000,color:#fff
     style XCVR fill:#4a4a4a,color:#fff
 ```
 
@@ -116,7 +111,6 @@ graph TD
         AX25_BUF["AX.25/LTP Frame Buffers<br/>~48 KB<br/>TX frame + RX frame + reassembly"]
         IDX_MEM["Bundle Metadata Index<br/>~48 KB<br/>Priority-ordered + CRC + redundant + TMR"]
         CGR_MEM["CGR Engine State<br/>~64 KB<br/>Numerical propagation, ephemeris table<br/>Predicted contacts, catalog"]
-        TZ_MEM["TrustZone Secure World<br/>~32 KB<br/>Crypto keys, HMAC state,<br/>secure API stack"]
         POOL["Static Pool Allocator<br/>~146 KB<br/>Fixed-size block pools<br/>No dynamic heap"]
     end
 
@@ -126,7 +120,6 @@ graph TD
     style AX25_BUF fill:#5c1a3a,color:#fff
     style IDX_MEM fill:#5c3a1a,color:#fff
     style CGR_MEM fill:#1a5c3a,color:#fff
-    style TZ_MEM fill:#8b0000,color:#fff
     style POOL fill:#3a5c1a,color:#fff
 ```
 
@@ -142,7 +135,6 @@ sequenceDiagram
     participant FEC as LDPC/Turbo FEC
     participant CLA as AX.25 CLA
     participant BPA as BPA (ION-DTN)
-    participant TZ as TrustZone
     participant BS as Bundle Store (NVM 256MB–1GB)
 
     Note over T3,XCVR: Contact arc begins — payload woke autonomously
@@ -154,8 +146,6 @@ sequenceDiagram
     FEC->>FEC: LDPC/Turbo decode (correct errors)
     FEC->>CLA: Decoded AX.25 frames
     CLA->>BPA: LTP segments → BPv7 bundle
-    BPA->>TZ: Verify BPSec HMAC-SHA-256
-    TZ-->>BPA: Integrity OK
     BPA->>BS: Store bundle (atomic write + CRC)
     BPA->>CLA: LTP ACK
     CLA->>FEC: Encode ACK
@@ -323,7 +313,7 @@ Components carried forward from Phase 3 with minimal changes are noted as such. 
 
 ### Component 1: Bundle Protocol Agent (BPA) — OBC C Firmware
 
-**Carried from Phase 3.** Identical interface and behavior. Creates, validates, serializes/deserializes BPv7 bundles. Handles ping request/response. Delegates HMAC-SHA-256 to TrustZone. Pool-allocated. No relay.
+**Carried from Phase 3.** Identical interface and behavior. Creates, validates, serializes/deserializes BPv7 bundles. Handles ping request/response. Pool-allocated. No relay.
 
 The Phase 4 change: the BPA now also handles ephemeris update bundles (replacing TLE update bundles) as an administrative bundle type.
 
@@ -335,8 +325,7 @@ typedef enum {
     ADMIN_BUNDLE_EPHEMERIS_UPDATE = 0x10,  /* replaces TLE_UPDATE */
     ADMIN_BUNDLE_CATALOG_UPDATE   = 0x11,
     ADMIN_BUNDLE_TIME_SYNC        = 0x12,
-    ADMIN_BUNDLE_TELEMETRY_REQ    = 0x13,
-    ADMIN_BUNDLE_KEY_UPDATE       = 0x14
+    ADMIN_BUNDLE_TELEMETRY_REQ    = 0x13
 } admin_bundle_type_t;
 
 /* Dispatch an administrative bundle to the appropriate handler.
@@ -897,15 +886,11 @@ No interface changes — configuration via `cla_config_phase4_t`.
 
 **Carried from Phase 3.** Identical interface. No changes for Phase 4.
 
-### Component 15: TrustZone Secure Crypto Service — OBC C Firmware
-
-**Carried from Phase 3.** Identical interface. No changes for Phase 4.
-
-### Component 16: Power Manager — OBC C Firmware
+### Component 15: Power Manager — OBC C Firmware
 
 **Carried from Phase 3.** Same interface. Phase 4 change: the power budget is 10–20 W active (vs. 5–10 W in Phase 3), and the sleep threshold is 5 minutes between arcs (vs. 60 seconds in Phase 3).
 
-### Component 17: Static Memory Pool Allocator — OBC C Firmware
+### Component 16: Static Memory Pool Allocator — OBC C Firmware
 
 **Carried from Phase 3.** Same interface. Phase 4 adds a `POOL_FEC_STATE` pool ID for FEC codec allocations.
 
@@ -931,7 +916,6 @@ The following data models from Phase 3 are carried forward unchanged:
 - `endpoint_id_t`, `bundle_id_t`, `priority_t`, `bundle_type_t`, `bundle_t` — BPA bundle representation
 - `primary_block_t`, `canonical_block_t` — BPv7 wire format structures
 - `nvm_header_t`, `nvm_bundle_entry_t` — NVM storage layout (extended addressing for 256 MB–1 GB)
-- `bpsec_bib_t` — BPSec integrity block
 - `rate_limiter_entry_t`, `rate_limiter_config_t` — rate limiting state
 - `iq_sample_t`, `dsp_config_t` — IQ DSP types
 - `callsign_t` — AX.25 callsign
@@ -1011,7 +995,6 @@ typedef struct {
     uint32_t sram_ion_bytes;
     uint32_t sram_iq_bytes;
     uint32_t sram_idx_bytes;
-    uint32_t sram_tz_bytes;
     uint8_t  power_state;
     uint32_t active_time_ms;
     uint32_t stop2_time_ms;
@@ -1247,19 +1230,7 @@ def cgrInterpolate (eph : EphemerisTable) (time : Nat) : IO (Except String (Vect
 
 **Validates: Requirements 14.6, 22.4**
 
-### Property 19: BPSec Integrity Round-Trip
-
-*For any* valid Bundle and HMAC-SHA-256 key provisioned in TrustZone, applying a BPSec Block Integrity Block via the hardware crypto accelerator and then verifying the integrity SHALL succeed. If any byte of the bundle is modified after integrity is applied, verification SHALL fail.
-
-**Validates: Requirements 15.1, 15.4**
-
-### Property 20: No Encryption Constraint
-
-*For any* bundle processed by the BPA, no BPSec Block Confidentiality Block (BCB) or any form of payload encryption SHALL be present in the output.
-
-**Validates: Requirement 15.2**
-
-### Property 21: Sleep Decision Correctness (Cislunar)
+### Property 19: Sleep Decision Correctness (Cislunar)
 
 *For any* system state, the firmware SHALL enter Stop 2 mode if and only if no contact arc is currently active, no bundle processing is pending, and no further contact arc is predicted within the next 5 minutes. Before entering Stop 2, the RTC alarm SHALL be set to the start time of the next predicted contact arc.
 
@@ -1411,19 +1382,13 @@ def cgrInterpolate (eph : EphemerisTable) (time : Nat) : IO (Except String (Vect
 **Response**: Discard the corrupted bundle. Log the corruption event with source EndpointID and IQ link metrics.
 **Recovery**: For RF-received bundles: the sender retains the bundle for retransmission. For NVM-stored bundles: the corrupted entry is discarded during store reload.
 
-### Error Scenario 5: BPSec Integrity Failure
-
-**Condition**: HMAC-SHA-256 verification fails on a received bundle's BPSec BIB.
-**Response**: Discard the bundle. Log the integrity failure with source EndpointID.
-**Recovery**: The sender retains the bundle for retransmission. Ground operators investigate potential key mismatch.
-
-### Error Scenario 6: Power Cycle / Watchdog Reset / Radiation-Induced Reset
+### Error Scenario 5: Power Cycle / Watchdog Reset / Radiation-Induced Reset
 
 **Condition**: OBC experiences unexpected power loss, watchdog timeout, or radiation-induced reset.
-**Response**: On restart, firmware re-initializes all subsystems. Bundle Store reloads from NVM. Ephemeris data and ground station catalog reload from NVM. CGR re-computes contact predictions (48h horizon). TrustZone re-initializes crypto keys. Radiation monitor re-establishes CRC baselines and TMR values.
+**Response**: On restart, firmware re-initializes all subsystems. Bundle Store reloads from NVM. Ephemeris data and ground station catalog reload from NVM. CGR re-computes contact predictions (48h horizon). Radiation monitor re-establishes CRC baselines and TMR values.
 **Recovery**: Corrupted NVM entries discarded. Intact state recovered. Autonomous operation resumes within 5 seconds.
 
-### Error Scenario 7: SRAM Pool Exhaustion
+### Error Scenario 6: SRAM Pool Exhaustion
 
 **Condition**: A memory pool on the OBC is exhausted.
 **Response**: `pool_alloc` returns NULL. The requesting operation is rejected. No memory corruption.
@@ -1459,19 +1424,13 @@ def cgrInterpolate (eph : EphemerisTable) (time : Nat) : IO (Except String (Vect
 **Response**: Reject additional bundles. Log the rate-limit event.
 **Recovery**: Bundles within the rate limit continue to be accepted.
 
-### Error Scenario 13: TrustZone Security Violation
-
-**Condition**: Non-secure code attempts to access TrustZone secure memory directly.
-**Response**: Hardware fault generated. Firmware logs the access violation.
-**Recovery**: Faulting operation terminated. Secure world uncompromised.
-
-### Error Scenario 14: Invalid Ephemeris Update
+### Error Scenario 13: Invalid Ephemeris Update
 
 **Condition**: Received ephemeris data fails format validation or has an end epoch older than the currently stored ephemeris.
 **Response**: Reject the update. Log the rejection reason.
 **Recovery**: Current ephemeris remains in use. Ground station can retry with corrected data.
 
-### Error Scenario 15: Ground Station Catalog Full
+### Error Scenario 14: Ground Station Catalog Full
 
 **Condition**: Catalog update received when catalog already contains 32 stations and the update is for a new station.
 **Response**: Reject the addition. Log the catalog-full event.

@@ -8,8 +8,7 @@ The test scripts follow a progressive validation approach, testing individual co
 
 1. **Task 7**: ION-DTN bping (ping functionality)
 2. **Task 9**: Store-and-forward operations
-3. **Task 11**: BPSec integrity protection
-4. **Task 15.1**: End-to-end integration using Go wrapper
+3. **Task 15.1**: End-to-end integration using Go wrapper
 5. **Task 15.2**: Extended duration stability test
 
 ## Test Scripts
@@ -84,27 +83,6 @@ Tests store-and-forward functionality with multiple sub-tests.
 
 **Documentation:** [TASK9_STORE_FORWARD_TEST_GUIDE.md](../docs/terrestrial-dtn-phase1/TASK9_STORE_FORWARD_TEST_GUIDE.md)
 
-### Task 11: BPSec Integrity Test
-
-#### `test-ion-bpsec.sh`
-Tests BPSec integrity protection (HMAC-SHA-256).
-
-**Usage:**
-```bash
-# On Node A
-./scripts/test-ion-bpsec.sh node-a
-
-# On Node B
-./scripts/test-ion-bpsec.sh node-b
-```
-
-**What it tests:**
-- Task 11.1: BPSec configuration
-- Task 11.2: Bundle integrity verification
-- Task 11.3: Integrity failure detection (optional)
-
-**Documentation:** [TASK11_BPSEC_TEST_GUIDE.md](../docs/terrestrial-dtn-phase1/TASK11_BPSEC_TEST_GUIDE.md)
-
 ### Task 15.1: End-to-End Integration Test
 
 #### `test-e2e-integration.sh`
@@ -177,8 +155,7 @@ Follow this order for comprehensive validation:
 
 1. **Basic connectivity**: Task 7 (bping)
 2. **Store-and-forward**: Task 9 (file transfers, priority, lifetime)
-3. **Security**: Task 11 (BPSec integrity)
-4. **Integration**: Task 15.1 (end-to-end with Go wrapper)
+3. **Integration**: Task 15.1 (end-to-end with Go wrapper)
 5. **Stability**: Task 15.2 (extended duration)
 
 ## Prerequisites

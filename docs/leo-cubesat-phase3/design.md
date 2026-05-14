@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design describes the Phase 3 LEO CubeSat Flight system — the orbital deployment of the DTN flight unit validated in Phase 2. The STM32U585 OBC runs the complete flight software stack autonomously: ION-DTN (BPv7/LTP over AX.25), IQ baseband DSP, NVM bundle store, CGR contact prediction, Doppler compensation, power management, and TrustZone secure crypto. There is no companion host — everything runs on the STM32U585 Cortex-M33 at 160 MHz with 786 KB SRAM and 64–256 MB external SPI/QSPI NVM.
+This design describes the Phase 3 LEO CubeSat Flight system — the orbital deployment of the DTN flight unit validated in Phase 2. The STM32U585 OBC runs the complete flight software stack autonomously: ION-DTN (BPv7/LTP over AX.25), IQ baseband DSP, NVM bundle store, CGR contact prediction, Doppler compensation, and power management. There is no companion host — everything runs on the STM32U585 Cortex-M33 at 160 MHz with 786 KB SRAM and 64–256 MB external SPI/QSPI NVM.
 
 The key architectural changes from Phase 2 are:
 
@@ -16,8 +16,7 @@ The key architectural changes from Phase 2 are:
 8. **Hardware watchdog**: Configurable watchdog timer for firmware hang detection and automatic reset.
 
 The system operates at UHF 437 MHz / 9.6 kbps (GMSK/BPSK). Contact windows are 5–10 minutes per pass, 4–6 passes per day per ground station. Power budget is 5–10 W active, ~16 µA in Stop 2 mode between passes. The system supports ping and store-and-forward. No relay.
-
-Phase 2 components carried forward unchanged: ION-DTN BPA (BPv7 creation/validation/serialization), NVM Bundle Store (atomic writes, priority index, eviction), AX.25 CLA plugin architecture, IQ baseband DSP (GFSK/G3RUH modulation/demodulation core), TrustZone secure crypto (HMAC-SHA-256), pool allocator, BPSec integrity, rate limiting, bundle size limits, priority ordering.
+Phase 2 components carried forward unchanged: ION-DTN BPA (BPv7 creation/validation/serialization), NVM Bundle Store (atomic writes, priority index, eviction), AX.25 CLA plugin architecture, IQ baseband DSP (GFSK/G3RUH modulation/demodulation core), pool allocator, rate limiting, bundle size limits, priority ordering.
 
 ### Scope Boundaries
 
@@ -49,9 +48,6 @@ graph TD
             WDT[Watchdog Manager<br/>IWDG — 30s default timeout<br/>Periodic kick from main loop]
             POOL[Pool Allocator<br/>Static memory pools<br/>No dynamic heap]
         end
-        subgraph "TrustZone Secure World"
-            TZ[Secure Crypto Service<br/>HMAC-SHA-256 via HW accelerator<br/>Key storage — isolated from NS]
-        end
     end
 
     subgraph "Flight RF Front-End"
@@ -67,7 +63,6 @@ graph TD
     NC --> WDT
 
     BPA --> LTP_E
-    BPA -->|secure call| TZ
     BPA --> BS
 
     LTP_E --> CLA
@@ -97,7 +92,6 @@ graph TD
     style RAD fill:#8b4500,color:#fff
     style WDT fill:#8b4500,color:#fff
     style POOL fill:#3a5c1a,color:#fff
-    style TZ fill:#8b0000,color:#fff
     style XCVR fill:#4a4a4a,color:#fff
 ```
 
@@ -111,7 +105,6 @@ graph TD
         AX25_BUF["AX.25/LTP Frame Buffers<br/>~48 KB<br/>TX frame + RX frame + reassembly"]
         IDX_MEM["Bundle Metadata Index<br/>~48 KB<br/>Priority-ordered + CRC + redundant copy"]
         CGR_MEM["CGR Engine State<br/>~48 KB<br/>SGP4/SDP4 state, predicted contacts<br/>TLE, ground station catalog"]
-        TZ_MEM["TrustZone Secure World<br/>~32 KB<br/>Crypto keys, HMAC state,<br/>secure API stack"]
         POOL["Static Pool Allocator<br/>~226 KB<br/>Fixed-size block pools<br/>No dynamic heap"]
     end
 
@@ -120,7 +113,6 @@ graph TD
     style AX25_BUF fill:#5c1a3a,color:#fff
     style IDX_MEM fill:#5c3a1a,color:#fff
     style CGR_MEM fill:#1a5c3a,color:#fff
-    style TZ_MEM fill:#8b0000,color:#fff
     style POOL fill:#3a5c1a,color:#fff
 ```
 
@@ -198,7 +190,6 @@ sequenceDiagram
     participant DSP as IQ DSP + Doppler
     participant CLA as AX.25 CLA
     participant BPA as BPA (ION-DTN)
-    participant TZ as TrustZone
     participant BS as Bundle Store (NVM)
 
     Note over GS,XCVR: Satellite pass begins — CubeSat woke autonomously
@@ -207,8 +198,6 @@ sequenceDiagram
     DSP->>DSP: Apply Doppler correction to RX
     DSP->>CLA: Demodulated AX.25 frames
     CLA->>BPA: LTP segments → BPv7 bundle
-    BPA->>TZ: Verify BPSec HMAC-SHA-256
-    TZ-->>BPA: Integrity OK
     BPA->>BS: Store bundle (atomic write + CRC)
     BPA->>CLA: LTP ACK
     CLA->>DSP: Modulate ACK → IQ
@@ -287,7 +276,7 @@ Components carried forward from Phase 2 with minimal changes are noted as such. 
 
 ### Component 1: Bundle Protocol Agent (BPA) — STM32U585 C Firmware
 
-**Carried from Phase 2.** Identical interface and behavior. Creates, validates, serializes/deserializes BPv7 bundles. Handles ping request/response. Delegates HMAC-SHA-256 to TrustZone. Pool-allocated. No relay.
+**Carried from Phase 2.** Identical interface and behavior. Creates, validates, serializes/deserializes BPv7 bundles. Handles ping request/response. Pool-allocated. No relay.
 
 The only Phase 3 change: the BPA now also handles TLE update bundles, time synchronization bundles, catalog update bundles, and telemetry request bundles as administrative bundle types routed to the appropriate subsystem handler.
 
@@ -299,8 +288,7 @@ typedef enum {
     ADMIN_BUNDLE_TLE_UPDATE       = 0x10,
     ADMIN_BUNDLE_CATALOG_UPDATE   = 0x11,
     ADMIN_BUNDLE_TIME_SYNC        = 0x12,
-    ADMIN_BUNDLE_TELEMETRY_REQ    = 0x13,
-    ADMIN_BUNDLE_KEY_UPDATE       = 0x14
+    ADMIN_BUNDLE_TELEMETRY_REQ    = 0x13
 } admin_bundle_type_t;
 
 /* Dispatch an administrative bundle to the appropriate handler.
@@ -691,7 +679,7 @@ void node_main_loop(void);  /* never returns */
 - CGR-driven contact scheduling (predict → sleep → wake → communicate → sleep)
 - Bundle transfer orchestration during contact windows (priority order)
 - Telemetry generation and transmission
-- Administrative bundle dispatch (TLE updates, catalog updates, time sync, key updates)
+- Administrative bundle dispatch (TLE updates, catalog updates, time sync)
 - Watchdog kick in main loop
 - Cold boot state restoration from NVM within 5 seconds
 - Operation cycle completion within 1 second
@@ -803,10 +791,6 @@ void wdt_kick(void);
 int wdt_was_reset_cause(void);
 ```
 
-### Component 13: TrustZone Secure Crypto Service — STM32U585 C Firmware
-
-**Carried from Phase 2.** Identical interface: `secure_hmac_sign`, `secure_hmac_verify`, `secure_provision_key`, `secure_get_key_count`. Phase 3 adds support for receiving key update bundles during ground passes (dispatched via `bpa_dispatch_admin`).
-
 ### Component 14: Power Manager — STM32U585 C Firmware
 
 **Carried from Phase 2.** Same `power_*` interface. Phase 3 change: the power manager now receives wake times from the CGR-predicted contact plan (autonomous) instead of from UART commands from the companion host.
@@ -836,7 +820,6 @@ The following data models from Phase 2 are carried forward unchanged:
 - `endpoint_id_t`, `bundle_id_t`, `priority_t`, `bundle_type_t`, `bundle_t` — BPA bundle representation
 - `primary_block_t`, `canonical_block_t` — BPv7 wire format structures
 - `nvm_header_t`, `nvm_bundle_entry_t` — NVM storage layout
-- `bpsec_bib_t` — BPSec integrity block
 - `rate_limiter_entry_t`, `rate_limiter_config_t` — rate limiting state
 - `iq_sample_t`, `dsp_config_t` — IQ DSP types
 - `callsign_t` — AX.25 callsign
@@ -908,7 +891,6 @@ typedef struct {
     uint32_t sram_ion_bytes;
     uint32_t sram_iq_bytes;
     uint32_t sram_idx_bytes;
-    uint32_t sram_tz_bytes;
     uint8_t  power_state;
     uint32_t active_time_ms;
     uint32_t stop2_time_ms;
@@ -1070,19 +1052,7 @@ The following properties cover both Phase 2 carry-forward properties (adapted fo
 
 **Validates: Requirements 13.6, 21.4**
 
-### Property 19: BPSec Integrity Round-Trip
-
-*For any* valid Bundle and HMAC-SHA-256 key provisioned in TrustZone, applying a BPSec Block Integrity Block via the hardware crypto accelerator and then verifying the integrity SHALL succeed. If any byte of the bundle is modified after integrity is applied, verification SHALL fail.
-
-**Validates: Requirements 14.1, 14.4**
-
-### Property 20: No Encryption Constraint
-
-*For any* bundle processed by the BPA, no BPSec Block Confidentiality Block (BCB) or any form of payload encryption SHALL be present in the output.
-
-**Validates: Requirements 14.2**
-
-### Property 21: Sleep Decision Correctness
+### Property 19: Sleep Decision Correctness
 
 *For any* system state, the firmware SHALL enter Stop 2 mode if and only if no contact window is currently active, no bundle processing is pending, and no further contact window is predicted within the next 60 seconds. Before entering Stop 2, the RTC alarm SHALL be set to the start time of the next predicted contact window.
 
@@ -1204,16 +1174,10 @@ The following properties cover both Phase 2 carry-forward properties (adapted fo
 **Response**: Discard the corrupted bundle. Log the corruption event with source EndpointID and IQ link metrics (RSSI, SNR, BER).
 **Recovery**: For RF-received bundles: the sender retains the bundle (LTP will not receive an ACK) and retransmits during the next contact. For NVM-stored bundles: the corrupted entry is discarded during store reload.
 
-### Error Scenario 4: BPSec Integrity Failure
-
-**Condition**: HMAC-SHA-256 verification fails on a received bundle's BPSec BIB.
-**Response**: Discard the bundle. Return `BPA_ERR_INTEGRITY_FAIL`. Log the integrity failure with source EndpointID.
-**Recovery**: The sender retains the bundle for retransmission. Ground operators investigate potential key mismatch.
-
-### Error Scenario 5: Power Cycle / Watchdog Reset / Radiation-Induced Reset
+### Error Scenario 4: Power Cycle / Watchdog Reset / Radiation-Induced Reset
 
 **Condition**: STM32U585 experiences unexpected power loss, watchdog timeout, or radiation-induced reset.
-**Response**: On restart, firmware re-initializes all subsystems. Bundle Store reloads from NVM (CRC validates each bundle). TLE data and ground station catalog reload from NVM. CGR re-computes contact predictions. TrustZone secure world re-initializes crypto keys from secure flash. Radiation monitor re-establishes CRC baselines.
+**Response**: On restart, firmware re-initializes all subsystems. Bundle Store reloads from NVM (CRC validates each bundle). TLE data and ground station catalog reload from NVM. CGR re-computes contact predictions. Radiation monitor re-establishes CRC baselines.
 **Recovery**: Corrupted NVM entries discarded (logged). Intact state recovered. Autonomous operation resumes within 5 seconds without ground intervention.
 
 ### Error Scenario 6: SRAM Pool Exhaustion
@@ -1240,13 +1204,7 @@ The following properties cover both Phase 2 carry-forward properties (adapted fo
 **Response**: Reject with `BPA_ERR_OVERSIZED` before storing. Log with source EID and bundle size.
 **Recovery**: No state change. Sender may re-send with smaller payload.
 
-### Error Scenario 10: TrustZone Security Violation
-
-**Condition**: Non-secure code attempts to access TrustZone secure memory directly.
-**Response**: STM32U585 SAU/IDAU generates a SecureFault hardware exception. Firmware logs the access violation.
-**Recovery**: Faulting operation terminated. Secure world uncompromised. Event reported in telemetry.
-
-### Error Scenario 11: TLE Data Stale
+### Error Scenario 10: TLE Data Stale
 
 **Condition**: TLE age exceeds configured staleness threshold (default 14 days).
 **Response**: Flag TLE-stale warning in telemetry. Widen contact window margins by configurable factor to compensate for reduced prediction accuracy.
@@ -1292,7 +1250,6 @@ Test each component in isolation with example-based tests:
 - **Radiation Monitor (C)**: Region registration. CRC computation and validation. Single-bit flip detection. Recovery from redundant copy. Dual-corruption detection. SEU counter.
 - **Time Manager (C)**: Time sync with corrections above/below threshold. Staleness detection. Time-since-sync computation.
 - **Watchdog Manager (C)**: Initialization with configurable timeout. Reset cause detection.
-- **TrustZone Secure API (C)**: HMAC sign/verify with known test vectors. Key provisioning. Rejection of invalid key IDs.
 - **Pool Allocator (C)**: Allocation until exhaustion. Free and re-allocate. Peak tracking. Multi-pool isolation. CGR pool.
 - **Power Manager (C)**: State transition logging. RTC alarm configuration. Sleep decision logic.
 - **Node Controller (C)**: Single cycle execution. Contact scheduling from CGR predictions. Bundle transfer orchestration. Telemetry generation. Cold boot state restoration.
@@ -1328,9 +1285,7 @@ Key property tests (all C firmware, using theft):
 16. **LTP segmentation/reassembly** (Property 16): Generate random bundles of varying sizes (some exceeding single AX.25 frame). Segment via LTP, reassemble. Assert bundle equality.
 17. **No transmission after window end** (Property 17): Generate random contact windows and time sequences. Verify no transmission after end time.
 18. **Missed contact retains bundles** (Property 18): Generate random failed contacts (mock transceiver failure after 3 retries). Verify bundles retained and missed counter incremented.
-19. **BPSec integrity round-trip** (Property 19): Generate random bundles and keys. Apply integrity via TrustZone mock. Verify passes. Mutate bundle. Verify fails.
-20. **No encryption** (Property 20): Generate random bundles. Process through BPA. Verify no BCB blocks present.
-21. **Sleep decision** (Property 21): Generate random system states (contact active/inactive, pending work, next contact time). Verify sleep decision and RTC alarm correctness.
+19. **Sleep decision** (Property 19): Generate random system states (contact active/inactive, pending work, next contact time). Verify sleep decision and RTC alarm correctness.
 22. **Power state transition logging** (Property 22): Generate random state transitions. Verify each logged with correct from/to and timestamp.
 23. **Pool exhaustion safety** (Property 23): Exhaust each pool. Verify NULL returned. Verify no corruption of existing allocations.
 24. **Rate limiting** (Property 24): Generate random submission sequences at various rates from random source EIDs. Verify correct acceptance/rejection.
@@ -1360,8 +1315,7 @@ Key property tests (all C firmware, using theft):
 - **Catalog update flow**: Send catalog update bundle. Verify station added, CGR re-predicted for new station.
 - **Time sync flow**: Send time sync bundle. Verify RTC updated (or not, based on threshold).
 - **Radiation simulation**: Inject bit flips into protected SRAM regions during operation. Verify detection, recovery, SEU counting.
-- **TrustZone isolation**: Attempt secure memory access from non-secure code. Verify hardware fault.
-- **SRAM budget validation**: Run all subsystems concurrently (ION-DTN + IQ DSP + CGR + bundle index + TrustZone). Verify total SRAM ≤ 786 KB via pool stats.
+- **SRAM budget validation**: Run all subsystems concurrently (ION-DTN + IQ DSP + CGR + bundle index). Verify total SRAM ≤ 786 KB via pool stats.
 - **Doppler tracking**: Run simulated pass with realistic Doppler profile. Verify demodulator maintains lock throughout pass.
 - **Stale TLE operation**: Operate with TLE aged > 14 days. Verify stale warning, widened margins, continued operation.
 

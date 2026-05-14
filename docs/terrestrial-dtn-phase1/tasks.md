@@ -2,7 +2,7 @@
 
 ## Overview
 
-Phase 1 validates ION-DTN over amateur radio using the existing ION-DTN KISS CLA (`ltpkisscli`/`ltpkissclo`) with Mobilinkd TNC4 and Yaesu FT-817 at 9600 baud. ION-DTN provides BPv7, LTP, bundle storage, BPSec, priority handling, and lifetime enforcement out of the box. Our code is limited to: AX.25 frame validation tools (already done), ION-DTN configuration, a thin Go orchestration wrapper for node lifecycle and telemetry, and integration testing.
+Phase 1 validates ION-DTN over amateur radio using the existing ION-DTN KISS CLA (`ltpkisscli`/`ltpkissclo`) with Mobilinkd TNC4 and Yaesu FT-817 at 9600 baud. ION-DTN provides BPv7, LTP, bundle storage, priority handling, and lifetime enforcement out of the box. Our code is limited to: AX.25 frame validation tools (already done), ION-DTN configuration, a thin Go orchestration wrapper for node lifecycle and telemetry, and integration testing.
 
 The ION-DTN KISS CLA is located at `ION-DTN/ltp/kiss/` and provides `ltpkissclo` (transmit) and `ltpkisscli` (receive) programs that wrap LTP segments in KISS frames for serial TNCs.
 
@@ -119,24 +119,9 @@ The ION-DTN KISS CLA is located at `ION-DTN/ltp/kiss/` and provides `ltpkissclo`
 
 - [x] 10. Checkpoint — Store-and-forward validated over KISS CLA
 
-- [x] 11. Test BPSec integrity over KISS CLA
-  - [x] 11.1 Configure BPSec on both nodes
-    - Create `configs/node-a/node.bpsecrc` and `configs/node-b/node.bpsecrc`
-    - Configure HMAC-SHA-256 integrity rules with pre-shared keys
-    - No encryption (amateur radio compliance)
-    - _Requirements: 10.1, 10.2, 10.4_
+- [x] 11. Checkpoint — No cryptography (amateur radio regulatory compliance)
 
-  - [x] 11.2 Test bundle integrity verification
-    - Send a bundle with BPSec integrity from Node A to Node B
-    - Verify Node B accepts the bundle (integrity check passes)
-    - _Requirements: 10.1, 10.3_
-
-  - [x]* 11.3 Test integrity failure detection
-    - Attempt to send a bundle with an incorrect integrity key
-    - Verify Node B rejects the bundle (integrity check fails)
-    - _Requirements: 10.3_
-
-- [x] 12. Checkpoint — BPSec integrity validated
+- [x] 12. Checkpoint — Regulatory compliance confirmed
 
 - [x] 13. Build Go orchestration wrapper
   - [x] 13.1 Create Go wrapper for ION-DTN node lifecycle
@@ -195,7 +180,7 @@ The ION-DTN KISS CLA is located at `ION-DTN/ltp/kiss/` and provides `ltpkissclo`
 ## Notes
 
 - Tasks marked with `*` are optional
-- ION-DTN provides: BPv7, LTP, bundle storage, priority queuing, lifetime enforcement, BPSec, eviction — we do NOT reimplement these
+- ION-DTN provides: BPv7, LTP, bundle storage, priority queuing, lifetime enforcement, eviction — we do NOT reimplement these
 - ION-DTN's KISS CLA (`ltpkisscli`/`ltpkissclo`) handles KISS framing and serial I/O — we do NOT reimplement this
 - Our Go code is a thin orchestration layer: node lifecycle, telemetry collection, contact plan management, and CLI
 - The `ax25/` and `kiss/` Go packages from tasks 1.1-1.4 remain useful for standalone AX.25 testing and debugging

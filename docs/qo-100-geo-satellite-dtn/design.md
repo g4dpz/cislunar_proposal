@@ -4,7 +4,7 @@
 
 This design extends the Phase 1 terrestrial DTN system to operate over the QO-100 (Es'hail-2) geostationary amateur radio satellite, validating the DTN protocol stack with real space delays and RF propagation through space. QO-100 is positioned at 25.9°E in geostationary orbit at approximately 35,786 km altitude, providing an always-visible amateur radio transponder with 2.4 GHz uplink and 10.45 GHz downlink.
 
-The system reuses the Phase 1 software architecture: ION-DTN (BPv7, LTP, BPSec), the dtn-node Go orchestrator, and AX.25 framing. The primary changes are hardware-specific: a 2.4 GHz uplink transmitter (typically 5-10W with a 60-90cm dish), a 10.45 GHz downlink receiver (LNB + SDR), and digital modem capability for data transmission through the satellite's narrowband (500 kHz) or wideband (8 MHz) transponders.
+The system reuses the Phase 1 software architecture: ION-DTN (BPv7, LTP), the dtn-node Go orchestrator, and AX.25 framing. The primary changes are hardware-specific: a 2.4 GHz uplink transmitter (typically 5-10W with a 60-90cm dish), a 10.45 GHz downlink receiver (LNB + SDR), and digital modem capability for data transmission through the satellite's narrowband (500 kHz) or wideband (8 MHz) transponders.
 
 The geostationary orbit introduces approximately 250ms one-way light time (500ms round-trip), which is the key validation target for this phase. Unlike LEO satellites, QO-100 eliminates pass prediction complexity — the satellite is always visible from ground stations within its coverage footprint, providing an always-on contact window with minimal Doppler shift (typically <100 Hz due to stationkeeping maneuvers).
 
@@ -41,7 +41,6 @@ graph TD
 
         subgraph "ION-DTN Stack (C libraries via cgo)"
             BPA[Bundle Protocol Agent<br/>ION-DTN BPA]
-            SEC[BPSec Module<br/>HMAC-SHA-256 integrity]
             LTP[LTP Engine<br/>ION-DTN LTP<br/>600ms min timeout]
             CLA[QO-100 CLA Plugin<br/>ION CLA plugin — C module<br/>Dual uplink/downlink]
         end
@@ -318,7 +317,6 @@ type QO100NodeConfig struct {
     CycleInterval       time.Duration // target: 200ms (vs 100ms for Phase 1)
     MaxBundleSize       uint64
     MaxBundleRate       float64
-    BPSecKeys           map[string][]byte
     ContactPlanFile     string
     TelemetryPath       string
     RetryInterval       time.Duration
@@ -542,9 +540,7 @@ After analyzing all acceptance criteria, I've identified the following propertie
 14. Priority-ordered transmission (7.2)
 15. Bundle integrity preservation (7.4)
 16. Latency measurement (7.5)
-17. BPSec integrity verification (8.1, 8.4)
-18. BPSec integrity failure handling (8.2)
-19. Frequency configuration validation (9.1)
+17. Frequency configuration validation (9.1)
 20. Doppler tolerance (10.2)
 21. Doppler anomaly warning (10.3)
 22. Startup hardware failure handling (11.3)
@@ -652,19 +648,7 @@ After analyzing all acceptance criteria, I've identified the following propertie
 
 **Validates: Requirements 7.5**
 
-### Property 17: BPSec Integrity Verification Success
-
-*For any* bundle with a valid BPSec Block Integrity Block (BIB) transmitted through QO-100, the HMAC-SHA-256 verification SHALL succeed at the remote ground station if the bundle was not corrupted during transmission.
-
-**Validates: Requirements 8.1, 8.4**
-
-### Property 18: BPSec Integrity Failure Handling
-
-*For any* bundle with an invalid BPSec integrity block, the BPA SHALL discard the bundle and log the integrity failure.
-
-**Validates: Requirements 8.2**
-
-### Property 19: Frequency Configuration Validation
+### Property 17: Frequency Configuration Validation
 
 *For any* uplink frequency value in the range 2400-2450 MHz, the configuration SHALL be accepted as valid.
 
@@ -839,13 +823,7 @@ The system uses **gopter** (Go property-based testing library) for implementing 
 - Test end-to-end integrity preservation
 - Test latency measurement
 
-**4. Security Properties (Properties 17, 18)**
-- Generate random bundle payloads
-- Verify BPSec integrity block application and verification
-- Test integrity failure detection and handling
-- Use pre-shared keys for HMAC-SHA-256
-
-**5. Error Handling Properties (Properties 4, 22, 26, 27)**
+**4. Error Handling Properties (Properties 4, 22, 26, 27)**
 - Generate random hardware failure scenarios
 - Verify bundle retention and contact interruption
 - Test automatic recovery procedures
@@ -876,7 +854,6 @@ Integration tests validate end-to-end behavior with real or simulated hardware:
 **End-to-End Tests:**
 - Ping through QO-100 satellite (two ground stations)
 - Store-and-forward through QO-100
-- BPSec integrity over space link
 - Hardware failure and recovery
 
 **Performance Tests:**
@@ -1359,17 +1336,15 @@ a contact +0 +999999999 2 2 100000
 - Check local regulations for 2.4 GHz amateur allocation
 - QO-100 uplink should not exceed 100W EIRP (recommended)
 
-**Encryption Restrictions:**
-- Amateur radio regulations prohibit encryption
-- BPSec integrity blocks (HMAC) are permitted
-- BPSec confidentiality blocks (encryption) are NOT permitted
+**Regulatory Compliance:**
+- Amateur radio regulations prohibit encryption and cryptography on transmitted signals
+- No cryptographic operations are used in this project
 
 ### Performance Expectations
 
 **Throughput:**
 - AX.25 at 9600 baud: ~960 bytes/sec effective
 - With LTP overhead: ~800 bytes/sec
-- With BPSec integrity: ~750 bytes/sec
 
 **Latency:**
 - Single hop (ground → satellite → ground): 500-600ms

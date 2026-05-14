@@ -2,27 +2,27 @@
 
 ## Overview
 
-This design describes the Phase 2 CubeSat Engineering Model (EM) system — a ground-based flatsat that validates the flight DTN software stack on representative hardware before orbital deployment. The EM runs ION-DTN (BPv7/LTP over AX.25) on an STM32U585 ultra-low-power ARM Cortex-M33 MCU (160 MHz, 2 MB flash, 786 KB SRAM, hardware crypto, TrustZone), with C firmware implementing the DTN/radio stack and Go orchestration on a companion Raspberry Pi or PC.
+This design describes the Phase 2 CubeSat Engineering Model (EM) system — a ground-based flatsat that validates the flight DTN software stack on representative hardware before orbital deployment. The EM runs ION-DTN (BPv7/LTP over AX.25) on an STM32U585 ultra-low-power ARM Cortex-M33 MCU (160 MHz, 2 MB flash, 786 KB SRAM), with C firmware implementing the DTN/radio stack and Go orchestration on a companion Raspberry Pi or PC.
 
-The system uses a split architecture: the STM32U585 runs the complete flight software stack in C (ION-DTN BPA, LTP, AX.25 CLA, IQ baseband DSP, NVM bundle store, power management, TrustZone secure key storage), while a Go Node Controller on the Companion Host manages contact scheduling, telemetry collection, test orchestration, and bridges IQ samples between the STM32U585 and the Ettus B200mini SDR via UHD. The UART command interface between Go and C firmware carries control messages (contact activate/deactivate, telemetry requests, status queries) — not bundle data. Bundle data flows entirely through the ION-DTN stack on the STM32U585.
+The system uses a split architecture: the STM32U585 runs the complete flight software stack in C (ION-DTN BPA, LTP, AX.25 CLA, IQ baseband DSP, NVM bundle store, power management), while a Go Node Controller on the Companion Host manages contact scheduling, telemetry collection, test orchestration, and bridges IQ samples between the STM32U585 and the Ettus B200mini SDR via UHD. The UART command interface between Go and C firmware carries control messages (contact activate/deactivate, telemetry requests, status queries) — not bundle data. Bundle data flows entirely through the ION-DTN stack on the STM32U585.
 
 The RF path is: STM32U585 (IQ baseband via DMA) → SPI/UART bridge → Companion Host (UHD) → USB 3.0 → B200mini SDR → UHF 437 MHz over-the-air. The B200mini is EM-only; the flight unit replaces it with a dedicated IQ transceiver IC connected directly to the STM32U585.
 
 The CLA is a native ION-DTN CLA plugin adapted from Phase 1's AX.25 CLA architecture. Phase 1's CLA interfaced with a TNC4 over USB serial; Phase 2's CLA interfaces with the IQ baseband radio path (STM32U585 DMA → IQ Bridge → Companion Host → B200mini). The plugin architecture is identical — it registers with ION-DTN's convergence layer framework as an LTP link service adapter — but the underlying transport is IQ samples instead of TNC4 serial bytes.
 
-Key constraints: 786 KB SRAM shared across ION-DTN runtime, IQ sample buffers, AX.25/LTP frame buffers, bundle metadata index, and TrustZone secure world. Static/pool-based memory allocation only (no dynamic heap). External SPI/QSPI NVM (64–256 MB) for persistent bundle storage. Stop 2 ultra-low-power mode (~16 µA) between simulated passes. Hardware crypto accelerator for BPSec HMAC-SHA-256. TrustZone secure/non-secure partition for key isolation.
+Key constraints: 786 KB SRAM shared across ION-DTN runtime, IQ sample buffers, AX.25/LTP frame buffers, and bundle metadata index. Static/pool-based memory allocation only (no dynamic heap). External SPI/QSPI NVM (64–256 MB) for persistent bundle storage. Stop 2 ultra-low-power mode (~16 µA) between simulated passes. No cryptographic operations (amateur radio regulatory compliance).
 
 The system supports ping (DTN reachability test) and store-and-forward (point-to-point bundle delivery). No relay functionality. All bundle delivery is direct (source → destination). Simulated orbital passes (5–10 min windows, 60–90 min gaps, 4–6 passes/day) validate the complete store-and-forward cycle under flight-representative conditions.
 
 ### Scope Boundaries
 
-**In scope**: STM32U585 C firmware (ION-DTN BPv7/LTP, AX.25 CLA for IQ baseband, GFSK/G3RUH modulation/demodulation, DMA IQ streaming, NVM bundle store, TrustZone key storage, hardware crypto BPSec, Stop 2 power management, static/pool memory allocation), Go Node Controller on Companion Host (UART command interface, contact scheduling, telemetry, test orchestration, UHD/B200mini IQ bridge), simulated orbital pass testing at UHF 437 MHz / 9.6 kbps.
+**In scope**: STM32U585 C firmware (ION-DTN BPv7/LTP, AX.25 CLA for IQ baseband, GFSK/G3RUH modulation/demodulation, DMA IQ streaming, NVM bundle store, Stop 2 power management, static/pool memory allocation), Go Node Controller on Companion Host (UART command interface, contact scheduling, telemetry, test orchestration, UHD/B200mini IQ bridge), simulated orbital pass testing at UHF 437 MHz / 9.6 kbps. No cryptographic operations (amateur radio regulatory compliance).
 
 **Out of scope**: Flight-qualified IQ transceiver IC (Phase 3), orbital deployment (Phase 3), CGR contact prediction / orbital mechanics (Phase 3), S-band / X-band / cislunar communications (Phase 4), relay functionality, Mobilinkd TNC4 (Phase 1 only).
 
 ### Development Hardware
 
-Phase 2 EM development and testing uses an **ST NUCLEO-F753ZI** development board (STM32F753, ARM Cortex-M7, 216 MHz, 512 KB SRAM, 1 MB flash) as the initial test platform. The NUCLEO-F753ZI provides more headroom than the flight-target STM32U585 (Cortex-M33, 160 MHz, 786 KB SRAM), allowing firmware bring-up and debugging before constraining to the U585's tighter resource budget. The firmware is written to be portable between the F7 and U585 via STM32 HAL peripheral abstraction. TrustZone and hardware crypto features are validated on the U585 target once the core firmware is stable on the NUCLEO-F753ZI. The pool allocator enforces the 786 KB SRAM budget constraint even when running on the larger-SRAM F753.
+Phase 2 EM development and testing uses an **ST NUCLEO-F753ZI** development board (STM32F753, ARM Cortex-M7, 216 MHz, 512 KB SRAM, 1 MB flash) as the initial test platform. The NUCLEO-F753ZI provides more headroom than the flight-target STM32U585 (Cortex-M33, 160 MHz, 786 KB SRAM), allowing firmware bring-up and debugging before constraining to the U585's tighter resource budget. The firmware is written to be portable between the F7 and U585 via STM32 HAL peripheral abstraction. The pool allocator enforces the 786 KB SRAM budget constraint even when running on the larger-SRAM F753.
 
 ## Architecture
 
@@ -45,9 +45,6 @@ graph TD
             PWR[Power Manager<br/>Stop 2 mode — RTC wake]
             UART_FW[UART Command Handler<br/>Serial interface to Node Controller]
         end
-        subgraph "TrustZone Secure World"
-            TZ[Secure Crypto Service<br/>HMAC-SHA-256 via HW accelerator<br/>Key storage — isolated from NS]
-        end
     end
 
     subgraph "RF Front-End (EM Only)"
@@ -60,7 +57,6 @@ graph TD
     UART_FW --> BS
 
     BPA --> LTP_E
-    BPA -->|secure call| TZ
     BPA --> BS
     LTP_E --> CLA
     CLA --> DSP
@@ -80,7 +76,6 @@ graph TD
     style BS fill:#5c3a1a,color:#fff
     style IDX fill:#5c3a1a,color:#fff
     style PWR fill:#3a1a5c,color:#fff
-    style TZ fill:#8b0000,color:#fff
     style B200 fill:#4a4a4a,color:#fff
 ```
 
@@ -119,7 +114,6 @@ graph TD
         IQ_BUF["IQ Sample Buffers<br/>~128 KB<br/>TX double-buffer + RX double-buffer<br/>DMA ping-pong"]
         AX25_BUF["AX.25/LTP Frame Buffers<br/>~64 KB<br/>TX frame + RX frame + reassembly"]
         IDX_MEM["Bundle Metadata Index<br/>~64 KB<br/>Priority-ordered in-SRAM index<br/>Points to NVM bundle locations"]
-        TZ_MEM["TrustZone Secure World<br/>~32 KB<br/>Crypto keys, HMAC state,<br/>secure API stack"]
         POOL["Static Pool Allocator<br/>~242 KB<br/>Fixed-size block pools<br/>No dynamic heap"]
     end
 
@@ -127,7 +121,6 @@ graph TD
     style IQ_BUF fill:#5c1a3a,color:#fff
     style AX25_BUF fill:#5c1a3a,color:#fff
     style IDX_MEM fill:#5c3a1a,color:#fff
-    style TZ_MEM fill:#8b0000,color:#fff
     style POOL fill:#3a5c1a,color:#fff
 ```
 
@@ -143,7 +136,6 @@ sequenceDiagram
     participant B200 as B200mini SDR
     participant FW as STM32U585 Firmware (C)
     participant NVM as External NVM
-    participant TZ as TrustZone Secure
 
     Op->>NC: Start simulated pass test
     NC->>NC: Load contact plan (5-10 min windows)
@@ -158,8 +150,6 @@ sequenceDiagram
     IQB->>FW: RX IQ samples (SPI/UART DMA)
     FW->>FW: Demodulate GFSK/G3RUH → AX.25 frames
     FW->>FW: ION-DTN: AX.25 → LTP → BPv7 bundle
-    FW->>TZ: Verify BPSec HMAC-SHA-256 (HW crypto)
-    TZ-->>FW: Integrity OK
     FW->>NVM: Store bundle (atomic write + CRC)
     FW-->>IQB: TX IQ: LTP ACK (modulated)
     IQB-->>B200: TX IQ (USB 3.0 / UHD)
@@ -195,17 +185,12 @@ sequenceDiagram
     participant B200 as B200mini SDR
     participant IQB as IQ Bridge (Go/UHD)
     participant FW as STM32U585 Firmware (C)
-    participant TZ as TrustZone Secure
 
     GS->>B200: Ping request (UHF 437 MHz)
     B200->>IQB: RX IQ (USB 3.0)
     IQB->>FW: RX IQ (SPI/UART DMA)
     FW->>FW: Demod → AX.25 → LTP → BPv7 ping request
-    FW->>TZ: Verify BPSec (HW crypto)
-    TZ-->>FW: OK
     FW->>FW: Generate ping response (dest = sender EID)
-    FW->>TZ: Apply BPSec to response (HW crypto)
-    TZ-->>FW: HMAC applied
     FW->>FW: BPv7 → LTP → AX.25 → Modulate IQ
     FW->>IQB: TX IQ (SPI/UART DMA)
     IQB->>B200: TX IQ (USB 3.0)
@@ -241,7 +226,7 @@ sequenceDiagram
 
 ### Component 1: Bundle Protocol Agent (BPA) — STM32U585 C Firmware
 
-**Purpose**: Core DTN engine running on the STM32U585, responsible for creating, receiving, validating, storing, and delivering BPv7 bundles. Wraps ION-DTN cross-compiled for Cortex-M33. Supports data bundles (store-and-forward), ping request, and ping response. No relay. Uses static/pool memory allocation. Delegates HMAC-SHA-256 to TrustZone secure world via the hardware crypto accelerator.
+**Purpose**: Core DTN engine running on the STM32U585, responsible for creating, receiving, validating, storing, and delivering BPv7 bundles. Wraps ION-DTN cross-compiled for Cortex-M33. Supports data bundles (store-and-forward), ping request, and ping response. No relay. Uses static/pool memory allocation.
 
 **Interface** (C — STM32U585 firmware):
 ```c
@@ -336,14 +321,6 @@ bpa_error_t bpa_deserialize(const uint8_t *data, uint32_t data_len,
 bpa_error_t bpa_generate_ping_response(const bundle_t *request,
                                        bundle_t *response);
 
-/* Apply BPSec BIB (HMAC-SHA-256) via TrustZone secure call.
- * Modifies bundle in-place (appends integrity block to raw_cbor). */
-bpa_error_t bpa_apply_integrity(bundle_t *b);
-
-/* Verify BPSec BIB via TrustZone secure call.
- * Returns BPA_OK if integrity passes, BPA_ERR_INTEGRITY_FAIL otherwise. */
-bpa_error_t bpa_verify_integrity(const bundle_t *b);
-
 /* Release pool-allocated memory for a bundle. */
 void bpa_release_bundle(bundle_t *b);
 ```
@@ -354,8 +331,7 @@ void bpa_release_bundle(bundle_t *b);
 - Bundle validation: version==7, valid destination EID, lifetime>0, timestamp<=now, CRC correct
 - Serialization/deserialization round-trip (BPv7 CBOR wire format) using static buffers
 - Ping echo request/response handling
-- BPSec integrity (HMAC-SHA-256) via TrustZone secure API — no software crypto
-- No encryption (amateur radio compliance)
+- No cryptographic operations (amateur radio regulatory compliance)
 - Pool-based memory: all bundle buffers allocated from fixed-size pools, no malloc/free
 - Discard invalid bundles with logged reason and source EID
 
@@ -648,44 +624,9 @@ uint32_t dsp_get_memory_usage(void);
 - Carrier/clock recovery, bit synchronization in the demodulator
 - Signal quality measurement (SNR, BER estimation)
 
-### Component 6: TrustZone Secure Crypto Service — STM32U585 C Firmware
+### Component 6: Regulatory Compliance Note — No Cryptographic Operations
 
-**Purpose**: Runs in the STM32U585 TrustZone secure world. Provides HMAC-SHA-256 signing and verification using the hardware crypto accelerator. Stores BPSec shared keys isolated from non-secure application code. Exposes a secure API callable from the non-secure BPA.
-
-**Interface** (C — TrustZone secure world):
-```c
-/* --- Secure API (Non-Secure Callable functions) --- */
-
-/* Sign data with HMAC-SHA-256 using the key identified by key_id.
- * Writes 32-byte HMAC into caller-provided buffer.
- * Returns 0 on success, -1 if key_id not found. */
-int __attribute__((cmse_nonsecure_entry))
-secure_hmac_sign(uint8_t key_id, const uint8_t *data, uint32_t data_len,
-                 uint8_t *hmac_out);
-
-/* Verify HMAC-SHA-256 on data using the key identified by key_id.
- * Returns 0 if HMAC matches, -1 if mismatch, -2 if key_id not found. */
-int __attribute__((cmse_nonsecure_entry))
-secure_hmac_verify(uint8_t key_id, const uint8_t *data, uint32_t data_len,
-                   const uint8_t *expected_hmac);
-
-/* Provision a BPSec key into secure storage.
- * Called during firmware flashing or via secure debug interface.
- * Returns 0 on success, -1 if key slots full. */
-int __attribute__((cmse_nonsecure_entry))
-secure_provision_key(uint8_t key_id, const uint8_t *key, uint32_t key_len);
-
-/* Get number of provisioned keys. */
-int __attribute__((cmse_nonsecure_entry))
-secure_get_key_count(void);
-```
-
-**Responsibilities**:
-- Store BPSec HMAC-SHA-256 keys in TrustZone secure flash — never exposed to non-secure world
-- HMAC-SHA-256 computation via STM32U585 hardware crypto accelerator (HASH peripheral)
-- Non-Secure Callable (NSC) API: sign, verify, provision — no raw key access
-- Hardware fault on unauthorized secure memory access (SAU/IDAU enforcement)
-- Key provisioning during initial firmware flash or via secure debug interface
+Note: No cryptographic operations are used. Amateur radio regulations prohibit encryption and cryptography on transmitted signals. All transmissions are plaintext.
 
 ### Component 7: Power Manager — STM32U585 C Firmware
 
@@ -807,7 +748,6 @@ type NodeConfig struct {
     DefaultPriority   Priority
     MaxBundleSize     uint64        // max accepted bundle size in bytes
     MaxBundleRate     float64       // max bundles/sec per source EID
-    BPSecKeyIDs       []uint8       // key IDs provisioned in TrustZone
     FirmwareUART      string        // UART device path, e.g. "/dev/ttyUSB0"
     FirmwareBaudRate  int           // 115200
     B200miniSerial    string        // B200mini serial number (for UHD)
@@ -821,7 +761,7 @@ type NodeConfig struct {
 type FirmwareTelemetry struct {
     SRAMUsedBytes     uint32
     SRAMPeakBytes     uint32
-    SRAMBySubsystem   map[string]uint32 // "ion", "iq_buf", "bundle_idx", "trustzone"
+    SRAMBySubsystem   map[string]uint32 // "ion", "iq_buf", "bundle_idx"
     PowerState        string            // "active" or "stop2"
     ActiveTimeMs      uint32
     Stop2TimeMs       uint32
@@ -1084,7 +1024,6 @@ typedef struct {
     uint32_t sram_ion_bytes;
     uint32_t sram_iq_bytes;
     uint32_t sram_idx_bytes;
-    uint32_t sram_tz_bytes;
     uint8_t  power_state;       /* 0=active, 1=stop2 */
     uint32_t active_time_ms;
     uint32_t stop2_time_ms;
@@ -1109,24 +1048,6 @@ typedef struct {
 // - DataRate must be > 0
 // - StartTime < EndTime for each contact
 ```
-
-### BPSec Integrity Block (C — Firmware)
-
-```c
-/* BPSec Block Integrity Block (BIB). */
-typedef struct {
-    uint64_t security_target;   /* block number protected */
-    uint64_t security_context;  /* HMAC-SHA-256 context ID */
-    uint8_t  key_id;            /* TrustZone key slot ID */
-    uint8_t  hmac[32];          /* HMAC-SHA-256 digest */
-} bpsec_bib_t;
-```
-
-**Constraints**:
-- Only BIB (integrity) blocks — no BCB (confidentiality) blocks
-- HMAC-SHA-256 via hardware crypto accelerator through TrustZone secure API
-- No payload encryption (amateur radio regulatory compliance)
-- Keys stored in TrustZone secure world, never exposed to non-secure code
 
 ### Rate Limiter State (C — Firmware)
 
@@ -1266,17 +1187,11 @@ typedef struct {
 
 **Validates: Requirements 10.4**
 
-### Property 20: BPSec Integrity Round-Trip
+### Property 20: No Cryptographic Operations
 
-*For any* valid Bundle and HMAC-SHA-256 key provisioned in TrustZone, applying a BPSec Block Integrity Block via the hardware crypto accelerator and then verifying the integrity SHALL succeed. If any byte of the bundle is modified after integrity is applied, verification SHALL fail.
+*For any* bundle processed by the BPA, no cryptographic operation SHALL be present in the output. All transmissions are plaintext per amateur radio regulations.
 
-**Validates: Requirements 11.1, 11.4**
-
-### Property 21: No Encryption Constraint
-
-*For any* bundle processed by the BPA, no BPSec Block Confidentiality Block (BCB) or any form of payload encryption SHALL be present in the output.
-
-**Validates: Requirements 11.2**
+**Validates: Requirements 11.1, 11.2**
 
 ### Property 22: Rate Limiting
 
@@ -1323,16 +1238,10 @@ typedef struct {
 **Response**: Discard the corrupted bundle. Log the corruption event with source EndpointID and IQ link metrics (RSSI, SNR, BER) via UART telemetry.
 **Recovery**: For RF-received bundles: the sender retains the bundle (LTP will not receive an ACK) and retransmits during the next contact. For NVM-stored bundles: the corrupted entry is discarded during store reload.
 
-### Error Scenario 4: BPSec Integrity Failure
-
-**Condition**: HMAC-SHA-256 verification fails on a received bundle's BPSec BIB (via TrustZone secure API).
-**Response**: Discard the bundle. Return `BPA_ERR_INTEGRITY_FAIL`. Log the integrity failure with source EndpointID.
-**Recovery**: The sender retains the bundle for retransmission. The operator should investigate potential key mismatch or tampering.
-
-### Error Scenario 5: Power Cycle / Watchdog Reset
+### Error Scenario 4: Power Cycle / Watchdog Reset
 
 **Condition**: STM32U585 experiences unexpected power loss or watchdog reset.
-**Response**: On restart, firmware re-initializes all subsystems. Bundle Store reloads from external NVM, validates CRC on each stored bundle. TrustZone secure world re-initializes crypto keys from secure flash.
+**Response**: On restart, firmware re-initializes all subsystems. Bundle Store reloads from external NVM, validates CRC on each stored bundle.
 **Recovery**: Corrupted NVM entries discarded (logged). Intact bundles recovered. SRAM priority index rebuilt from NVM. Normal operation resumes without manual intervention. Node Controller detects UART reconnection and re-sends current contact plan.
 
 ### Error Scenario 6: IQ Bridge Disconnection
@@ -1371,23 +1280,16 @@ typedef struct {
 **Response**: Reject the bundle with `BPA_ERR_OVERSIZED` before storing. Log the rejection with source EID and bundle size.
 **Recovery**: No state change. The sender may re-send with a smaller payload.
 
-### Error Scenario 12: TrustZone Security Violation
-
-**Condition**: Non-secure code attempts to access TrustZone secure memory directly.
-**Response**: STM32U585 SAU/IDAU generates a SecureFault hardware exception. Firmware logs the access violation with the faulting address.
-**Recovery**: The faulting operation is terminated. System continues operating — the secure world is uncompromised. The event is reported via UART telemetry for investigation.
-
 ## Testing Strategy
 
 ### Unit Testing
 
 Test each component in isolation with example-based tests:
 
-- **BPA (C)**: Bundle creation with all three types (data, ping request, ping response). Validation with valid and invalid bundles (wrong version, empty EID, zero lifetime, future timestamp, bad CRC). BPSec integrity application and verification via TrustZone mock. Default priority assignment. Pool allocation and release.
+- **BPA (C)**: Bundle creation with all three types (data, ping request, ping response). Validation with valid and invalid bundles (wrong version, empty EID, zero lifetime, future timestamp, bad CRC). Default priority assignment. Pool allocation and release.
 - **NVM Bundle Store (C)**: Store/retrieve/delete operations on mock NVM. Priority-ordered listing. Capacity enforcement. Eviction with mixed priorities. Reload after simulated restart with CRC validation. Corrupted entry handling.
 - **IQ Baseband DSP (C)**: Modulation of known AX.25 frames. Demodulation of known IQ samples. DMA buffer management. Signal quality measurement.
 - **UART Command Handler (C)**: Command frame parsing with valid/invalid CRC. Response frame construction. Command dispatch to subsystems.
-- **TrustZone Secure API (C)**: HMAC sign/verify with known test vectors. Key provisioning. Rejection of invalid key IDs.
 - **Pool Allocator (C)**: Allocation until exhaustion. Free and re-allocate. Peak tracking. Multi-pool isolation.
 - **Power Manager (C)**: State transition logging. RTC alarm configuration.
 - **Contact Plan Manager (Go)**: Load plan with valid/invalid contacts. Active contact queries at boundary times. Next contact lookup. Overlap rejection. Simulated pass generation.
@@ -1427,8 +1329,8 @@ Key property tests:
 12. **No relay** (Property 12): Generate random bundles and contacts. Verify bundles only transmitted to contacts matching their destination.
 13. **End-to-end radio path round-trip** (Property 13): Generate random valid bundles of varying sizes. Push through full stack: BPv7 → LTP → AX.25 → IQ mod → IQ demod → AX.25 → LTP → BPv7. Assert bundle equality.
 14. **AX.25 callsign framing** (Property 14): Generate random bundles. Transmit through CLA. Verify output AX.25 frames carry valid source/dest callsigns.
-15. **BPSec integrity round-trip** (Property 20): Generate random bundles and keys. Apply integrity via TrustZone mock. Verify passes. Mutate bundle. Verify fails.
-16. **No encryption** (Property 21): Generate random bundles. Process through BPA. Verify no BCB blocks present.
+15. **No cryptographic operations** (Property 20): Generate random bundles. Process through BPA. Verify no cryptographic blocks present.
+16. **No encryption** (Property 21): Generate random bundles. Process through BPA. Verify no encrypted blocks present.
 17. **Rate limiting** (Property 22): Generate random submission sequences at various rates from random source EIDs. Verify correct acceptance/rejection.
 18. **Bundle size limit** (Property 23): Generate random bundles of varying sizes. Verify oversized rejected, within-limit accepted.
 
@@ -1451,7 +1353,6 @@ Key property tests:
 - **IQ Bridge disconnection**: Disconnect SPI/UART during active contact. Verify detection within 5 seconds, bundles retained, reconnection.
 - **B200mini failure**: Simulate UHD error. Verify Node Controller handles gracefully, bundles retained.
 - **UART command interface**: Verify all command types (activate, deactivate, telemetry, status) work correctly between Go and C.
-- **TrustZone isolation**: Attempt secure memory access from non-secure code. Verify hardware fault generated.
 - **SRAM budget validation**: Run all subsystems concurrently during a simulated pass. Verify total SRAM usage stays within 786 KB via pool stats telemetry.
 - **NVM performance**: Measure store/retrieve times on actual SPI/QSPI flash. Verify within 50 ms target.
 

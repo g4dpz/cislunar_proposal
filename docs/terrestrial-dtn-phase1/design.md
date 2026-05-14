@@ -6,15 +6,15 @@ This design describes the Phase 1 terrestrial DTN validation system for amateur 
 
 The system supports two core operations: **ping** (DTN reachability test — send a bundle echo request and receive an echo response) and **store-and-forward** (point-to-point bundle delivery during scheduled contact windows). There is **no relay functionality** — nodes do not forward bundles on behalf of other nodes. All bundle delivery is direct (source → destination).
 
-The protocol stack is: BPv7 bundles over LTP sessions over AX.25 frames. AX.25 provides callsign-based source/destination addressing for amateur radio regulatory compliance. LTP provides reliable transfer with deferred acknowledgment. BPSec provides integrity protection via HMAC-SHA-256 (no encryption, per amateur radio regulations).
+The protocol stack is: BPv7 bundles over LTP sessions over AX.25 frames. AX.25 provides callsign-based source/destination addressing for amateur radio regulatory compliance. LTP provides reliable transfer with deferred acknowledgment. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
 
 All code is implemented in Go, targeting Linux and macOS (amd64/arm64). The system wraps ION-DTN's C libraries via cgo for BPv7/LTP protocol operations, with Go managing the application-level orchestration, bundle store, contact plan, and node lifecycle. The AX.25 Convergence Layer Adapter (CLA) is implemented as a native ION-DTN CLA plugin — a C module that registers with ION-DTN's convergence layer framework and implements the ION LTP link service adapter interface. This means ION-DTN directly invokes the CLA for bundle transmission and reception with no UDP intermediary. The CLA provides AX.25 framing as the link service layer below ION's LTP engine, sending and receiving LTP segments over AX.25 frames via the TNC4 USB serial connection. The bundle data path is: ION-DTN BPA → ION-DTN LTP → AX.25 CLA (ION CLA plugin) → TNC4 USB → FT-817 radio. No UDP sockets are involved anywhere in the data path.
 
 ### Scope Boundaries
 
-**In scope**: Linux/macOS ground nodes, Mobilinkd TNC4 (USB), Yaesu FT-817 (9600 baud), ION-DTN BPv7/LTP/AX.25, native ION-DTN CLA plugin (C module via cgo) implementing the ION LTP link service adapter for AX.25 framing, ping, store-and-forward, priority handling, bundle persistence, contact plan management, BPSec integrity, rate limiting, telemetry.
+**In scope**: Linux/macOS ground nodes, Mobilinkd TNC4 (USB), Yaesu FT-817 (9600 baud), ION-DTN BPv7/LTP/AX.25, native ION-DTN CLA plugin (C module via cgo) implementing the ION LTP link service adapter for AX.25 framing, ping, store-and-forward, priority handling, bundle persistence, contact plan management, rate limiting, telemetry.
 
-**Out of scope**: STM32U585 OBC, IQ baseband, SDR, Ettus B200mini, CGR orbital prediction, orbital mechanics, space segment (CubeSat, cislunar), S-band/X-band, flight hardware, relay functionality, UDP-based external CLA interfaces.
+**Out of scope**: STM32U585 OBC, IQ baseband, SDR, Ettus B200mini, CGR orbital prediction, orbital mechanics, space segment (CubeSat, cislunar), S-band/X-band, flight hardware, relay functionality, UDP-based external CLA interfaces, cryptography (prohibited by amateur radio regulations).
 
 ## Architecture
 
@@ -28,7 +28,6 @@ graph TD
 
         subgraph "ION-DTN Stack (C libraries via cgo)"
             BPA[Bundle Protocol Agent<br/>ION-DTN BPA]
-            SEC[BPSec Module<br/>HMAC-SHA-256 integrity]
             LTP[LTP Engine<br/>ION-DTN LTP]
             CLA[AX.25 CLA Plugin<br/>ION CLA plugin — C module<br/>LTP link service adapter]
         end
@@ -43,7 +42,6 @@ graph TD
     NC --> BS
     NC --> CPM
     NC --> TEL
-    BPA --> SEC
     BPA --> BS
     BPA --> LTP
     LTP --> CLA
@@ -229,12 +227,6 @@ type BundleProtocolAgent interface {
     // The response destination is set to the request's source EID.
     // The request's BundleID is included in the response payload.
     GeneratePingResponse(request *Bundle) (*Bundle, error)
-
-    // VerifyIntegrity checks BPSec BIB (HMAC-SHA-256) if present.
-    VerifyIntegrity(b *Bundle) error
-
-    // ApplyIntegrity adds a BPSec BIB (HMAC-SHA-256) to the bundle.
-    ApplyIntegrity(b *Bundle) error
 }
 ```
 
@@ -243,7 +235,6 @@ type BundleProtocolAgent interface {
 - Bundle validation: version==7, valid destination EID, lifetime>0, timestamp<=now, CRC correct
 - Serialization/deserialization round-trip (BPv7 CBOR wire format)
 - Ping echo request/response handling
-- BPSec integrity block (HMAC-SHA-256) application and verification
 - Discard invalid bundles with logged reason and source EID
 
 ### Component 2: Bundle Store
@@ -509,7 +500,6 @@ type NodeConfig struct {
     CycleInterval    time.Duration // target: 100ms
     MaxBundleSize    uint64   // max accepted bundle size in bytes
     MaxBundleRate    float64  // max bundles/sec per source EID
-    BPSecKeys        map[string][]byte // EID -> HMAC-SHA-256 key
     TNCDevice        string   // USB serial device path, e.g. "/dev/ttyACM0"
     TNCBaudRate      int      // 9600
     ContactPlanFile  string   // path to ION-DTN contact plan file
@@ -642,22 +632,6 @@ type BPv7Bundle struct {
 // - No overlapping contacts on the same link for a given node
 ```
 
-### BPSec Integrity Block
-
-```go
-// IntegrityBlock represents a BPSec Block Integrity Block (BIB).
-type IntegrityBlock struct {
-    SecurityTargets []uint64 // block numbers protected
-    SecurityContext uint64   // HMAC-SHA-256 context ID
-    HMAC            []byte   // HMAC-SHA-256 digest
-}
-```
-
-**Constraints**:
-- Only BIB (integrity) blocks are used — no BCB (confidentiality) blocks
-- HMAC-SHA-256 with pre-shared keys stored in node config
-- No payload encryption (amateur radio regulatory compliance)
-
 ### Rate Limiter State
 
 ```go
@@ -710,8 +684,7 @@ func (nc *nodeController) ProcessIncomingBundle(b *Bundle, currentTime uint64) e
     //    (bundle received from ION-DTN BPA, which received it via LTP → CLA plugin)
     // 2. Check rate limit for source EID
     // 3. Check bundle size limit
-    // 4. Verify BPSec integrity if BIB present
-    // 5. Check if expired (createdAt + lifetime <= currentTime)
+    // 4. Check if expired (createdAt + lifetime <= currentTime)
     // 6. If ping request → generate echo response, store for delivery
     // 7. If destination is local → deliver to application agent
     // 8. If destination is remote → store for direct delivery during next contact
@@ -911,19 +884,7 @@ func (cpm *contactPlanManager) FindDirectContact(dest EndpointID, afterTime uint
 
 **Validates: Requirements 9.1**
 
-### Property 19: BPSec Integrity Round-Trip
-
-*For any* valid Bundle and HMAC-SHA-256 key, applying a BPSec Block Integrity Block and then verifying the integrity SHALL succeed. If any byte of the bundle is modified after integrity is applied, verification SHALL fail.
-
-**Validates: Requirements 10.1, 10.3**
-
-### Property 20: No Encryption Constraint
-
-*For any* bundle processed by the BPA, no BPSec Block Confidentiality Block (BCB) or any form of payload encryption SHALL be present in the output.
-
-**Validates: Requirements 10.2**
-
-### Property 21: Rate Limiting
+### Property 19: Rate Limiting
 
 *For any* sequence of bundle submissions from a single source EndpointID, if the submission rate exceeds the configured maximum bundles per second, the BPA SHALL reject bundles beyond the rate limit while accepting bundles within the limit.
 
@@ -968,13 +929,7 @@ func (cpm *contactPlanManager) FindDirectContact(dest EndpointID, afterTime uint
 **Response**: Discard the corrupted bundle. Log the corruption event with the source EndpointID and link metrics (RSSI, SNR, BER).
 **Recovery**: The sender retains the bundle (LTP will not receive an ACK) and retransmits during the next contact window. No store state change on the receiving node.
 
-### Error Scenario 4: BPSec Integrity Failure
-
-**Condition**: HMAC-SHA-256 verification fails on a received bundle's BPSec BIB.
-**Response**: Discard the bundle. Log the integrity failure with the source EndpointID.
-**Recovery**: The sender retains the bundle for retransmission. The operator should investigate potential key mismatch or tampering.
-
-### Error Scenario 5: USB Disconnection (TNC4)
+### Error Scenario 4: USB Disconnection (TNC4)
 
 **Condition**: USB connection to the Mobilinkd TNC4 is lost during operation.
 **Response**: CLA plugin detects disconnection within 5 seconds. Mark the current contact as interrupted. Retain all queued bundles. ION-DTN's LTP engine is notified that the link service is unavailable.
@@ -1010,7 +965,7 @@ func (cpm *contactPlanManager) FindDirectContact(dest EndpointID, afterTime uint
 
 Test each component in isolation with example-based tests:
 
-- **BPA**: Bundle creation with all three types (data, ping request, ping response). Validation with valid and invalid bundles (wrong version, empty EID, zero lifetime, future timestamp, bad CRC). BPSec integrity application and verification. Default priority assignment.
+- **BPA**: Bundle creation with all three types (data, ping request, ping response). Validation with valid and invalid bundles (wrong version, empty EID, zero lifetime, future timestamp, bad CRC). Default priority assignment.
 - **Bundle Store**: Store/retrieve/delete operations. Priority-ordered listing. Capacity enforcement. Eviction with mixed priorities. Reload after simulated restart.
 - **Contact Plan Manager**: Load plan with valid/invalid contacts. Active contact queries at boundary times. Next contact lookup. Overlap rejection. ION-DTN format file parsing.
 - **CLA**: AX.25 frame construction with callsigns via the C CLA plugin. ION-DTN CLA plugin registration and callback invocation. LTP link service adapter interface compliance. TNC4 USB serial I/O. Link metrics collection. No UDP socket tests — all data flows through ION-DTN's internal CLA callback mechanism.
@@ -1048,9 +1003,7 @@ Key property tests:
 16. **No transmission after window end** (Property 16): Generate random contact windows and time sequences, verify no transmission after end time.
 17. **Missed contact retains bundles** (Property 17): Generate random failed contacts, verify bundles retained and missed counter incremented.
 18. **AX.25 callsign framing** (Property 18): Generate random bundles, transmit through the ION CLA plugin, verify output AX.25 frames carry valid source/dest callsigns.
-19. **BPSec integrity round-trip** (Property 19): Generate random bundles and keys, apply integrity, verify passes. Mutate bundle, verify fails.
-20. **No encryption** (Property 20): Generate random bundles, process through BPA, verify no BCB blocks present.
-21. **Rate limiting** (Property 21): Generate random submission sequences at various rates, verify correct acceptance/rejection.
+19. **Rate limiting** (Property 19): Generate random submission sequences at various rates, verify correct acceptance/rejection.
 22. **Bundle size limit** (Property 22): Generate random bundles of varying sizes, verify oversized rejected.
 23. **Statistics monotonicity** (Property 23): Generate random operation sequences, verify cumulative stats are non-decreasing.
 24. **Bundle retention without contact** (Property 24): Generate bundles with no matching contacts, verify retention until contact added or lifetime expires.

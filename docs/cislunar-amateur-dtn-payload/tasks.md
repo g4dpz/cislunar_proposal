@@ -4,7 +4,7 @@
 
 This implementation plan covers the complete four-phase DTN system for amateur radio: terrestrial validation (RPi + Mobilinkd TNC4 + FT-817), CubeSat Engineering Model (STM32U585 + Ettus B200mini), LEO CubeSat flight (STM32U585 + flight IQ transceiver), and cislunar deep-space communication. The system uses ION-DTN (BPv7/LTP) over AX.25 with callsign-based addressing, supporting ping and store-and-forward operations with no relay functionality.
 
-Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LTP, bundle storage, priority handling, lifetime enforcement, BPSec). Our code provides: AX.25 frame validation, ION-DTN configuration management, node orchestration, telemetry collection, contact plan management (CGR-based pass prediction), and integration testing.
+Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LTP, bundle storage, priority handling, lifetime enforcement). Our code provides: AX.25 frame validation, ION-DTN configuration management, node orchestration, telemetry collection, contact plan management (CGR-based pass prediction), and integration testing.
 
 ## Tasks
 
@@ -289,65 +289,58 @@ Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LT
 - [x] 10. Checkpoint - Phase 4 cislunar validation complete
 
 - [x] 11. Security and Error Handling
-  - [x] 11.1 Implement BPSec integration
-    - Create `pkg/security/` package for BPSec operations
-    - Integrate ION-DTN BPSec for integrity blocks (RFC 9172)
-    - Use STM32U585 hardware crypto accelerator (AES-256, SHA-256)
-    - Store keys in TrustZone secure world
-    - _Requirements: 16.1, 16.2, 16.3_
-
-  - [x] 11.2 Implement rate limiting
+  - [x] 11.1 Implement rate limiting
     - Add rate limiting to BPA bundle acceptance
     - Prevent store flooding attacks
-    - _Requirements: 16.4_
+    - _Requirements: 16.1_
 
-  - [x] 11.3 Implement contact plan integrity verification
-    - Add signed contact plan support for space nodes
-    - Verify plan signatures before loading
-    - _Requirements: 16.5_
+  - [x] 11.2 Implement contact plan integrity verification
+    - Add contact plan checksum support for space nodes
+    - Verify plan integrity before loading
+    - _Requirements: 16.2_
 
-  - [x] 11.4 Implement error recovery for store full
+  - [x] 11.3 Implement error recovery for store full
     - Handle store-at-capacity scenarios with eviction
     - Log eviction events for telemetry
     - _Requirements: 17.1_
 
-  - [x] 11.5 Implement error recovery for bundle corruption
+  - [x] 11.4 Implement error recovery for bundle corruption
     - Handle CRC validation failures
     - Log corruption events with link metrics
     - _Requirements: 17.2_
 
-  - [x] 11.6 Implement error recovery for power loss
+  - [x] 11.5 Implement error recovery for power loss
     - Reload bundle store from NVM after power cycle
     - Validate store integrity via CRC
     - Rebuild from intact bundles if corruption detected
     - _Requirements: 17.3, 17.4_
 
-  - [x] 11.7 Implement error recovery for missed contacts
+  - [x] 11.6 Implement error recovery for missed contacts
     - Retain bundles when contact window missed
     - Increment contacts-missed counter
     - _Requirements: 9.4_
 
-  - [x] 11.8 Implement error recovery for no contact available
+  - [x] 11.7 Implement error recovery for no contact available
     - Retain bundles when no direct contact exists
     - Re-evaluate when contact plan updated
     - _Requirements: 17.5_
 
-  - [x]* 11.9 Write property test for No Transmission After Window End
+  - [x]* 11.8 Write property test for No Transmission After Window End
     - **Property 18: No Transmission After Window End**
     - **Validates: Requirement 9.2**
     - Generate arbitrary contact windows and transmission attempts, verify no transmission after end
 
-  - [x]* 11.10 Write property test for Missed Contact Retains Bundles
+  - [x]* 11.9 Write property test for Missed Contact Retains Bundles
     - **Property 19: Missed Contact Retains Bundles**
     - **Validates: Requirement 9.4**
     - Simulate missed contacts, verify bundle retention and counter increment
 
-  - [x]* 11.11 Write property test for Rate Limiting
+  - [x]* 11.10 Write property test for Rate Limiting
     - **Property 24: Rate Limiting**
-    - **Validates: Requirement 16.4**
+    - **Validates: Requirement 16.1**
     - Generate rapid bundle submission sequences, verify rate limiting behavior
 
-  - [x]* 11.12 Write property test for Bundles Retained When No Contact Available
+  - [x]* 11.11 Write property test for Bundles Retained When No Contact Available
     - **Property 25: Bundles Retained When No Contact Available**
     - **Validates: Requirements 17.5, 5.5**
     - Generate scenarios with no available contacts, verify bundle retention

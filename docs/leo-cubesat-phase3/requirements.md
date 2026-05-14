@@ -4,19 +4,19 @@
 
 This document specifies the requirements for Phase 3 of the cislunar amateur DTN project: LEO CubeSat Flight. Phase 3 takes the validated Phase 2 Engineering Model (EM) software and deploys it on the actual LEO CubeSat in orbit. The STM32U585 OBC is identical to Phase 2, running the same ION-DTN (BPv7/LTP over AX.25) firmware — C for the DTN/radio/DSP stack, with no companion host.
 
-The key architectural change from Phase 2 is the elimination of the companion host and B200mini SDR. A flight-qualified IQ transceiver IC interfaces directly with the STM32U585 via DAC/ADC or SPI, replacing the B200mini + companion RPi/PC IQ bridge. The STM32U585 runs everything autonomously: ION-DTN BPA, LTP, AX.25 CLA, IQ baseband DSP, NVM bundle store, power management, TrustZone secure crypto, and CGR contact prediction. There is no ground operator controlling pass timing — the CubeSat predicts its own contact windows using ION-DTN's CGR module with SGP4/SDP4 orbit propagation from onboard TLE/ephemeris data.
+The key architectural change from Phase 2 is the elimination of the companion host and B200mini SDR. A flight-qualified IQ transceiver IC interfaces directly with the STM32U585 via DAC/ADC or SPI, replacing the B200mini + companion RPi/PC IQ bridge. The STM32U585 runs everything autonomously: ION-DTN BPA, LTP, AX.25 CLA, IQ baseband DSP, NVM bundle store, power management, and CGR contact prediction. There is no ground operator controlling pass timing — the CubeSat predicts its own contact windows using ION-DTN's CGR module with SGP4/SDP4 orbit propagation from onboard TLE/ephemeris data.
 
-The system operates at UHF 437 MHz at 9.6 kbps (GMSK/BPSK via IQ baseband). External SPI/QSPI NVM (64–256 MB) provides persistent bundle storage. Contact windows are 5–10 minutes per pass, 4–6 passes per day per ground station. Power budget is 5–10 W average active, with STM32U585 Stop 2 mode (~16 µA) between passes. BPSec provides integrity protection (HMAC-SHA-256 via hardware crypto, no encryption).
+The system operates at UHF 437 MHz at 9.6 kbps (GMSK/BPSK via IQ baseband). External SPI/QSPI NVM (64–256 MB) provides persistent bundle storage. Contact windows are 5–10 minutes per pass, 4–6 passes per day per ground station. Power budget is 5–10 W average active, with STM32U585 Stop 2 mode (~16 µA) between passes. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
 
 The system supports two core operations: ping (DTN reachability test) and store-and-forward (point-to-point bundle delivery). There is no relay functionality. All bundle delivery is direct (source → destination).
 
-Phase 2 (EM) is complete and provides the validated STM32U585 firmware: ION-DTN BPA, LTP, AX.25 CLA plugin architecture, IQ baseband DSP, NVM bundle store with atomic writes, TrustZone secure key storage, hardware crypto BPSec, Stop 2 power management, static/pool memory allocation, ping and store-and-forward operations, and the no-relay constraint. Phase 3 adapts the CLA from the B200mini IQ bridge to the flight IQ transceiver IC direct interface, adds CGR-based contact prediction, and operates autonomously in orbit under real orbital dynamics (Doppler, varying elevation, radiation environment).
+Phase 2 (EM) is complete and provides the validated STM32U585 firmware: ION-DTN BPA, LTP, AX.25 CLA plugin architecture, IQ baseband DSP, NVM bundle store with atomic writes, Stop 2 power management, static/pool memory allocation, ping and store-and-forward operations, and the no-relay constraint. Phase 3 adapts the CLA from the B200mini IQ bridge to the flight IQ transceiver IC direct interface, adds CGR-based contact prediction, and operates autonomously in orbit under real orbital dynamics (Doppler, varying elevation, radiation environment).
 
 Out of scope: S-band / X-band (Phase 4), cislunar distances (Phase 4), LDPC/Turbo FEC (Phase 4), relay functionality.
 
 ## Glossary
 
-- **STM32U585**: Ultra-low-power ARM Cortex-M33 MCU — 160 MHz, 2 MB flash, 786 KB SRAM, hardware crypto accelerator (AES-256, SHA-256, PKA), TrustZone security — the OBC for the LEO CubeSat (identical to Phase 2 EM)
+- **STM32U585**: Ultra-low-power ARM Cortex-M33 MCU — 160 MHz, 2 MB flash, 786 KB SRAM — the OBC for the LEO CubeSat (identical to Phase 2 EM)
 - **Flight_Transceiver**: Flight-qualified IQ transceiver IC interfacing directly with the STM32U585 via DAC/ADC or SPI — replaces the Phase 2 B200mini + companion host IQ bridge
 - **NVM**: External SPI/QSPI non-volatile memory (64–256 MB flash) connected to the STM32U585 for persistent bundle storage
 - **BPA**: Bundle Protocol Agent — the core ION-DTN engine running on the STM32U585 that creates, receives, validates, stores, and delivers BPv7 bundles
@@ -25,12 +25,10 @@ Out of scope: S-band / X-band (Phase 4), cislunar distances (Phase 4), LDPC/Turb
 - **Contact_Plan_Manager**: Subsystem that maintains CGR-predicted communication windows and manages contact scheduling autonomously onboard the CubeSat
 - **CLA**: Convergence Layer Adapter — native ION-DTN CLA plugin running on the STM32U585 that provides AX.25 framing as the LTP link service layer, adapted from Phase 2 for the Flight_Transceiver direct interface (no companion host)
 - **Node_Controller**: Top-level autonomous orchestrator running on the STM32U585 — manages the operation cycle (wake, transmit, receive, sleep) without external control
-- **Firmware**: C code running on the STM32U585 (bare metal or lightweight RTOS) implementing ION-DTN BPv7/LTP, AX.25 CLA, IQ baseband DSP, NVM bundle store, CGR contact prediction, power management, and TrustZone secure crypto
+- **Firmware**: C code running on the STM32U585 (bare metal or lightweight RTOS) implementing ION-DTN BPv7/LTP, AX.25 CLA, IQ baseband DSP, NVM bundle store, CGR contact prediction, and power management
 - **ION-DTN**: NASA JPL's Interplanetary Overlay Network — the DTN implementation providing BPv7, LTP, CGR, and related protocols, cross-compiled for STM32U585
 - **LTP**: Licklider Transmission Protocol — runs on top of AX.25 providing reliable transfer with deferred acknowledgment
 - **AX.25**: Link-layer framing protocol providing callsign-based source/destination addressing for amateur radio compliance
-- **BPSec**: Bundle Protocol Security (RFC 9172) — provides integrity blocks (HMAC-SHA-256) for bundle origin authentication
-- **TrustZone**: ARM TrustZone hardware isolation on the STM32U585 — partitions the MCU into secure and non-secure worlds for key storage and crypto operations
 - **Stop_2_Mode**: STM32U585 ultra-low-power sleep mode (~16 µA) with SRAM retention, used between orbital passes
 - **DMA**: Direct Memory Access — STM32U585 peripheral for streaming IQ samples between memory and the Flight_Transceiver interface without CPU intervention
 - **TLE**: Two-Line Element set — standard orbital parameter format used by SGP4/SDP4 propagators for orbit prediction
@@ -56,7 +54,7 @@ Out of scope: S-band / X-band (Phase 4), cislunar distances (Phase 4), LDPC/Turb
 3. THE Firmware SHALL use the STM32U585 DMA engine for IQ sample streaming between memory and the Flight_Transceiver peripheral interface, avoiding CPU-bound sample transfers
 4. THE CLA SHALL interface with the Flight_Transceiver IQ path (STM32U585 DMA → DAC/ADC or SPI → Flight_Transceiver) instead of the Phase 2 IQ_Bridge path (STM32U585 → SPI/UART → Companion_Host → USB 3.0 → B200mini)
 5. THE Firmware SHALL configure the Flight_Transceiver for UHF 437 MHz center frequency with sufficient bandwidth to support 9.6 kbps GMSK/BPSK modulation
-6. THE Firmware SHALL manage IQ sample buffers within the STM32U585 786 KB SRAM budget, sharing memory with the ION-DTN runtime, Bundle_Store index, CGR_Engine state, and TrustZone secure world
+6. THE Firmware SHALL manage IQ sample buffers within the STM32U585 786 KB SRAM budget, sharing memory with the ION-DTN runtime, Bundle_Store index, and CGR_Engine state
 7. FOR ALL valid AX.25 frames, modulating a frame into IQ samples via the Flight_Transceiver path and then demodulating the IQ samples back SHALL produce a frame equivalent to the original (round-trip property for the flight baseband DSP path)
 
 ### Requirement 2: Autonomous CGR Contact Prediction
@@ -205,30 +203,17 @@ Out of scope: S-band / X-band (Phase 4), cislunar distances (Phase 4), LDPC/Turb
 5. WHEN a Contact_Window completes and no further Contact_Windows are predicted within the next 60 seconds, THE Firmware SHALL deactivate the Flight_Transceiver, flush NVM, and transition the STM32U585 into Stop_2_Mode
 6. IF the CLA fails to establish the IQ baseband link during a scheduled Contact_Window (Flight_Transceiver not responding, no AX.25 connection established, or signal quality below threshold), THEN THE Node_Controller SHALL mark the contact as missed, retain all queued bundles for the next window, and increment the contacts-missed counter
 
-### Requirement 14: BPSec Integrity with Hardware Crypto
+### Requirement 14: No Cryptography (Amateur Radio Compliance)
 
-**User Story:** As a security engineer, I want bundle integrity protection using BPSec with the STM32U585 hardware crypto accelerator, so that bundle origin authentication is enforced in orbit while complying with amateur radio regulations.
-
-#### Acceptance Criteria
-
-1. THE BPA SHALL support BPSec (RFC 9172) Block Integrity Blocks (BIB) for bundle origin authentication using HMAC-SHA-256
-2. THE BPA SHALL NOT apply BPSec Block Confidentiality Blocks (BCB) or any form of payload encryption, in compliance with amateur radio regulations requiring transmissions to be unencrypted
-3. THE BPA SHALL use the STM32U585 hardware crypto accelerator (SHA-256, AES-256, PKA) for all BPSec HMAC-SHA-256 computations instead of software implementations
-4. WHEN a bundle with a BIB is received, THE BPA SHALL verify the integrity block using the hardware crypto accelerator and discard the bundle if verification fails, logging the integrity failure with the source Endpoint_ID
-5. THE Firmware SHALL store BPSec shared keys in the STM32U585 TrustZone secure world, isolated from non-secure application code
-
-### Requirement 15: TrustZone Secure Key Storage
-
-**User Story:** As a security engineer, I want cryptographic keys stored in the STM32U585 TrustZone secure world, so that keys are hardware-isolated from application firmware in the flight environment.
+**User Story:** As a network operator, I want to ensure the LEO CubeSat system complies with amateur radio regulations that prohibit encryption and cryptography on transmitted signals.
 
 #### Acceptance Criteria
 
-1. THE Firmware SHALL partition the STM32U585 into TrustZone secure and non-secure worlds, with BPSec keys and crypto operations executing in the secure world
-2. THE Firmware SHALL expose a secure API from the TrustZone secure world that the non-secure BPA can call to request HMAC-SHA-256 signing and verification without exposing raw key material
-3. IF non-secure code attempts to read TrustZone secure memory directly, THEN THE STM32U585 SHALL generate a hardware fault and the Firmware SHALL log the access violation
-4. THE Firmware SHALL provision BPSec keys into the TrustZone secure world during initial firmware flashing or via a secure key update bundle received during a ground pass
+1. THE system SHALL NOT use any cryptographic operations (encryption, HMAC, digital signatures) on transmitted signals, in compliance with amateur radio regulations
+2. THE system SHALL NOT apply any form of payload encryption or integrity blocks that use cryptographic algorithms
+3. THE system SHALL rely on rate limiting and CRC validation for protection against flooding and corruption
 
-### Requirement 16: Power Management and Stop 2 Mode
+### Requirement 15: Power Management and Stop 2 Mode
 
 **User Story:** As a power systems engineer, I want the CubeSat to manage its power budget autonomously, transitioning between active and ultra-low-power states based on predicted contact windows, so that the CubeSat operates within its 5–10 W average power budget.
 
@@ -246,9 +231,9 @@ Out of scope: S-band / X-band (Phase 4), cislunar distances (Phase 4), LDPC/Turb
 
 #### Acceptance Criteria
 
-1. THE Firmware SHALL operate within the STM32U585 786 KB SRAM for all concurrent operations: ION-DTN runtime, IQ sample buffers (TX and RX), AX.25/LTP frame buffers, bundle metadata index, CGR_Engine state and computation buffers, and TrustZone secure world allocations
+1. THE Firmware SHALL operate within the STM32U585 786 KB SRAM for all concurrent operations: ION-DTN runtime, IQ sample buffers (TX and RX), AX.25/LTP frame buffers, bundle metadata index, and CGR_Engine state and computation buffers
 2. THE Firmware SHALL use static or pool-based memory allocation (Pool_Allocator) for all runtime data structures, avoiding dynamic heap allocation that could cause fragmentation on the constrained MCU
-3. THE Firmware SHALL report peak and current SRAM utilization as part of telemetry, broken down by subsystem (ION-DTN, IQ buffers, bundle index, CGR_Engine, TrustZone)
+3. THE Firmware SHALL report peak and current SRAM utilization as part of telemetry, broken down by subsystem (ION-DTN, IQ buffers, bundle index, CGR_Engine)
 4. IF an operation would exceed the SRAM budget, THEN THE Firmware SHALL reject the operation and log the memory exhaustion event rather than corrupting adjacent memory regions
 
 ### Requirement 18: Priority-Based Message Handling

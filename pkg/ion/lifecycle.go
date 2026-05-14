@@ -105,15 +105,6 @@ func (nl *NodeLifecycle) Start() error {
 		return fmt.Errorf("ipnadmin failed: %w", err)
 	}
 
-	// Initialize BPSec if config exists
-	bpsecConfig := filepath.Join(nl.config.ConfigDir, "node.bpsecrc")
-	if _, err := os.Stat(bpsecConfig); err == nil {
-		if err := nl.runAdmin("bpsecadmin", "node.bpsecrc"); err != nil {
-			nl.Stop() // Clean up
-			return fmt.Errorf("bpsecadmin failed: %w", err)
-		}
-	}
-
 	nl.running = true
 	return nil
 }

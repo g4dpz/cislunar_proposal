@@ -23,8 +23,6 @@ This document proposes a simplified DTN architecture for amateur radio that elim
 │   BPv7 (Bundle Protocol)            │
 │   EID: ipn:1.1                      │
 ├─────────────────────────────────────┤
-│   BPSec (Integrity - HMAC-SHA-256)  │
-├─────────────────────────────────────┤
 │   LTP (Licklider Transmission)      │
 ├─────────────────────────────────────┤
 │   AX.25 (Amateur Radio Link Layer)  │  ← 17+ byte overhead
@@ -58,8 +56,6 @@ This document proposes a simplified DTN architecture for amateur radio that elim
 ├─────────────────────────────────────┤
 │   BPv7 (Bundle Protocol)            │
 │   EID: dtn://g4dpz-1                │  ← Callsign in EID
-├─────────────────────────────────────┤
-│   BPSec (Integrity - HMAC-SHA-256)  │
 ├─────────────────────────────────────┤
 │   LTP (Licklider Transmission)      │
 ├─────────────────────────────────────┤
@@ -183,7 +179,7 @@ Payload: "G4DPZ amateur radio DTN experimental station"
 | Requirement | Implementation | Status |
 |-------------|----------------|--------|
 | **Station Identification** | Callsign in DTN EID (every bundle) | ✅ Compliant |
-| **No Encryption** | BPSec integrity only (HMAC-SHA256) | ✅ Compliant |
+| **No Encryption** | No cryptography used (regulatory compliance) | ✅ Compliant |
 | **Published Protocol** | RFCs 9171, 9172, 5326 + open source | ✅ Compliant |
 | **Unobstructed Communication** | All protocols publicly documented | ✅ Compliant |
 | **Periodic ID** | Beacon bundles every 10 minutes | ✅ Compliant |
@@ -193,8 +189,7 @@ Payload: "G4DPZ amateur radio DTN experimental station"
 All protocols are publicly available:
 
 1. **Bundle Protocol v7**: [RFC 9171](https://www.rfc-editor.org/rfc/rfc9171.html)
-2. **BPSec**: [RFC 9172](https://www.rfc-editor.org/rfc/rfc9172.html)
-3. **LTP**: [RFC 5326](https://www.rfc-editor.org/rfc/rfc5326.html)
+2. **LTP**: [RFC 5326](https://www.rfc-editor.org/rfc/rfc5326.html)
 4. **KISS**: [KISS Protocol Specification](http://www.ax25.net/kiss.aspx)
 5. **Implementation**: MIT licensed, public GitHub repository
 
@@ -458,8 +453,7 @@ This architecture can be used for:
 ## References
 
 1. **RFC 9171**: Bundle Protocol Version 7 (BPv7)
-2. **RFC 9172**: Bundle Protocol Security (BPSec)
-3. **RFC 5326**: Licklider Transmission Protocol (LTP)
+2. **RFC 5326**: Licklider Transmission Protocol (LTP)
 4. **KISS Protocol**: http://www.ax25.net/kiss.aspx
 5. **ION-DTN**: https://sourceforge.net/projects/ion-dtn/
 6. **Amateur Radio Regulations**: FCC Part 97 (US), OfCom (UK)

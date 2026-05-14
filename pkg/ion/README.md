@@ -9,7 +9,7 @@ This package provides a Go wrapper for managing ION-DTN node lifecycle, telemetr
 Manages ION-DTN node startup, shutdown, and health monitoring.
 
 **Features:**
-- Start ION-DTN with automatic initialization of ionadmin, ltpadmin, bpadmin, ipnadmin, bpsecadmin
+- Start ION-DTN with automatic initialization of ionadmin, ltpadmin, bpadmin, ipnadmin
 - Graceful shutdown with ionstop
 - Process health checking (IsRunning)
 - Automatic environment setup (PATH, DYLD_LIBRARY_PATH, LD_LIBRARY_PATH)

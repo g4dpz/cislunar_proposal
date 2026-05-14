@@ -85,7 +85,7 @@ This Go code **wraps** ION-DTN, it does not reimplement it. ION-DTN provides:
 - LTP (Licklider Transmission Protocol)
 - Bundle storage and persistence
 - Priority handling and lifetime enforcement
-- BPSec security (RFC 9172)
+- No cryptography (amateur radio regulatory compliance)
 - CGR (Contact Graph Routing) for orbital pass prediction
 
 Our Go code provides:

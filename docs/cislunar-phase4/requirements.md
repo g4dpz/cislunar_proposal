@@ -12,13 +12,13 @@ The system supports two core operations: ping (DTN reachability test) and store-
 
 CGR contact prediction is adapted for cislunar orbital mechanics — using numerical orbit propagation or pre-computed ephemeris tables instead of SGP4/SDP4 (which is designed for near-Earth orbits). Contact windows are hours-long arcs with slower Doppler dynamics but longer duration than LEO passes.
 
-Phase 3 (LEO CubeSat Flight) is complete and provides the validated firmware: ION-DTN BPA, LTP, AX.25 CLA plugin architecture, IQ baseband DSP, NVM bundle store with atomic writes, TrustZone secure key storage, hardware crypto BPSec, pool allocator, CGR framework, Doppler compensation, radiation monitor, autonomous operation cycle, and all supporting subsystems.
+Phase 3 (LEO CubeSat Flight) is complete and provides the validated firmware: ION-DTN BPA, LTP, AX.25 CLA plugin architecture, IQ baseband DSP, NVM bundle store with atomic writes, pool allocator, CGR framework, Doppler compensation, radiation monitor, autonomous operation cycle, and all supporting subsystems.
 
 Out of scope: relay functionality, X-band (future enhancement), optical communication, Mars-relay simulations.
 
 ## Glossary
 
-- **OBC**: Onboard Computer — STM32U585 as baseline (160 MHz Cortex-M33, 2 MB flash, 786 KB SRAM, hardware crypto, TrustZone) or a more capable processor if mission requirements demand it
+- **OBC**: Onboard Computer — STM32U585 as baseline (160 MHz Cortex-M33, 2 MB flash, 786 KB SRAM) or a more capable processor if mission requirements demand it
 - **Flight_Transceiver**: Flight-qualified S-band IQ transceiver IC interfacing with the OBC via DAC/ADC or SPI — operates at 2.2 GHz with BPSK modulation
 - **NVM**: External non-volatile memory (256 MB–1 GB) connected to the OBC via SPI/QSPI for persistent bundle storage — expanded from Phase 3's 64–256 MB to support long-duration cislunar storage
 - **BPA**: Bundle Protocol Agent — the core ION-DTN engine running on the OBC that creates, receives, validates, stores, and delivers BPv7 bundles
@@ -27,12 +27,10 @@ Out of scope: relay functionality, X-band (future enhancement), optical communic
 - **Contact_Plan_Manager**: Subsystem that maintains CGR-predicted communication windows and manages contact scheduling autonomously onboard the cislunar payload
 - **CLA**: Convergence Layer Adapter — native ION-DTN CLA plugin running on the OBC that provides AX.25 framing as the LTP link service layer, adapted for S-band 2.2 GHz at 500 bps with BPSK + LDPC/Turbo FEC
 - **Node_Controller**: Top-level autonomous orchestrator running on the OBC — manages the operation cycle (wake, transmit, receive, sleep) without external control
-- **Firmware**: C code running on the OBC implementing ION-DTN BPv7/LTP, AX.25 CLA, IQ baseband DSP, NVM bundle store, CGR contact prediction, power management, and TrustZone secure crypto
+- **Firmware**: C code running on the OBC implementing ION-DTN BPv7/LTP, AX.25 CLA, IQ baseband DSP, NVM bundle store, CGR contact prediction, and power management
 - **ION-DTN**: NASA JPL's Interplanetary Overlay Network — the DTN implementation providing BPv7, LTP, CGR, and related protocols
 - **LTP**: Licklider Transmission Protocol — runs on top of AX.25 providing reliable transfer with deferred acknowledgment; deferred ACK is critical at cislunar distances (2–4 second RTT)
 - **AX.25**: Link-layer framing protocol providing callsign-based source/destination addressing for amateur radio compliance
-- **BPSec**: Bundle Protocol Security (RFC 9172) — provides integrity blocks (HMAC-SHA-256) for bundle origin authentication
-- **TrustZone**: ARM TrustZone hardware isolation on the OBC — partitions the MCU into secure and non-secure worlds for key storage and crypto operations
 - **DMA**: Direct Memory Access — OBC peripheral for streaming IQ samples between memory and the Flight_Transceiver interface without CPU intervention
 - **LDPC**: Low-Density Parity-Check code — strong forward error correction used for the cislunar S-band link at 500 bps
 - **Turbo_Code**: Turbo error correction code — alternative strong FEC option for the cislunar S-band link
@@ -65,7 +63,7 @@ Out of scope: relay functionality, X-band (future enhancement), optical communic
 3. THE Firmware SHALL use the OBC DMA engine for IQ sample streaming between memory and the Flight_Transceiver peripheral interface, avoiding CPU-bound sample transfers
 4. THE CLA SHALL interface with the Flight_Transceiver IQ path (OBC DMA → DAC/ADC or SPI → Flight_Transceiver) for S-band 2.2 GHz operation
 5. THE Firmware SHALL configure the Flight_Transceiver for S-band 2.2 GHz center frequency with sufficient bandwidth to support 500 bps BPSK modulation
-6. THE Firmware SHALL manage IQ sample buffers within the OBC SRAM budget, sharing memory with the ION-DTN runtime, Bundle_Store index, CGR_Engine state, and TrustZone secure world
+6. THE Firmware SHALL manage IQ sample buffers within the OBC SRAM budget, sharing memory with the ION-DTN runtime, Bundle_Store index, and CGR_Engine state
 7. FOR ALL valid AX.25 frames, modulating a frame into IQ samples via the S-band Flight_Transceiver path and then demodulating the IQ samples back SHALL produce a frame equivalent to the original (round-trip property for the S-band baseband DSP path)
 
 ### Requirement 2: LDPC/Turbo Forward Error Correction
@@ -226,30 +224,17 @@ Out of scope: relay functionality, X-band (future enhancement), optical communic
 5. WHEN a Contact_Window completes and no further Contact_Windows are predicted within the next 5 minutes, THE Firmware SHALL deactivate the Flight_Transceiver, flush NVM, and transition the OBC into Stop_2_Mode
 6. IF the CLA fails to establish the S-band IQ baseband link during a scheduled Contact_Window (Flight_Transceiver not responding, no AX.25 connection established, or signal quality below threshold), THEN THE Node_Controller SHALL mark the contact as missed, retain all queued bundles for the next window, and increment the contacts-missed counter
 
-### Requirement 15: BPSec Integrity with Hardware Crypto
+### Requirement 15: No Cryptography (Amateur Radio Compliance)
 
-**User Story:** As a security engineer, I want bundle integrity protection using BPSec with the OBC hardware crypto accelerator, so that bundle origin authentication is enforced at cislunar distances while complying with amateur radio regulations.
-
-#### Acceptance Criteria
-
-1. THE BPA SHALL support BPSec (RFC 9172) Block Integrity Blocks (BIB) for bundle origin authentication using HMAC-SHA-256
-2. THE BPA SHALL NOT apply BPSec Block Confidentiality Blocks (BCB) or any form of payload encryption, in compliance with amateur radio regulations requiring transmissions to be unencrypted
-3. THE BPA SHALL use the OBC hardware crypto accelerator for all BPSec HMAC-SHA-256 computations instead of software implementations
-4. WHEN a bundle with a BIB is received, THE BPA SHALL verify the integrity block using the hardware crypto accelerator and discard the bundle if verification fails, logging the integrity failure with the source Endpoint_ID
-5. THE Firmware SHALL store BPSec shared keys in the OBC TrustZone secure world, isolated from non-secure application code
-
-### Requirement 16: TrustZone Secure Key Storage
-
-**User Story:** As a security engineer, I want cryptographic keys stored in the OBC TrustZone secure world, so that keys are hardware-isolated from application firmware in the cislunar flight environment.
+**User Story:** As a network operator, I want to ensure the cislunar system complies with amateur radio regulations that prohibit encryption and cryptography on transmitted signals.
 
 #### Acceptance Criteria
 
-1. THE Firmware SHALL partition the OBC into TrustZone secure and non-secure worlds, with BPSec keys and crypto operations executing in the secure world
-2. THE Firmware SHALL expose a secure API from the TrustZone secure world that the non-secure BPA can call to request HMAC-SHA-256 signing and verification without exposing raw key material
-3. IF non-secure code attempts to read TrustZone secure memory directly, THEN THE OBC SHALL generate a hardware fault and the Firmware SHALL log the access violation
-4. THE Firmware SHALL provision BPSec keys into the TrustZone secure world during initial firmware flashing or via a secure key update bundle received during a contact arc
+1. THE system SHALL NOT use any cryptographic operations (encryption, HMAC, digital signatures) on transmitted signals, in compliance with amateur radio regulations
+2. THE system SHALL NOT apply any form of payload encryption or integrity blocks that use cryptographic algorithms
+3. THE system SHALL rely on rate limiting and CRC validation for protection against flooding and corruption
 
-### Requirement 17: Power Management (10–20 W Budget)
+### Requirement 16: Power Management (10–20 W Budget)
 
 **User Story:** As a power systems engineer, I want the cislunar payload to manage its power budget autonomously within 10–20 W, transitioning between active and ultra-low-power states based on predicted contact arcs, so that the payload operates within its power budget during the long-duration mission.
 
@@ -268,9 +253,9 @@ Out of scope: relay functionality, X-band (future enhancement), optical communic
 
 #### Acceptance Criteria
 
-1. THE Firmware SHALL operate within the OBC SRAM for all concurrent operations: ION-DTN runtime, IQ sample buffers (TX and RX), LDPC/Turbo FEC codec state, AX.25/LTP frame buffers, bundle metadata index, CGR_Engine state and computation buffers, and TrustZone secure world allocations
+1. THE Firmware SHALL operate within the OBC SRAM for all concurrent operations: ION-DTN runtime, IQ sample buffers (TX and RX), LDPC/Turbo FEC codec state, AX.25/LTP frame buffers, bundle metadata index, and CGR_Engine state and computation buffers
 2. THE Firmware SHALL use static or pool-based memory allocation (Pool_Allocator) for all runtime data structures, avoiding dynamic heap allocation that could cause fragmentation on the constrained MCU
-3. THE Firmware SHALL report peak and current SRAM utilization as part of telemetry, broken down by subsystem (ION-DTN, IQ buffers, FEC codec, bundle index, CGR_Engine, TrustZone)
+3. THE Firmware SHALL report peak and current SRAM utilization as part of telemetry, broken down by subsystem (ION-DTN, IQ buffers, FEC codec, bundle index, CGR_Engine)
 4. IF an operation would exceed the SRAM budget, THEN THE Firmware SHALL reject the operation and log the memory exhaustion event rather than corrupting adjacent memory regions
 
 ### Requirement 19: Priority-Based Message Handling

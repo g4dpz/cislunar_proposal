@@ -16,7 +16,7 @@ This document specifies the requirements for a phased Delay/Disruption Tolerant 
 - **ION-DTN**: NASA JPL's Interplanetary Overlay Network — the DTN implementation providing BPv7, LTP, and CGR
 - **LTP**: Licklider Transmission Protocol — convergence layer running on top of AX.25 providing reliable transfer with deferred acknowledgment
 - **AX.25**: Link-layer framing protocol providing callsign-based source/destination addressing for amateur radio compliance
-- **STM32U585**: Ultra-low-power ARM Cortex-M33 MCU (160 MHz, 786 KB SRAM, 2 MB flash, hardware crypto, TrustZone) used as OBC for EM and flight nodes
+- **STM32U585**: Ultra-low-power ARM Cortex-M33 MCU (160 MHz, 786 KB SRAM, 2 MB flash) used as OBC for EM and flight nodes
 - **B200mini**: Ettus Research USRP B200mini SDR — EM-only RF front-end (USB 3.0, 12-bit ADC/DAC, 70 MHz–6 GHz)
 - **TNC4**: Mobilinkd TNC4 terminal node controller — USB-connected TNC for terrestrial nodes interfacing with FT-817
 - **FT-817**: Yaesu FT-817 portable transceiver — terrestrial node radio with 9600 baud data port
@@ -201,15 +201,13 @@ This document specifies the requirements for a phased Delay/Disruption Tolerant 
 
 ### Requirement 16: Security
 
-**User Story:** As a network operator, I want bundle integrity protection and secure key storage, so that the DTN network is protected against spoofing and tampering.
+**User Story:** As a network operator, I want rate limiting and store protection, so that the DTN network is protected against flooding attacks while complying with amateur radio regulations that prohibit cryptography.
 
 #### Acceptance Criteria
 
-1. THE BPA SHALL support BPSec (RFC 9172) integrity blocks for bundle origin authentication
-2. WHILE operating on an STM32U585-based node, THE BPA SHALL use the hardware crypto accelerator (AES-256, SHA-256, PKA) for BPSec cryptographic operations
-3. WHILE operating on an STM32U585-based node, THE Node_Controller SHALL store cryptographic keys and BPSec credentials in the TrustZone secure world, isolated from non-secure application code
-4. THE BPA SHALL enforce rate limiting on bundle acceptance to prevent store flooding attacks
-5. THE Node_Controller SHALL verify contact plan integrity using signed plans for space nodes
+1. THE BPA SHALL enforce rate limiting on bundle acceptance to prevent store flooding attacks
+2. THE Node_Controller SHALL verify contact plan integrity using checksums for space nodes
+3. THE system SHALL NOT use any cryptographic operations on transmitted signals, in compliance with amateur radio regulations
 
 ### Requirement 17: Error Handling and Recovery
 

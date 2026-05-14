@@ -158,7 +158,7 @@ const overview: OverviewContent = {
     "the Bundle Protocol version 7 (BPv7) over amateur radio links.",
   features: [
     "AX.25 link-layer framing with callsign addressing (amateur radio compliance)",
-    "BPSec integrity protection (HMAC-SHA256, no encryption per regulations)",
+    "No encryption or cryptography (amateur radio regulatory compliance)",
     "Automated orbital pass prediction using Contact Graph Routing (CGR)",
     "Priority-based bundle handling (critical, expedited, normal, bulk)",
     "Persistent bundle storage surviving power cycles",
@@ -167,7 +167,6 @@ const overview: OverviewContent = {
   protocolStack: [
     "Application (bping, bpsendfile)",
     "BPv7 (Bundle Protocol)",
-    "BPSec (Integrity - HMAC-SHA-256)",
     "LTP (Licklider Transmission)",
     "AX.25 (Amateur Radio Link Layer)",
     "KISS (TNC Serial Protocol)",
@@ -189,7 +188,7 @@ const roadmap: RoadmapPhase[] = [
     purpose:
       "Ground-based validation using commercial amateur radio equipment. " +
       "Two-node terrestrial network operational. Validated ping, store-and-forward, " +
-      "BPSec integrity, and telemetry.",
+      "and telemetry.",
     docsPath: "docs/terrestrial-dtn-phase1/",
   },
   {
@@ -312,11 +311,6 @@ const documentation: DocumentationLinks = {
       description: "The core Bundle Protocol specification for DTN.",
     },
     {
-      title: "RFC 9172: Bundle Protocol Security (BPSec)",
-      url: "https://www.rfc-editor.org/rfc/rfc9172.html",
-      description: "Security extensions for the Bundle Protocol.",
-    },
-    {
       title: "RFC 5326: Licklider Transmission Protocol (LTP)",
       url: "https://www.rfc-editor.org/rfc/rfc5326.html",
       description: "Reliable transmission protocol designed for deep-space links.",
@@ -341,7 +335,7 @@ const documentation: DocumentationLinks = {
     {
       title: "Security Package",
       url: "https://github.com/yourusername/cislunar_proposal/tree/main/pkg/security",
-      description: "BPSec integrity protection and rate limiting.",
+      description: "Rate limiting and access control.",
     },
   ],
 };
@@ -467,11 +461,6 @@ const resources: ResourcesContent = {
           title: "RFC 9171: Bundle Protocol Version 7",
           url: "https://www.rfc-editor.org/rfc/rfc9171.html",
           description: "The core Bundle Protocol specification for DTN.",
-        },
-        {
-          title: "RFC 9172: Bundle Protocol Security (BPSec)",
-          url: "https://www.rfc-editor.org/rfc/rfc9172.html",
-          description: "Security extensions for the Bundle Protocol.",
         },
         {
           title: "RFC 5326: Licklider Transmission Protocol (LTP)",

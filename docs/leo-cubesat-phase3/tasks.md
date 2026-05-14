@@ -51,7 +51,7 @@
 - [ ] 5.9 Write property test: LTP segmentation/reassembly round-trip (Property 16) — generate random large bundles, segment, reassemble, assert equality
 
 ## Task 6: Autonomous Node Controller
-- [ ] 6.1 Implement `node_init`: initialize all subsystems (BPA, store, CGR, TLE, catalog, Doppler, power, time, radiation monitor, watchdog, pool allocator, TrustZone)
+- [ ] 6.1 Implement `node_init`: initialize all subsystems (BPA, store, CGR, TLE, catalog, Doppler, power, time, radiation monitor, watchdog, pool allocator)
 - [ ] 6.2 Implement `node_run_cycle`: check CGR for contacts, execute bundle transfers if contact active, run cleanup, validate SRAM integrity, kick watchdog — must complete within 1 second
 - [ ] 6.3 Implement `node_cold_boot`: reload all state from NVM (bundles, TLE, catalog, statistics), re-compute CGR predictions — must complete within 5 seconds
 - [ ] 6.4 Implement `node_main_loop`: autonomous loop (predict → sleep → wake → communicate → sleep), never returns
@@ -108,9 +108,7 @@
 - [ ] 11.14 Write property test: ACK/no-ACK behavior (Property 11)
 - [ ] 11.15 Write property test: Bundle retention without contact (Property 12)
 - [ ] 11.16 Write property test: No relay (Property 13)
-- [ ] 11.17 Write property test: BPSec integrity round-trip (Property 19)
-- [ ] 11.18 Write property test: No encryption (Property 20)
-- [ ] 11.19 Write property test: Pool exhaustion safety (Property 23)
+- [ ] 11.17 Write property test: Pool exhaustion safety (Property 23)
 - [ ] 11.20 Write property test: Rate limiting (Property 24)
 - [ ] 11.21 Write property test: Bundle size limit (Property 25)
 - [ ] 11.22 Write property test: Statistics monotonicity (Property 26)

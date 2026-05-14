@@ -21,6 +21,7 @@
     "jsr:@std/path@^1.1.4": "1.1.4",
     "npm:fast-check@^3.22.0": "3.23.2",
     "npm:handlebars@^4.7.0": "4.7.9",
+    "npm:marked@14": "14.1.4",
     "npm:path-to-regexp@^6.3.0": "6.3.0"
   },
   "jsr": {
@@ -133,6 +134,10 @@
       ],
       "bin": true
     },
+    "marked@14.1.4": {
+      "integrity": "sha512-vkVZ8ONmUdPnjCKc5uTRvmkRbx4EAi2OkTOXmfTDhZz3OFqMNBM1oTTWwTr4HY4uAEojhzPf+Fy8F1DWa3Sndg==",
+      "bin": true
+    },
     "minimist@1.2.8": {
       "integrity": "sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA=="
     },
@@ -196,7 +201,8 @@
       "jsr:@db/sqlite@0.12",
       "jsr:@oak/oak@17",
       "npm:fast-check@^3.22.0",
-      "npm:handlebars@^4.7.0"
+      "npm:handlebars@^4.7.0",
+      "npm:marked@14"
     ]
   }
 }
