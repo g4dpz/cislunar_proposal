@@ -131,12 +131,12 @@ export interface SiteContent {
 const collaborators: Collaborator[] = [
   {
     name: "AMSAT-UK",
-    logoUrl: "https://amsat-uk.org/media/press/amsat-uk_bevelled_logo_with_title/",
+    logoUrl: "/images/logos/amsat-uk.jpg",
     websiteUrl: "https://amsat-uk.org",
   },
   {
     name: "AMSAT-DL",
-    logoUrl: "/images/amsat-dl-logo.png",
+    logoUrl: "/images/logos/amsat-dl.png",
     websiteUrl: "https://amsat-dl.org",
   },
 ];
