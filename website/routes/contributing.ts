@@ -22,8 +22,6 @@ export function contributingHandler(engine: HandlebarsEngine) {
       content: {
         areas: siteContent.contributing.areas,
         developmentSetup: siteContent.contributing.developmentSetup,
-        githubIssuesUrl: siteContent.contributing.githubIssuesUrl,
-        githubDiscussionsUrl: siteContent.contributing.githubDiscussionsUrl,
         license: siteContent.contributing.license,
       },
       collaborators: siteContent.overview.collaborators,

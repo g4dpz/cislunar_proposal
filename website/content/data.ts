@@ -45,14 +45,11 @@ export interface OverviewContent {
   features: string[];
   protocolStack: string[];
   license: string;
-  repoUrl: string;
   collaborators: Collaborator[];
 }
 
 export interface ContactContent {
   email: string;
-  githubIssuesUrl: string;
-  githubDiscussionsUrl: string;
   callsigns: string[];
   collaborators: Collaborator[];
   targetGroups: string[];
@@ -90,8 +87,6 @@ export interface GettingStartedContent {
 export interface ContributingContent {
   areas: string[];
   developmentSetup: string[];
-  githubIssuesUrl: string;
-  githubDiscussionsUrl: string;
   license: string;
 }
 
@@ -174,7 +169,6 @@ const overview: OverviewContent = {
     "G3RUH GFSK (9600 baud)",
   ],
   license: "MIT",
-  repoUrl: "https://github.com/yourusername/cislunar_proposal",
   collaborators,
 };
 
@@ -250,9 +244,8 @@ const gettingStarted: GettingStartedContent = {
     "Amateur radio license (required for transmission)",
   ],
   installation: [
-    "git clone https://github.com/yourusername/cislunar_proposal.git",
+    "git clone https://github.com/g4dpz/cislunar_proposal.git",
     "cd cislunar_proposal",
-    "git clone https://github.com/nasa/HDTN.git",
     "cd HDTN && mkdir build && cd build",
     "cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd)/../../hdtn-install",
     "make -j$(nproc) && make install",
@@ -280,7 +273,7 @@ const contributing: ContributingContent = {
     "Orbital mechanics improvements",
   ],
   developmentSetup: [
-    "git clone https://github.com/yourusername/cislunar_proposal.git",
+    "git clone https://github.com/g4dpz/cislunar_proposal.git",
     "cd cislunar_proposal",
     "go mod download",
     "go test ./...",
@@ -289,9 +282,6 @@ const contributing: ContributingContent = {
     "go build -o leo-node ./cmd/leo-node",
     "go build -o cislunar-node ./cmd/cislunar-node",
   ],
-  githubIssuesUrl: "https://github.com/yourusername/cislunar_proposal/issues",
-  githubDiscussionsUrl:
-    "https://github.com/yourusername/cislunar_proposal/discussions",
   license: "MIT",
 };
 
@@ -324,17 +314,17 @@ const documentation: DocumentationLinks = {
   packages: [
     {
       title: "HDTN Wrapper",
-      url: "https://github.com/yourusername/cislunar_proposal/tree/main/pkg/hdtn",
+      url: "https://github.com/g4dpz/cislunar_proposal/tree/main/pkg/hdtn",
       description: "Go wrapper for NASA Glenn's HDTN library.",
     },
     {
       title: "Contact Plan Manager + CGR",
-      url: "https://github.com/yourusername/cislunar_proposal/tree/main/pkg/contact",
+      url: "https://github.com/g4dpz/cislunar_proposal/tree/main/pkg/contact",
       description: "Contact plan management and Contact Graph Routing.",
     },
     {
       title: "Security Package",
-      url: "https://github.com/yourusername/cislunar_proposal/tree/main/pkg/security",
+      url: "https://github.com/g4dpz/cislunar_proposal/tree/main/pkg/security",
       description: "Rate limiting and access control.",
     },
   ],
@@ -342,9 +332,6 @@ const documentation: DocumentationLinks = {
 
 const contact: ContactContent = {
   email: "dave@g4dpz.me.uk",
-  githubIssuesUrl: "https://github.com/yourusername/cislunar_proposal/issues",
-  githubDiscussionsUrl:
-    "https://github.com/yourusername/cislunar_proposal/discussions",
   callsigns: ["M0DTN"],
   collaborators,
   targetGroups: [
@@ -501,22 +488,6 @@ const resources: ResourcesContent = {
           url: "https://www.ax25.net/kiss.aspx",
           description:
             "Keep It Simple, Stupid — the serial protocol for TNC communication.",
-        },
-      ],
-    },
-    {
-      name: "Project Documents",
-      links: [
-        {
-          title: "Project Repository",
-          url: "https://github.com/yourusername/cislunar_proposal",
-          description: "Source code and documentation for the Cislunar Amateur DTN Payload project.",
-        },
-        {
-          title: "LTP-KISS Architecture",
-          url: "https://github.com/yourusername/cislunar_proposal/blob/main/docs/LTP-KISS-ARCHITECTURE.md",
-          description:
-            "Design document for the LTP over KISS convergence layer adapter.",
         },
       ],
     },

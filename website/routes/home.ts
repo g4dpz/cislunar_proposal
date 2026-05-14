@@ -26,7 +26,6 @@ export function homeHandler(engine: HandlebarsEngine) {
         features: siteContent.overview.features,
         protocolStack: siteContent.overview.protocolStack,
         license: siteContent.overview.license,
-        repoUrl: siteContent.overview.repoUrl,
       },
       collaborators: siteContent.overview.collaborators,
       currentYear: new Date().getFullYear(),

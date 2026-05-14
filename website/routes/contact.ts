@@ -27,8 +27,6 @@ function buildContactPageData(successMessage?: string): PageData {
     activeSection: "contact",
     content: {
       email: siteContent.contact.email,
-      githubIssuesUrl: siteContent.contact.githubIssuesUrl,
-      githubDiscussionsUrl: siteContent.contact.githubDiscussionsUrl,
       callsigns: siteContent.contact.callsigns,
       targetGroups: siteContent.contact.targetGroups,
       formFields: siteContent.contact.formFields,

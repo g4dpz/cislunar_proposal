@@ -143,7 +143,6 @@ const pageMeta: Record<string, PageMeta> = {
       "contributing",
       "open source",
       "MIT license",
-      "GitHub",
     ],
     ogTitle: "Contributing — Amateur Radio DTN Pathfinder",
     ogDescription:
