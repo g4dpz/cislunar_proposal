@@ -8,7 +8,8 @@
     "@oak/oak": "jsr:@oak/oak@^17",
     "@db/sqlite": "jsr:@db/sqlite@^0.12",
     "handlebars": "npm:handlebars@^4.7",
-    "fast-check": "npm:fast-check@^3.22"
+    "fast-check": "npm:fast-check@^3.22",
+    "marked": "npm:marked@^14"
   },
   "compilerOptions": {
     "strict": true,

@@ -299,11 +299,11 @@ const contributing: ContributingContent = {
 
 const documentation: DocumentationLinks = {
   phases: [
-    { name: "Phase 1: Terrestrial DTN", docsPath: "https://github.com/yourusername/cislunar_proposal/blob/main/docs/terrestrial-dtn-phase1/" },
-    { name: "Phase 1.5: QO-100 GEO Satellite DTN", docsPath: "https://github.com/yourusername/cislunar_proposal/blob/main/docs/qo-100-geo-satellite-dtn/" },
-    { name: "Phase 2: Engineering Model", docsPath: "https://github.com/yourusername/cislunar_proposal/blob/main/docs/cubesat-em-phase2/" },
-    { name: "Phase 3: LEO CubeSat", docsPath: "https://github.com/yourusername/cislunar_proposal/blob/main/docs/leo-cubesat-phase3/" },
-    { name: "Phase 4: Cislunar", docsPath: "https://github.com/yourusername/cislunar_proposal/blob/main/docs/cislunar-phase4/" },
+    { name: "Phase 1: Terrestrial DTN", docsPath: "/docs/terrestrial-dtn-phase1" },
+    { name: "Phase 1.5: QO-100 GEO Satellite DTN", docsPath: "/docs/qo-100-geo-satellite-dtn" },
+    { name: "Phase 2: Engineering Model", docsPath: "/docs/cubesat-em-phase2" },
+    { name: "Phase 3: LEO CubeSat", docsPath: "/docs/leo-cubesat-phase3" },
+    { name: "Phase 4: Cislunar", docsPath: "/docs/cislunar-phase4" },
   ],
   externalRefs: [
     {

@@ -7,6 +7,7 @@ import { homeHandler } from "./home.ts";
 import { roadmapHandler } from "./roadmap.ts";
 import { conopsHandler } from "./conops.ts";
 import { docsHandler } from "./docs.ts";
+import { docsPhaseHandler } from "./docs-phase.ts";
 import { resourcesHandler } from "./resources.ts";
 import { gettingStartedHandler } from "./getting-started.ts";
 import { contributingHandler } from "./contributing.ts";
@@ -25,6 +26,7 @@ export function createRouter(engine: HandlebarsEngine, db: Database): Router {
   router.get("/roadmap", roadmapHandler(engine));
   router.get("/conops", conopsHandler(engine));
   router.get("/docs", docsHandler(engine));
+  router.get("/docs/:phase/requirements", docsPhaseHandler(engine));
   router.get("/resources", resourcesHandler(engine));
   router.get("/getting-started", gettingStartedHandler(engine));
   router.get("/contributing", contributingHandler(engine));
