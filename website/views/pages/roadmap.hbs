@@ -1,0 +1,24 @@
+<section class="py-5 mt-5">
+  <div class="container">
+    <h1>Project Roadmap</h1>
+    <p class="lead">Five phases from terrestrial validation to cislunar deep-space communication.</p>
+
+    <div class="row mt-4">
+      <div class="col-lg-3 mb-4">
+        <div class="card text-center">
+          <div class="card-body">
+            <h2 class="h5">Phase Status</h2>
+            <p><span class="badge bg-success">Complete</span> Validated and operational</p>
+            <p><span class="badge bg-warning text-dark">In Progress</span> Currently active</p>
+            <p><span class="badge bg-secondary">Planned</span> Future development</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-9">
+        {{#each roadmap}}
+        {{> phase-card}}
+        {{/each}}
+      </div>
+    </div>
+  </div>
+</section>

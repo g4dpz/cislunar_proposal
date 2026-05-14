@@ -1,0 +1,17 @@
+{
+  "tasks": {
+    "dev": "deno run --allow-net --allow-read --allow-write --allow-env --allow-ffi --watch main.ts",
+    "test": "deno test --allow-read --allow-net --allow-write --allow-env --allow-ffi",
+    "build": "deno check main.ts"
+  },
+  "imports": {
+    "@oak/oak": "jsr:@oak/oak@^17",
+    "@db/sqlite": "jsr:@db/sqlite@^0.12",
+    "handlebars": "npm:handlebars@^4.7",
+    "fast-check": "npm:fast-check@^3.22"
+  },
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true
+  }
+}

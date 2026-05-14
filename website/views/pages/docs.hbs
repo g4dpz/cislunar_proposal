@@ -1,0 +1,49 @@
+<section class="py-5 mt-5">
+  <div class="container">
+    <h1>Documentation</h1>
+    <p class="lead">Technical documentation, protocol references, and package-level guides.</p>
+
+    <h2 class="mt-4">Phase Documentation</h2>
+    <p>Each project phase has detailed requirements, design, and task documents.</p>
+    <div class="row g-3 mt-2">
+      {{#each content.phases}}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h3 class="card-title h5">{{name}}</h3>
+            <ul class="list-unstyled">
+              <li><a href="{{docsPath}}requirements.md">Requirements</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+
+    <h2 class="mt-5">External Protocol References</h2>
+    <p>Standards and specifications used in this project.</p>
+    <div class="list-group mt-3">
+      {{#each content.externalRefs}}
+      <a href="{{url}}" class="list-group-item list-group-item-action" target="_blank" rel="noopener noreferrer">
+        <div class="d-flex w-100 justify-content-between">
+          <h3 class="h6 mb-1">{{title}}</h3>
+        </div>
+        <p class="mb-1 small text-muted">{{description}}</p>
+      </a>
+      {{/each}}
+    </div>
+
+    <h2 class="mt-5">Package Documentation</h2>
+    <p>Go package-level documentation for the codebase.</p>
+    <div class="list-group mt-3">
+      {{#each content.packages}}
+      <a href="{{url}}" class="list-group-item list-group-item-action" target="_blank" rel="noopener noreferrer">
+        <div class="d-flex w-100 justify-content-between">
+          <h3 class="h6 mb-1">{{title}}</h3>
+        </div>
+        <p class="mb-1 small text-muted">{{description}}</p>
+      </a>
+      {{/each}}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,153 @@
+/* custom.css — Bootstrap overrides and project-specific styles */
+
+/* ─── Fixed Navbar Offset ──────────────────────────────────────────────────── */
+
+body {
+  padding-top: 56px; /* Height of fixed navbar */
+}
+
+/* ─── Phase Card Status Indicators ─────────────────────────────────────────── */
+
+.phase-complete {
+  border-left: 4px solid #198754;
+}
+
+.phase-complete .badge {
+  background-color: #198754 !important;
+}
+
+.phase-in-progress {
+  border-left: 4px solid #ffc107;
+}
+
+.phase-in-progress .badge {
+  background-color: #ffc107 !important;
+  color: #212529 !important;
+}
+
+.phase-planned {
+  border-left: 4px solid #6c757d;
+}
+
+.phase-planned .badge {
+  background-color: #6c757d !important;
+}
+
+/* ─── Code Blocks ──────────────────────────────────────────────────────────── */
+
+.code-block-wrapper {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.code-block-wrapper pre {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  overflow-x: auto;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.code-block-wrapper code {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.btn-copy {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #d4d4d4;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-copy:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.btn-copy:focus {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
+}
+
+.btn-copy.copied {
+  background-color: #198754;
+  color: #ffffff;
+  border-color: #198754;
+}
+
+/* ─── Accessibility — Contrast ─────────────────────────────────────────────── */
+
+/* Ensure text meets WCAG 2.1 AA 4.5:1 contrast ratio */
+.text-muted {
+  color: #595959 !important; /* 4.56:1 against white */
+}
+
+/* ─── Responsive Adjustments ───────────────────────────────────────────────── */
+
+/* Small screens (320px+) */
+@media (max-width: 575.98px) {
+  .hero .display-4 {
+    font-size: 1.75rem;
+  }
+
+  .hero .lead {
+    font-size: 1rem;
+  }
+
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Medium screens */
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .hero .display-4 {
+    font-size: 2.25rem;
+  }
+}
+
+/* Large screens (2560px+) */
+@media (min-width: 2560px) {
+  .container {
+    max-width: 1600px;
+  }
+}
+
+/* ─── Skip Link (Accessibility) ────────────────────────────────────────────── */
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #0d6efd;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  z-index: 9999;
+  transition: top 0.2s;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* ─── Focus Styles ─────────────────────────────────────────────────────────── */
+
+a:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
+}

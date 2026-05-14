@@ -1,0 +1,134 @@
+<section class="hero bg-primary text-white py-5 mt-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1 class="display-4">{{content.title}}</h1>
+        <p class="lead">{{content.tagline}}</p>
+        <p class="fs-5">{{content.missionSummary}}</p>
+        <a href="/contact" class="btn btn-light btn-lg mt-3">Collaborate With Us</a>
+      </div>
+      <div class="col-lg-4 text-center d-none d-lg-block">
+        <span class="badge bg-light text-primary fs-6 p-3">{{content.license}} Licensed</span>
+        <div class="mt-3">
+          <a href="{{content.repoUrl}}" class="btn btn-outline-light" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5" aria-labelledby="about-heading">
+  <div class="container">
+    <h2 id="about-heading">About the Project</h2>
+    <div class="row g-4 mt-2">
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-primary">
+          <div class="card-body">
+            <h3 class="card-title h5">Amateur Radio Links</h3>
+            <p class="card-text">Using amateur radio links as realistic disrupted networks to validate DTN protocols in real-world conditions.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-primary">
+          <div class="card-body">
+            <h3 class="card-title h5">HDTN Software</h3>
+            <p class="card-text">Running NASA Glenn's HDTN (High-rate Delay Tolerant Networking) software — a modern, high-performance implementation of the Bundle Protocol optimised for high data rates.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-primary">
+          <div class="card-body">
+            <h3 class="card-title h5">Store-and-Forward</h3>
+            <p class="card-text">Demonstrating store-and-forward networking over intermittent and disrupted links, surviving power cycles and outages.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-primary">
+          <div class="card-body">
+            <h3 class="card-title h5">CubeSat Payload</h3>
+            <p class="card-text">Building toward an amateur CubeSat hosted payload for ground-to-space DTN demonstration in Low Earth Orbit.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-primary">
+          <div class="card-body">
+            <h3 class="card-title h5">Cislunar Ambition</h3>
+            <p class="card-text">Eventual cislunar payload ambition — amateur participation in Earth-Moon Delay-Tolerant Networking.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5 bg-light" aria-labelledby="features-heading">
+  <div class="container">
+    <h2 id="features-heading">Key Features</h2>
+    <div class="row g-3 mt-2">
+      {{#each content.features}}
+      <div class="col-md-6">
+        <div class="d-flex align-items-start">
+          <span class="badge bg-primary me-2 mt-1">✓</span>
+          <span>{{this}}</span>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+  </div>
+</section>
+
+<section class="py-5" aria-labelledby="protocol-heading">
+  <div class="container">
+    <h2 id="protocol-heading">Protocol Stack</h2>
+    <div class="row justify-content-center mt-3">
+      <div class="col-lg-6">
+        <table class="table table-bordered text-center">
+          <thead class="table-dark">
+            <tr>
+              <th scope="col">Layer</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each content.protocolStack}}
+            <tr>
+              <td>{{this}}</td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5 bg-light" aria-labelledby="collaborators-heading">
+  <div class="container">
+    <h2 id="collaborators-heading">Our Collaborators</h2>
+    <p class="mt-2">This project is developed in collaboration with leading amateur satellite organisations.</p>
+    {{> collaborators}}
+  </div>
+</section>
+
+<section class="py-5" aria-labelledby="cta-heading">
+  <div class="container text-center">
+    <h2 id="cta-heading">Get Involved</h2>
+    <p class="lead">We are actively seeking collaborators — amateur radio operators, researchers, universities, and space organisations.</p>
+    <p>Whether you can offer ground station partnerships, hardware contributions, flight opportunities, or software development expertise, we want to hear from you.</p>
+    <a href="/contact" class="btn btn-primary btn-lg">Contact Us to Collaborate</a>
+  </div>
+</section>
+
+<section class="py-4 bg-light">
+  <div class="container text-center">
+    <p class="mb-1">
+      <span class="badge bg-secondary">{{content.license}} License</span>
+    </p>
+    <p>
+      <a href="{{content.repoUrl}}" target="_blank" rel="noopener noreferrer">View source on GitHub</a>
+    </p>
+  </div>
+</section>

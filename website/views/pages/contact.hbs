@@ -1,0 +1,68 @@
+<section class="py-5 mt-5">
+  <div class="container">
+    <h1>Contact</h1>
+    <p class="lead">Get in touch with the project team for questions, collaboration proposals, or general enquiries.</p>
+
+    <div class="row g-4 mt-3">
+      <div class="col-lg-6">
+        <h2>Contact Methods</h2>
+        <div class="list-group mb-4">
+          <div class="list-group-item">
+            <h3 class="h6 mb-1">Email</h3>
+            <a href="mailto:{{content.email}}">{{content.email}}</a>
+          </div>
+          <a href="{{content.githubIssuesUrl}}" class="list-group-item list-group-item-action" target="_blank" rel="noopener noreferrer">
+            <h3 class="h6 mb-1">GitHub Issues</h3>
+            <p class="mb-0 small text-muted">Bug reports, feature requests, and technical questions</p>
+          </a>
+          <a href="{{content.githubDiscussionsUrl}}" class="list-group-item list-group-item-action" target="_blank" rel="noopener noreferrer">
+            <h3 class="h6 mb-1">GitHub Discussions</h3>
+            <p class="mb-0 small text-muted">General discussion, ideas, and community conversation</p>
+          </a>
+        </div>
+
+        <h2>Amateur Radio</h2>
+        <p>Callsigns:
+          {{#each content.callsigns}}
+          <span class="badge bg-primary">{{this}}</span>
+          {{/each}}
+        </p>
+
+        <h2 class="mt-4">Collaborating Organisations</h2>
+        {{> collaborators}}
+      </div>
+
+      <div class="col-lg-6">
+        <h2>Get Involved</h2>
+        <p>We are seeking collaboration from:</p>
+        <ul class="list-group list-group-flush mb-4">
+          {{#each content.targetGroups}}
+          <li class="list-group-item">{{this}}</li>
+          {{/each}}
+        </ul>
+
+        <h2 class="mt-4">Send a Message</h2>
+        <form action="/contact" method="POST" class="needs-validation" novalidate>
+          {{#each content.formFields}}
+          <div class="mb-3">
+            <label for="{{name}}" class="form-label">{{label}}{{#if required}} <span class="text-danger" aria-label="required">*</span>{{/if}}</label>
+            {{#if (eq type "textarea")}}
+            <textarea class="form-control" id="{{name}}" name="{{name}}" rows="4" {{#if required}}required{{/if}}></textarea>
+            {{else if (eq type "select")}}
+            <select class="form-select" id="{{name}}" name="{{name}}" {{#if required}}required{{/if}}>
+              <option value="" selected disabled>Select an option</option>
+              {{#each options}}
+              <option value="{{this}}">{{this}}</option>
+              {{/each}}
+            </select>
+            {{else}}
+            <input type="{{type}}" class="form-control" id="{{name}}" name="{{name}}" {{#if required}}required{{/if}}>
+            {{/if}}
+          </div>
+          {{/each}}
+          <button type="submit" class="btn btn-primary">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>

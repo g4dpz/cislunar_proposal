@@ -1,0 +1,55 @@
+<section class="py-5 mt-5">
+  <div class="container">
+    <div class="alert alert-warning" role="alert">
+      <strong>Content being developed</strong> — This page presents the Concept of Operations overview. Full detailed content is coming as the project matures.
+    </div>
+
+    <h1>Concept of Operations</h1>
+    <p class="lead">Terrestrial analogue architecture for cislunar DTN communications.</p>
+
+    <h2 class="mt-4">The Concept</h2>
+    <p>{{content.concept}}</p>
+
+    <h2 class="mt-4">RF Link Types</h2>
+    <p>The project uses a variety of amateur and experimental RF links as practical analogues for cislunar communication constraints:</p>
+    <ul class="list-group list-group-flush mb-4">
+      {{#each content.rfLinkTypes}}
+      <li class="list-group-item">{{this}}</li>
+      {{/each}}
+    </ul>
+
+    <h2 class="mt-4">Why Amateur and Specialist Radio Communities Matter</h2>
+    <p>These communities bring essential capabilities to the project:</p>
+    <div class="row g-3 mt-2">
+      {{#each content.whyCommunityMatters}}
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <p class="mb-0">{{this}}</p>
+          </div>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+
+    <h2 class="mt-5">Expected Outcomes</h2>
+    <ul class="list-group list-group-flush mb-4">
+      {{#each content.expectedOutcomes}}
+      <li class="list-group-item">
+        <span class="badge bg-success me-2">✓</span>{{this}}
+      </li>
+      {{/each}}
+    </ul>
+
+    <h2 class="mt-4">NASA References</h2>
+    <p>Key NASA resources on Delay-Tolerant Networking and cislunar communications:</p>
+    <div class="list-group mb-4">
+      {{#each content.nasaReferences}}
+      <a href="{{url}}" class="list-group-item list-group-item-action" target="_blank" rel="noopener noreferrer">
+        <h3 class="h6 mb-1">{{title}}</h3>
+        <p class="mb-0 small text-muted">{{description}}</p>
+      </a>
+      {{/each}}
+    </div>
+  </div>
+</section>

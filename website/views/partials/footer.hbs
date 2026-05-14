@@ -1,0 +1,28 @@
+<footer class="site-footer bg-dark text-light py-4 mt-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6">
+        <p>&copy; {{currentYear}} Amateur Radio DTN Space Networking Pathfinder</p>
+        <p>Licensed under the MIT License.</p>
+      </div>
+      <div class="col-md-6 text-md-end">
+        <ul class="list-inline">
+          <li class="list-inline-item">
+            <a href="/privacy" class="text-light">Privacy Policy</a>
+          </li>
+          <li class="list-inline-item">
+            <a href="/contact" class="text-light">Contact</a>
+          </li>
+        </ul>
+        {{#if collaborators}}
+        <p class="small text-muted">
+          In collaboration with
+          {{#each collaborators}}
+          <a href="{{websiteUrl}}" class="text-muted">{{name}}</a>{{#unless @last}}, {{/unless}}
+          {{/each}}
+        </p>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+</footer>

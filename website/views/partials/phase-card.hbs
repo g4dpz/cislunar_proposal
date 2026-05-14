@@ -1,0 +1,16 @@
+<div class="card mb-4 {{statusClass status}}" id="{{id}}">
+  <div class="card-body">
+    <h3 class="card-title">{{name}}</h3>
+    <span class="badge {{#if (eq status 'complete')}}bg-success{{else if (eq status 'in-progress')}}bg-warning text-dark{{else}}bg-secondary{{/if}}">
+      {{#if (eq status "complete")}}Complete{{else if (eq status "in-progress")}}In Progress{{else}}Planned{{/if}}
+    </span>
+    <dl class="mt-3">
+      <dt>Hardware</dt>
+      <dd>{{hardware}}</dd>
+      <dt>Link Characteristics</dt>
+      <dd>{{link}}</dd>
+      <dt>Purpose</dt>
+      <dd>{{purpose}}</dd>
+    </dl>
+  </div>
+</div>
