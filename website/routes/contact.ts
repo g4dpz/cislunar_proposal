@@ -8,6 +8,11 @@ import { getPageMeta } from "../content/seo.ts";
 import type { PageData } from "../content/data.ts";
 import type { Database } from "@db/sqlite";
 import { saveContactSubmission } from "../db/mod.ts";
+import {
+  loadEmailConfig,
+  sendContactEmail,
+  type EmailConfig,
+} from "../email/mod.ts";
 
 function buildContactPageData(successMessage?: string): PageData {
   const meta = getPageMeta("contact");
@@ -50,6 +55,8 @@ export function contactGetHandler(engine: HandlebarsEngine) {
 }
 
 export function contactPostHandler(db: Database) {
+  const emailConfig = loadEmailConfig();
+
   return async (ctx: RouterContext<"/contact">) => {
     const body = ctx.request.body;
     const formData = await body.formData();
@@ -71,6 +78,21 @@ export function contactPostHandler(db: Database) {
       areaOfInterest,
       message,
     });
+
+    // Send email notification if SMTP is configured
+    if (emailConfig) {
+      try {
+        await sendContactEmail(emailConfig, {
+          name,
+          callsignOrOrg,
+          areaOfInterest,
+          message,
+        });
+      } catch (err) {
+        console.error("Failed to send contact email:", err);
+        // Don't fail the request — the submission is already saved to DB
+      }
+    }
 
     ctx.response.redirect("/contact?success=1");
   };

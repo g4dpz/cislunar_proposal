@@ -341,7 +341,7 @@ const documentation: DocumentationLinks = {
 };
 
 const contact: ContactContent = {
-  email: "contact@cislunar-dtn.org",
+  email: "dave@g4dpz.me.uk",
   githubIssuesUrl: "https://github.com/yourusername/cislunar_proposal/issues",
   githubDiscussionsUrl:
     "https://github.com/yourusername/cislunar_proposal/discussions",
