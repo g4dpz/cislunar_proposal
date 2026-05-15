@@ -95,6 +95,13 @@ export interface PageData {
   content: Record<string, unknown>;
   collaborators: Collaborator[];
   currentYear: number;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    roles: Array<{ id: number; name: string; description: string }>;
+    isAdmin?: boolean;
+  } | null;
 }
 
 export interface SiteContent {

@@ -1,0 +1,49 @@
+<section class="py-5 mt-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-7">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1 class="h3 mb-0">User Details</h1>
+          <a href="/admin/users" class="btn btn-outline-secondary btn-sm">Back to Users</a>
+        </div>
+
+        {{> flash-message}}
+
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <dl class="row mb-0">
+              <dt class="col-sm-4">Name</dt>
+              <dd class="col-sm-8">{{content.user.name}}</dd>
+
+              <dt class="col-sm-4">Email</dt>
+              <dd class="col-sm-8">{{content.user.email}}</dd>
+
+              <dt class="col-sm-4">Roles</dt>
+              <dd class="col-sm-8">
+                {{#each content.user.roles}}
+                <span class="badge bg-secondary me-1">{{this.name}}</span>
+                {{else}}
+                <span class="text-muted">No roles assigned</span>
+                {{/each}}
+              </dd>
+
+              <dt class="col-sm-4">Created</dt>
+              <dd class="col-sm-8">{{content.user.createdAt}}</dd>
+
+              <dt class="col-sm-4">Updated</dt>
+              <dd class="col-sm-8">{{content.user.updatedAt}}</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <a href="/admin/users/{{content.user.id}}/edit" class="btn btn-primary">Edit User</a>
+          <form method="POST" action="/admin/users/{{content.user.id}}/delete" onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">
+            <button type="submit" class="btn btn-danger">Delete User</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>

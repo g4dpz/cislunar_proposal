@@ -10,17 +10,25 @@ import { createRouter } from "../../routes/mod.ts";
 import { initDatabase } from "../../db/mod.ts";
 import { securityHeaders } from "../../middleware/security.ts";
 import { errorHandler } from "../../middleware/error.ts";
+import { createAuthMiddleware } from "../../middleware/auth.ts";
+import { createAuthService } from "../../services/auth.ts";
+import { createUserService } from "../../services/users.ts";
+import { createRoleService } from "../../services/roles.ts";
 
 // ─── Test Setup ───────────────────────────────────────────────────────────────
 
 async function createTestApp(): Promise<Application> {
   const engine = await initHandlebars("./views");
   const db = await initDatabase(":memory:");
-  const router = createRouter(engine, db);
+  const authService = createAuthService(db);
+  const userService = createUserService(db);
+  const roleService = createRoleService(db);
+  const router = createRouter(engine, db, authService, userService, roleService);
 
   const app = new Application();
   app.use(securityHeaders);
   app.use(errorHandler);
+  app.use(createAuthMiddleware(authService));
   app.use(router.routes());
   app.use(router.allowedMethods());
 
@@ -37,7 +45,6 @@ const ALL_ROUTES = [
   "/",
   "/roadmap",
   "/conops",
-  "/docs",
   "/contact",
   "/privacy",
 ];

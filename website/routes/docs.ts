@@ -6,6 +6,7 @@ import { renderPage } from "../views/engine.ts";
 import { siteContent } from "../content/data.ts";
 import { getPageMeta } from "../content/seo.ts";
 import type { PageData } from "../content/data.ts";
+import { getTemplateUser } from "./helpers.ts";
 
 export function docsHandler(engine: HandlebarsEngine) {
   return (ctx: RouterContext<"/docs">) => {
@@ -26,6 +27,7 @@ export function docsHandler(engine: HandlebarsEngine) {
       },
       collaborators: siteContent.overview.collaborators,
       currentYear: new Date().getFullYear(),
+      user: getTemplateUser(ctx),
     };
 
     const html = renderPage(engine, "docs", pageData);

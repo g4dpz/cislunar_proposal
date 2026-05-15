@@ -7,6 +7,7 @@ import { siteContent } from "../content/data.ts";
 import { getPageMeta } from "../content/seo.ts";
 import type { PageData } from "../content/data.ts";
 import { marked } from "marked";
+import { getTemplateUser } from "./helpers.ts";
 
 /**
  * Serves rendered markdown requirements for a given phase.
@@ -66,6 +67,7 @@ export function docsPhaseHandler(engine: HandlebarsEngine) {
       },
       collaborators: siteContent.overview.collaborators,
       currentYear: new Date().getFullYear(),
+      user: getTemplateUser(ctx),
     };
 
     const html = renderPage(engine, "docs-phase", pageData);

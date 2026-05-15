@@ -126,6 +126,17 @@ const pageMeta: Record<string, PageMeta> = {
       "How we handle your data: GDPR-compliant privacy statement.",
     canonicalUrl: "/privacy",
   },
+  profile: {
+    title: "My Profile — ARTHUR",
+    description:
+      "View and manage your ARTHUR account profile, update your name and email, " +
+      "or change your password.",
+    keywords: [...BASE_KEYWORDS, "profile", "account", "settings"],
+    ogTitle: "My Profile — ARTHUR",
+    ogDescription:
+      "Manage your ARTHUR account settings and profile information.",
+    canonicalUrl: "/profile",
+  },
 };
 
 // ─── Public API ───────────────────────────────────────────────────────────────

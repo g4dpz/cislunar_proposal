@@ -8,6 +8,10 @@ import { requestLogger } from "./middleware/logging.ts";
 import { securityHeaders } from "./middleware/security.ts";
 import { errorHandler } from "./middleware/error.ts";
 import { staticFiles } from "./middleware/static.ts";
+import { createAuthMiddleware } from "./middleware/auth.ts";
+import { createAuthService } from "./services/auth.ts";
+import { createUserService } from "./services/users.ts";
+import { createRoleService } from "./services/roles.ts";
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -28,11 +32,19 @@ try {
 // Initialize Handlebars template engine
 const engine = await initHandlebars();
 
-// Initialize SQLite database
+// Initialize SQLite database (seeds default roles and admin user automatically)
 const db = await initDatabase(dbPath);
 
+// Create services
+const authService = createAuthService(db);
+const userService = createUserService(db);
+const roleService = createRoleService(db);
+
+// Create auth middleware (must run before router to populate ctx.state.user)
+const authMiddleware = createAuthMiddleware(authService);
+
 // Create router with all routes
-const router = createRouter(engine, db);
+const router = createRouter(engine, db, authService, userService, roleService);
 
 // ─── Application Setup ───────────────────────────────────────────────────────
 
@@ -48,12 +60,15 @@ app.use(securityHeaders);
 // 3. Error handling (catches errors from downstream middleware)
 app.use(errorHandler);
 
-// 4. Static file serving (serves CSS, JS, images from public/)
-app.use(staticFiles);
+// 4. Auth middleware (validates session, populates ctx.state.user for all routes)
+app.use(authMiddleware);
 
-// 5. Router (page routes)
+// 5. Router (page routes — auth-aware, can access ctx.state.user)
 app.use(router.routes());
 app.use(router.allowedMethods());
+
+// 6. Static file serving (serves CSS, JS, images from public/)
+app.use(staticFiles);
 
 // ─── Start Server ────────────────────────────────────────────────────────────
 

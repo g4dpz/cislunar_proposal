@@ -170,8 +170,11 @@ Deno.test("Property 4: Active navigation indication", async () => {
         active: href === activeSection,
       }));
 
-      // Render the nav partial with the nav data
-      const html = template({ nav });
+      // Provide a user object so that the /docs link is visible
+      const user = { id: 1, name: "Test User", email: "test@test.com", roles: [{ id: 1, name: "users", description: "" }], isAdmin: false };
+
+      // Render the nav partial with the nav data and user
+      const html = template({ nav, user });
 
       // Count occurrences of "nav-link active" in the output
       const activeMatches = html.match(/nav-link active/g);

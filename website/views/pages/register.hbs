@@ -1,0 +1,45 @@
+<section class="py-5 mt-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+          <div class="card-body p-4">
+            <h1 class="card-title h3 text-center mb-4">Register</h1>
+
+            {{> flash-message}}
+            {{> form-errors}}
+
+            <form method="POST" action="/register" novalidate>
+              <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" class="form-control" id="name" name="name"
+                       value="{{content.name}}" required autocomplete="name">
+              </div>
+
+              <div class="mb-3">
+                <label for="email" class="form-label">Email address</label>
+                <input type="email" class="form-control" id="email" name="email"
+                       value="{{content.email}}" required autocomplete="email">
+              </div>
+
+              <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password"
+                       required autocomplete="new-password">
+                <div class="form-text">Must be at least 8 characters.</div>
+              </div>
+
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary">Register</button>
+              </div>
+            </form>
+
+            <p class="text-center mt-3 mb-0">
+              Already have an account? <a href="/login">Login</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

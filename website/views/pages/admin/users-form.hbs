@@ -1,0 +1,63 @@
+<section class="py-5 mt-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-7">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1 class="h3 mb-0">{{#if content.isEdit}}Edit User{{else}}Create User{{/if}}</h1>
+          <a href="/admin/users" class="btn btn-outline-secondary btn-sm">Back to Users</a>
+        </div>
+
+        {{> flash-message}}
+        {{> form-errors}}
+
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <form method="POST" action="{{#if content.isEdit}}/admin/users/{{content.user.id}}{{else}}/admin/users{{/if}}" novalidate>
+              <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" class="form-control" id="name" name="name"
+                       value="{{content.user.name}}" required autocomplete="name">
+              </div>
+
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email"
+                       value="{{content.user.email}}" required autocomplete="email">
+              </div>
+
+              {{#unless content.isEdit}}
+              <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password"
+                       required autocomplete="new-password">
+                <div class="form-text">Must be at least 8 characters.</div>
+              </div>
+              {{/unless}}
+
+              <div class="mb-3">
+                <label class="form-label">Roles</label>
+                {{#each content.roles}}
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="roleIds"
+                         value="{{this.id}}" id="role-{{this.id}}"
+                         {{#if this.checked}}checked{{/if}}>
+                  <label class="form-check-label" for="role-{{this.id}}">
+                    {{this.name}}
+                  </label>
+                </div>
+                {{/each}}
+              </div>
+
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary">
+                  {{#if content.isEdit}}Update User{{else}}Create User{{/if}}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>

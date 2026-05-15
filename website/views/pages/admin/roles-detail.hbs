@@ -1,0 +1,64 @@
+<section class="py-5 mt-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-7">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1 class="h3 mb-0">Role Details</h1>
+          <a href="/admin/roles" class="btn btn-outline-secondary btn-sm">Back to Roles</a>
+        </div>
+
+        {{> flash-message}}
+
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <dl class="row mb-0">
+              <dt class="col-sm-4">Name</dt>
+              <dd class="col-sm-8">{{content.role.name}}</dd>
+
+              <dt class="col-sm-4">Description</dt>
+              <dd class="col-sm-8">{{content.role.description}}</dd>
+            </dl>
+          </div>
+        </div>
+
+        <h2 class="h5 mb-3">Assigned Users</h2>
+        {{#if content.role.users.length}}
+        <div class="card shadow-sm mb-4">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each content.role.users}}
+                <tr>
+                  <td>{{this.name}}</td>
+                  <td>{{this.email}}</td>
+                  <td>
+                    <a href="/admin/users/{{this.id}}" class="btn btn-sm btn-outline-primary">View</a>
+                  </td>
+                </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {{else}}
+        <p class="text-muted">No users assigned to this role.</p>
+        {{/if}}
+
+        <div class="d-flex gap-2">
+          <a href="/admin/roles/{{content.role.id}}/edit" class="btn btn-primary">Edit Role</a>
+          <form method="POST" action="/admin/roles/{{content.role.id}}/delete" onsubmit="return confirm('Are you sure you want to delete this role? This action cannot be undone.');">
+            <button type="submit" class="btn btn-danger">Delete Role</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>

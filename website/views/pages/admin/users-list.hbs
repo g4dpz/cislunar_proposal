@@ -1,0 +1,52 @@
+<section class="py-5 mt-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1 class="h3 mb-0">Users</h1>
+          <a href="/admin/users/new" class="btn btn-primary">Create User</a>
+        </div>
+
+        {{> flash-message}}
+
+        <div class="card shadow-sm">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Roles</th>
+                  <th scope="col">Created</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each content.users}}
+                <tr>
+                  <td>{{this.name}}</td>
+                  <td>{{this.email}}</td>
+                  <td>
+                    {{#each this.roles}}
+                    <span class="badge bg-secondary me-1">{{this.name}}</span>
+                    {{/each}}
+                  </td>
+                  <td>{{this.createdAt}}</td>
+                  <td>
+                    <a href="/admin/users/{{this.id}}" class="btn btn-sm btn-outline-primary me-1">View</a>
+                    <a href="/admin/users/{{this.id}}/edit" class="btn btn-sm btn-outline-secondary me-1">Edit</a>
+                    <form method="POST" action="/admin/users/{{this.id}}/delete" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                      <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>

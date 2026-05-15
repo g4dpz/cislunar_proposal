@@ -105,11 +105,29 @@ export async function initHandlebars(
     hbs.registerPartial(name, content);
   }
 
-  // Load and compile page templates
+  // Load and compile page templates (including subdirectories)
   const pages = await loadTemplatesFromDir(`${basePath}/pages`);
   const compiledTemplates = new Map<string, Handlebars.TemplateDelegate>();
   for (const [name, content] of pages) {
     compiledTemplates.set(name, hbs.compile(content));
+  }
+
+  // Load templates from subdirectories (e.g., pages/admin/)
+  try {
+    for await (const entry of Deno.readDir(`${basePath}/pages`)) {
+      if (entry.isDirectory) {
+        const subPages = await loadTemplatesFromDir(
+          `${basePath}/pages/${entry.name}`,
+        );
+        for (const [name, content] of subPages) {
+          compiledTemplates.set(`${entry.name}/${name}`, hbs.compile(content));
+        }
+      }
+    }
+  } catch (error) {
+    if (!(error instanceof Deno.errors.NotFound)) {
+      throw error;
+    }
   }
 
   // Also compile the main layout for use in renderPage

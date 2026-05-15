@@ -1,0 +1,95 @@
+<section class="py-5 mt-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-7">
+        <h1 class="h3 mb-4">My Profile</h1>
+
+        {{> flash-message}}
+
+        <!-- User Info -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <h2 class="card-title h5 mb-3">Account Information</h2>
+            <dl class="row mb-0">
+              <dt class="col-sm-4">Name</dt>
+              <dd class="col-sm-8">{{content.user.name}}</dd>
+
+              <dt class="col-sm-4">Email</dt>
+              <dd class="col-sm-8">{{content.user.email}}</dd>
+
+              <dt class="col-sm-4">Roles</dt>
+              <dd class="col-sm-8">
+                {{#each content.user.roles}}
+                <span class="badge bg-secondary me-1">{{this.name}}</span>
+                {{/each}}
+              </dd>
+
+              <dt class="col-sm-4">Member since</dt>
+              <dd class="col-sm-8">{{content.user.createdAt}}</dd>
+            </dl>
+          </div>
+        </div>
+
+        <!-- Edit Profile Form -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <h2 class="card-title h5 mb-3">Edit Profile</h2>
+
+            {{> form-errors}}
+
+            <form method="POST" action="/profile" novalidate>
+              <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" class="form-control" id="name" name="name"
+                       value="{{content.user.name}}" required autocomplete="name">
+              </div>
+
+              <div class="mb-3">
+                <label for="email" class="form-label">Email address</label>
+                <input type="email" class="form-control" id="email" name="email"
+                       value="{{content.user.email}}" required autocomplete="email">
+              </div>
+
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary">Update Profile</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Change Password Form -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <h2 class="card-title h5 mb-3">Change Password</h2>
+
+            <form method="POST" action="/profile/password" novalidate>
+              <div class="mb-3">
+                <label for="currentPassword" class="form-label">Current Password</label>
+                <input type="password" class="form-control" id="currentPassword" name="currentPassword"
+                       required autocomplete="current-password">
+              </div>
+
+              <div class="mb-3">
+                <label for="newPassword" class="form-label">New Password</label>
+                <input type="password" class="form-control" id="newPassword" name="newPassword"
+                       required autocomplete="new-password">
+                <div class="form-text">Must be at least 8 characters.</div>
+              </div>
+
+              <div class="mb-3">
+                <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword"
+                       required autocomplete="new-password">
+              </div>
+
+              <div class="d-grid">
+                <button type="submit" class="btn btn-warning">Change Password</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>

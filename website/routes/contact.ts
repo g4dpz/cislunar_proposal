@@ -13,6 +13,7 @@ import {
   sendContactEmail,
   type EmailConfig,
 } from "../email/mod.ts";
+import { getTemplateUser } from "./helpers.ts";
 
 function buildContactPageData(successMessage?: string): PageData {
   const meta = getPageMeta("contact");
@@ -46,6 +47,7 @@ export function contactGetHandler(engine: HandlebarsEngine) {
       : undefined;
 
     const pageData = buildContactPageData(successMessage);
+    pageData.user = getTemplateUser(ctx);
     const html = renderPage(engine, "contact", pageData);
     ctx.response.body = html;
     ctx.response.type = "text/html";

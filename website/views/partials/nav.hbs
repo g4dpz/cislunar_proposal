@@ -10,13 +10,62 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="mainNav">
-      <ul class="navbar-nav ms-auto">
+      <ul class="navbar-nav me-auto">
         {{#each nav}}
+        {{!-- Hide Documentation link for unauthenticated visitors --}}
+        {{#if (eq href "/docs")}}
+          {{#if ../user}}
+          <li class="nav-item">
+            <a class="nav-link{{#if active}} active{{/if}}" href="{{href}}"
+               {{#if active}}aria-current="page"{{/if}}>{{label}}</a>
+          </li>
+          {{/if}}
+        {{else}}
         <li class="nav-item">
           <a class="nav-link{{#if active}} active{{/if}}" href="{{href}}"
              {{#if active}}aria-current="page"{{/if}}>{{label}}</a>
         </li>
+        {{/if}}
         {{/each}}
+
+        {{!-- Admin dropdown for admin users --}}
+        {{#if user}}
+          {{#if user.isAdmin}}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button"
+               data-bs-toggle="dropdown" aria-expanded="false">
+              Admin
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/admin/users">Users</a></li>
+              <li><a class="dropdown-item" href="/admin/roles">Roles</a></li>
+            </ul>
+          </li>
+          {{/if}}
+        {{/if}}
+      </ul>
+
+      <ul class="navbar-nav ms-auto">
+        {{#if user}}
+        {{!-- Authenticated user: show name, profile, logout --}}
+        <li class="nav-item">
+          <span class="nav-link disabled">{{user.name}}</span>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/profile">Profile</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/logout">Logout</a>
+        </li>
+        {{else}}
+        {{!-- Unauthenticated visitor: show login and register --}}
+        <li class="nav-item">
+          <a class="nav-link" href="/login">Login</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/register">Register</a>
+        </li>
+        {{/if}}
       </ul>
     </div>
   </div>
