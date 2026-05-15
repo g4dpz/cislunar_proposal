@@ -56,7 +56,7 @@ export function docsPhaseHandler(engine: HandlebarsEngine) {
     const pageData: PageData = {
       meta: {
         ...meta,
-        title: `${knownPhase.name} Requirements — RADIANT`,
+        title: `${knownPhase.name} Requirements — ARTHUR`,
       },
       nav,
       activeSection: "docs",

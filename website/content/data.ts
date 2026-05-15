@@ -112,7 +112,7 @@ export interface SiteContent {
 const collaborators: Collaborator[] = [
   {
     name: "AMSAT-UK",
-    logoUrl: "/images/logos/amsat-uk.jpg",
+    logoUrl: "/images/logos/amsat-uk.png",
     websiteUrl: "https://amsat-uk.org",
   },
   {
@@ -120,14 +120,19 @@ const collaborators: Collaborator[] = [
     logoUrl: "/images/logos/amsat-dl.png",
     websiteUrl: "https://amsat-dl.org",
   },
+  {
+    name: "Goonhilly Earth Station",
+    logoUrl: "/images/logos/goonhilly.png",
+    websiteUrl: "https://goonhilly.org",
+  },
 ];
 
 
 const overview: OverviewContent = {
-  title: "RADIANT — Radio Amateur Delay-tolerant Interplanetary Networking Testbed",
+  title: "ARTHUR — Amateur Radio Transport for High-latency Unreliable Routes",
   tagline: "From amateur packet radio to CubeSat relay to cislunar networking.",
   missionSummary:
-    "RADIANT brings Delay-Tolerant Networking (DTN) to amateur radio, enabling " +
+    "ARTHUR brings Delay-Tolerant Networking (DTN) to amateur radio, enabling " +
     "store-and-forward messaging across disrupted links from terrestrial ground stations " +
     "to Low Earth Orbit (LEO) and ultimately to cislunar space.",
   missionSummary2:

@@ -15,7 +15,7 @@ import { errorHandler } from "../../middleware/error.ts";
 
 async function createTestApp(): Promise<Application> {
   const engine = await initHandlebars("./views");
-  const db = initDatabase(":memory:");
+  const db = await initDatabase(":memory:");
   const router = createRouter(engine, db);
 
   const app = new Application();

@@ -27,7 +27,7 @@ const BASE_KEYWORDS = [
 
 const pageMeta: Record<string, PageMeta> = {
   home: {
-    title: "RADIANT — Radio Amateur Delay-tolerant Interplanetary Networking Testbed",
+    title: "ARTHUR — Amateur Radio Transport for High-latency Unreliable Routes",
     description:
       "From amateur packet radio to CubeSat relay to cislunar networking. " +
       "Bringing Delay-Tolerant Networking and Bundle Protocol to amateur radio links.",
@@ -38,14 +38,14 @@ const pageMeta: Record<string, PageMeta> = {
       "store-and-forward",
       "AX.25",
     ],
-    ogTitle: "RADIANT — Radio Amateur Delay-tolerant Interplanetary Networking Testbed",
+    ogTitle: "ARTHUR — Amateur Radio Transport for High-latency Unreliable Routes",
     ogDescription:
       "Open-source project bringing DTN and Bundle Protocol to amateur radio, " +
       "from terrestrial links to cislunar space.",
     canonicalUrl: "/",
   },
   roadmap: {
-    title: "Project Roadmap — RADIANT",
+    title: "Project Roadmap — ARTHUR",
     description:
       "Five-phase roadmap from terrestrial DTN validation through QO-100 GEO satellite, " +
       "CubeSat engineering model, LEO flight, to cislunar deep-space communication.",
@@ -57,13 +57,13 @@ const pageMeta: Record<string, PageMeta> = {
       "QO-100",
       "deep-space",
     ],
-    ogTitle: "Project Roadmap — RADIANT",
+    ogTitle: "Project Roadmap — ARTHUR",
     ogDescription:
       "From ground-based amateur radio DTN to cislunar deep-space networking in five phases.",
     canonicalUrl: "/roadmap",
   },
   conops: {
-    title: "Concept of Operations — RADIANT",
+    title: "Concept of Operations — ARTHUR",
     description:
       "Concept of operations for the terrestrial analogue architecture mirroring " +
       "cislunar communications using amateur radio DTN links.",
@@ -74,13 +74,13 @@ const pageMeta: Record<string, PageMeta> = {
       "terrestrial analogue",
       "RF links",
     ],
-    ogTitle: "Concept of Operations — RADIANT",
+    ogTitle: "Concept of Operations — ARTHUR",
     ogDescription:
       "Terrestrial analogue architecture for cislunar DTN operations using amateur radio.",
     canonicalUrl: "/conops",
   },
   docs: {
-    title: "Documentation — RADIANT",
+    title: "Documentation — ARTHUR",
     description:
       "Technical documentation including phase-specific requirements, design documents, " +
       "RFC references for Bundle Protocol (BPv7), LTP, and AX.25.",
@@ -92,15 +92,15 @@ const pageMeta: Record<string, PageMeta> = {
       "AX.25",
       "LTP",
     ],
-    ogTitle: "Documentation — RADIANT",
+    ogTitle: "Documentation — ARTHUR",
     ogDescription:
       "Phase-specific documentation and protocol references for the amateur radio DTN project.",
     canonicalUrl: "/docs",
   },
   contact: {
-    title: "Contact — RADIANT",
+    title: "Contact — ARTHUR",
     description:
-      "Get in touch with the RADIANT project team. Collaboration enquiries, " +
+      "Get in touch with the ARTHUR project team. Collaboration enquiries, " +
       "amateur radio contact, AMSAT-UK, AMSAT-DL partnerships.",
     keywords: [
       ...BASE_KEYWORDS,
@@ -110,18 +110,18 @@ const pageMeta: Record<string, PageMeta> = {
       "AMSAT-DL",
       "partnership",
     ],
-    ogTitle: "Contact — RADIANT",
+    ogTitle: "Contact — ARTHUR",
     ogDescription:
       "Reach the project team for collaboration, partnership, or general enquiries.",
     canonicalUrl: "/contact",
   },
   privacy: {
-    title: "Privacy Policy — RADIANT",
+    title: "Privacy Policy — ARTHUR",
     description:
-      "GDPR privacy statement for the RADIANT website. " +
+      "GDPR privacy statement for the ARTHUR website. " +
       "Data collection, legal basis, retention, and cookie policy.",
     keywords: ["privacy", "GDPR", "data protection", "cookies"],
-    ogTitle: "Privacy Policy — RADIANT",
+    ogTitle: "Privacy Policy — ARTHUR",
     ogDescription:
       "How we handle your data: GDPR-compliant privacy statement.",
     canonicalUrl: "/privacy",

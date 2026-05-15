@@ -9,7 +9,8 @@
     "@db/sqlite": "jsr:@db/sqlite@^0.12",
     "handlebars": "npm:handlebars@^4.7",
     "fast-check": "npm:fast-check@^3.22",
-    "marked": "npm:marked@^14"
+    "marked": "npm:marked@^14",
+    "bcrypt": "https://deno.land/x/bcrypt@v0.4.1/mod.ts"
   },
   "compilerOptions": {
     "strict": true,

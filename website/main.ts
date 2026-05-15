@@ -29,7 +29,7 @@ try {
 const engine = await initHandlebars();
 
 // Initialize SQLite database
-const db = initDatabase(dbPath);
+const db = await initDatabase(dbPath);
 
 // Create router with all routes
 const router = createRouter(engine, db);
