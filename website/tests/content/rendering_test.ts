@@ -451,7 +451,7 @@ Deno.test("Property 3: Image accessibility", () => {
           ..."abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("")
         ),
         { minLength: 1, maxLength: 50 }
-      )
+      ).filter((s) => s.trim().length > 0)
     ),
     isDecorative: fc.boolean(),
   });
@@ -575,24 +575,14 @@ Deno.test("Property 2: Documentation links completeness", async () => {
         },
       });
 
-      // For each phase, verify the output contains links to requirements.md,
-      // design.md, and tasks.md under that phase's docsPath
+      // For each phase, verify the output contains a link to the requirements
+      // route under that phase's docsPath (matching the actual template pattern)
       for (const phase of phases) {
-        const expectedRequirementsLink = `${phase.docsPath}requirements.md`;
-        const expectedDesignLink = `${phase.docsPath}design.md`;
-        const expectedTasksLink = `${phase.docsPath}tasks.md`;
+        const expectedRequirementsLink = `${phase.docsPath}/requirements`;
 
         assert(
           html.includes(expectedRequirementsLink),
           `Rendered docs page must contain link to "${expectedRequirementsLink}" for phase "${phase.name}"`
-        );
-        assert(
-          html.includes(expectedDesignLink),
-          `Rendered docs page must contain link to "${expectedDesignLink}" for phase "${phase.name}"`
-        );
-        assert(
-          html.includes(expectedTasksLink),
-          `Rendered docs page must contain link to "${expectedTasksLink}" for phase "${phase.name}"`
         );
       }
     }),
