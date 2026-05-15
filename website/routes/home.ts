@@ -23,6 +23,7 @@ export function homeHandler(engine: HandlebarsEngine) {
         title: siteContent.overview.title,
         tagline: siteContent.overview.tagline,
         missionSummary: siteContent.overview.missionSummary,
+        missionSummary2: siteContent.overview.missionSummary2,
         features: siteContent.overview.features,
         protocolStack: siteContent.overview.protocolStack,
         license: siteContent.overview.license,

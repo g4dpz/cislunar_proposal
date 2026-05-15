@@ -27,7 +27,7 @@ const BASE_KEYWORDS = [
 
 const pageMeta: Record<string, PageMeta> = {
   home: {
-    title: "Amateur Radio DTN Space Networking Pathfinder",
+    title: "RADIANT — Radio Amateur Delay-tolerant Interplanetary Networking Testbed",
     description:
       "From amateur packet radio to CubeSat relay to cislunar networking. " +
       "Bringing Delay-Tolerant Networking and Bundle Protocol to amateur radio links.",
@@ -38,14 +38,14 @@ const pageMeta: Record<string, PageMeta> = {
       "store-and-forward",
       "AX.25",
     ],
-    ogTitle: "Amateur Radio DTN Space Networking Pathfinder",
+    ogTitle: "RADIANT — Radio Amateur Delay-tolerant Interplanetary Networking Testbed",
     ogDescription:
       "Open-source project bringing DTN and Bundle Protocol to amateur radio, " +
       "from terrestrial links to cislunar space.",
     canonicalUrl: "/",
   },
   roadmap: {
-    title: "Project Roadmap — Amateur Radio DTN Pathfinder",
+    title: "Project Roadmap — RADIANT",
     description:
       "Five-phase roadmap from terrestrial DTN validation through QO-100 GEO satellite, " +
       "CubeSat engineering model, LEO flight, to cislunar deep-space communication.",
@@ -57,13 +57,13 @@ const pageMeta: Record<string, PageMeta> = {
       "QO-100",
       "deep-space",
     ],
-    ogTitle: "Project Roadmap — Amateur Radio DTN Pathfinder",
+    ogTitle: "Project Roadmap — RADIANT",
     ogDescription:
       "From ground-based amateur radio DTN to cislunar deep-space networking in five phases.",
     canonicalUrl: "/roadmap",
   },
   conops: {
-    title: "Concept of Operations — Amateur Radio DTN Pathfinder",
+    title: "Concept of Operations — RADIANT",
     description:
       "Concept of operations for the terrestrial analogue architecture mirroring " +
       "cislunar communications using amateur radio DTN links.",
@@ -74,13 +74,13 @@ const pageMeta: Record<string, PageMeta> = {
       "terrestrial analogue",
       "RF links",
     ],
-    ogTitle: "Concept of Operations — Amateur Radio DTN Pathfinder",
+    ogTitle: "Concept of Operations — RADIANT",
     ogDescription:
       "Terrestrial analogue architecture for cislunar DTN operations using amateur radio.",
     canonicalUrl: "/conops",
   },
   docs: {
-    title: "Documentation — Amateur Radio DTN Pathfinder",
+    title: "Documentation — RADIANT",
     description:
       "Technical documentation including phase-specific requirements, design documents, " +
       "RFC references for Bundle Protocol (BPv7), LTP, and AX.25.",
@@ -92,67 +92,15 @@ const pageMeta: Record<string, PageMeta> = {
       "AX.25",
       "LTP",
     ],
-    ogTitle: "Documentation — Amateur Radio DTN Pathfinder",
+    ogTitle: "Documentation — RADIANT",
     ogDescription:
       "Phase-specific documentation and protocol references for the amateur radio DTN project.",
     canonicalUrl: "/docs",
   },
-  resources: {
-    title: "Resources — Amateur Radio DTN Pathfinder",
-    description:
-      "External resources including NASA DTN references, HDTN software, " +
-      "Bundle Protocol RFCs, AMSAT organisations, and AX.25/KISS protocol information.",
-    keywords: [
-      ...BASE_KEYWORDS,
-      "resources",
-      "NASA",
-      "AMSAT-UK",
-      "AMSAT-DL",
-      "KISS",
-    ],
-    ogTitle: "Resources — Amateur Radio DTN Pathfinder",
-    ogDescription:
-      "Curated links to NASA DTN, HDTN, Bundle Protocol, AMSAT, and AX.25 resources.",
-    canonicalUrl: "/resources",
-  },
-  "getting-started": {
-    title: "Getting Started — Amateur Radio DTN Pathfinder",
-    description:
-      "Step-by-step guide to setting up a terrestrial DTN node using amateur radio " +
-      "equipment: Raspberry Pi, Mobilinkd TNC4, and Yaesu FT-817 with Bundle Protocol.",
-    keywords: [
-      ...BASE_KEYWORDS,
-      "getting started",
-      "installation",
-      "TNC4",
-      "Yaesu FT-817",
-      "Raspberry Pi",
-    ],
-    ogTitle: "Getting Started — Amateur Radio DTN Pathfinder",
-    ogDescription:
-      "Set up your own terrestrial DTN node with amateur radio equipment and Bundle Protocol.",
-    canonicalUrl: "/getting-started",
-  },
-  contributing: {
-    title: "Contributing — Amateur Radio DTN Pathfinder",
-    description:
-      "How to contribute to the amateur radio DTN project: bug reports, documentation, " +
-      "hardware integration, RF optimisation, and orbital mechanics.",
-    keywords: [
-      ...BASE_KEYWORDS,
-      "contributing",
-      "open source",
-      "MIT license",
-    ],
-    ogTitle: "Contributing — Amateur Radio DTN Pathfinder",
-    ogDescription:
-      "Join the project: contribute code, hardware expertise, RF knowledge, or documentation.",
-    canonicalUrl: "/contributing",
-  },
   contact: {
-    title: "Contact — Amateur Radio DTN Pathfinder",
+    title: "Contact — RADIANT",
     description:
-      "Get in touch with the Cislunar Amateur DTN project team. Collaboration enquiries, " +
+      "Get in touch with the RADIANT project team. Collaboration enquiries, " +
       "amateur radio contact, AMSAT-UK, AMSAT-DL partnerships.",
     keywords: [
       ...BASE_KEYWORDS,
@@ -162,18 +110,18 @@ const pageMeta: Record<string, PageMeta> = {
       "AMSAT-DL",
       "partnership",
     ],
-    ogTitle: "Contact — Amateur Radio DTN Pathfinder",
+    ogTitle: "Contact — RADIANT",
     ogDescription:
       "Reach the project team for collaboration, partnership, or general enquiries.",
     canonicalUrl: "/contact",
   },
   privacy: {
-    title: "Privacy Policy — Amateur Radio DTN Pathfinder",
+    title: "Privacy Policy — RADIANT",
     description:
-      "GDPR privacy statement for the Amateur Radio DTN Pathfinder website. " +
+      "GDPR privacy statement for the RADIANT website. " +
       "Data collection, legal basis, retention, and cookie policy.",
     keywords: ["privacy", "GDPR", "data protection", "cookies"],
-    ogTitle: "Privacy Policy — Amateur Radio DTN Pathfinder",
+    ogTitle: "Privacy Policy — RADIANT",
     ogDescription:
       "How we handle your data: GDPR-compliant privacy statement.",
     canonicalUrl: "/privacy",

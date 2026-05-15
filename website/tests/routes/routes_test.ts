@@ -51,9 +51,6 @@ const HTML_ROUTES = [
   "/roadmap",
   "/conops",
   "/docs",
-  "/resources",
-  "/getting-started",
-  "/contributing",
   "/contact",
   "/privacy",
 ];

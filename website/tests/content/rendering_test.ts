@@ -144,9 +144,6 @@ Deno.test("Property 4: Active navigation indication", async () => {
     "/roadmap",
     "/conops",
     "/docs",
-    "/resources",
-    "/getting-started",
-    "/contributing",
     "/contact",
     "/privacy",
   ];
@@ -157,9 +154,6 @@ Deno.test("Property 4: Active navigation indication", async () => {
     "/roadmap": "Roadmap",
     "/conops": "ConOps",
     "/docs": "Documentation",
-    "/resources": "Resources",
-    "/getting-started": "Getting Started",
-    "/contributing": "Contributing",
     "/contact": "Contact",
     "/privacy": "Privacy",
   };
@@ -352,8 +346,8 @@ Deno.test("Property 8: Semantic page structure", async () => {
 
   // Arbitrary for nav items
   const validHrefs = [
-    "/", "/roadmap", "/conops", "/docs", "/resources",
-    "/getting-started", "/contributing", "/contact", "/privacy",
+    "/", "/roadmap", "/conops", "/docs",
+    "/contact", "/privacy",
   ];
 
   const navItemArb = fc.record({

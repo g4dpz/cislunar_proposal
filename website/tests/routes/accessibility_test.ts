@@ -38,9 +38,6 @@ const ALL_ROUTES = [
   "/roadmap",
   "/conops",
   "/docs",
-  "/resources",
-  "/getting-started",
-  "/contributing",
   "/contact",
   "/privacy",
 ];

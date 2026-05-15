@@ -112,9 +112,6 @@ const KNOWN_PAGES = [
   "roadmap",
   "conops",
   "docs",
-  "resources",
-  "getting-started",
-  "contributing",
   "contact",
   "privacy",
 ];

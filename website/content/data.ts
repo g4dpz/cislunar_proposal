@@ -42,6 +42,7 @@ export interface OverviewContent {
   title: string;
   tagline: string;
   missionSummary: string;
+  missionSummary2: string;
   features: string[];
   protocolStack: string[];
   license: string;
@@ -65,29 +66,12 @@ export interface PrivacyContent {
   cookiePolicy: string;
 }
 
-export interface ResourcesContent {
-  categories: { name: string; links: ResourceLink[] }[];
-}
-
 export interface ConOpsContent {
   concept: string;
   rfLinkTypes: string[];
   whyCommunityMatters: string[];
   expectedOutcomes: string[];
   nasaReferences: ResourceLink[];
-}
-
-export interface GettingStartedContent {
-  prerequisites: string[];
-  installation: string[];
-  runNetwork: string[];
-  testConnectivity: string[];
-}
-
-export interface ContributingContent {
-  areas: string[];
-  developmentSetup: string[];
-  license: string;
 }
 
 export interface DocumentationLinks {
@@ -116,12 +100,9 @@ export interface PageData {
 export interface SiteContent {
   overview: OverviewContent;
   roadmap: RoadmapPhase[];
-  gettingStarted: GettingStartedContent;
-  contributing: ContributingContent;
   documentation: DocumentationLinks;
   contact: ContactContent;
   privacy: PrivacyContent;
-  resources: ResourcesContent;
   conops: ConOpsContent;
   nav: NavItem[];
 }
@@ -143,12 +124,13 @@ const collaborators: Collaborator[] = [
 
 
 const overview: OverviewContent = {
-  title: "Amateur Radio DTN Space Networking Pathfinder",
+  title: "RADIANT — Radio Amateur Delay-tolerant Interplanetary Networking Testbed",
   tagline: "From amateur packet radio to CubeSat relay to cislunar networking.",
   missionSummary:
-    "The Cislunar Amateur DTN Payload project brings Delay-Tolerant Networking (DTN) " +
-    "to amateur radio, enabling store-and-forward messaging across disrupted links from " +
-    "terrestrial ground stations to Low Earth Orbit (LEO) and ultimately to cislunar space. " +
+    "RADIANT brings Delay-Tolerant Networking (DTN) to amateur radio, enabling " +
+    "store-and-forward messaging across disrupted links from terrestrial ground stations " +
+    "to Low Earth Orbit (LEO) and ultimately to cislunar space.",
+  missionSummary2:
     "Built on NASA Glenn's HDTN (High-rate Delay Tolerant Networking), this project implements " +
     "the Bundle Protocol version 7 (BPv7) over amateur radio links.",
   features: [
@@ -235,56 +217,6 @@ const roadmap: RoadmapPhase[] = [
   },
 ];
 
-const gettingStarted: GettingStartedContent = {
-  prerequisites: [
-    "Linux or macOS (amd64/arm64)",
-    "Go 1.19 or later",
-    "Two Mobilinkd TNC4 terminal node controllers (USB)",
-    "Two Yaesu FT-817 radios configured for 9600 baud",
-    "Amateur radio license (required for transmission)",
-  ],
-  installation: [
-    "git clone https://github.com/g4dpz/cislunar_proposal.git",
-    "cd cislunar_proposal",
-    "cd HDTN && mkdir build && cd build",
-    "cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd)/../../hdtn-install",
-    "make -j$(nproc) && make install",
-    "cd ../..",
-    "go build -o dtn-node ./cmd/dtn-node",
-  ],
-  runNetwork: [
-    "./dtn-node -config configs/dtn-node-a.yaml",
-    "./dtn-node -config configs/dtn-node-b.yaml",
-  ],
-  testConnectivity: [
-    "export PATH=$PATH:$(pwd)/hdtn-install/bin",
-    "bping ipn:1.1 ipn:2.1 -c 5",
-    "bpsendfile ipn:1.1 ipn:2.1 test-message.txt",
-  ],
-};
-
-const contributing: ContributingContent = {
-  areas: [
-    "Bug reports and fixes",
-    "Documentation improvements",
-    "Additional test coverage",
-    "Hardware integration (TNC4, B200mini, STM32U585)",
-    "RF link optimization",
-    "Orbital mechanics improvements",
-  ],
-  developmentSetup: [
-    "git clone https://github.com/g4dpz/cislunar_proposal.git",
-    "cd cislunar_proposal",
-    "go mod download",
-    "go test ./...",
-    "go build -o dtn-node ./cmd/dtn-node",
-    "go build -o em-node ./cmd/em-node",
-    "go build -o leo-node ./cmd/leo-node",
-    "go build -o cislunar-node ./cmd/cislunar-node",
-  ],
-  license: "MIT",
-};
-
 
 const documentation: DocumentationLinks = {
   phases: [
@@ -332,7 +264,7 @@ const documentation: DocumentationLinks = {
 
 const contact: ContactContent = {
   email: "dave@g4dpz.me.uk",
-  callsigns: ["M0DTN"],
+  callsigns: [],
   collaborators,
   targetGroups: [
     "AMSAT organisations",
@@ -386,7 +318,7 @@ const contact: ContactContent = {
 const privacy: PrivacyContent = {
   dataController:
     "Cislunar Amateur DTN Payload Project Team",
-  contactEmail: "privacy@cislunar-dtn.org",
+  contactEmail: "secretary@amsat-uk.org",
   dataCollected:
     "When you submit the contact form, we collect your name, callsign or organisation, " +
     "area of interest, and message content. We do not use cookies or third-party analytics " +
@@ -405,95 +337,6 @@ const privacy: PrivacyContent = {
     "will be obtained where required.",
 };
 
-const resources: ResourcesContent = {
-  categories: [
-    {
-      name: "NASA DTN Overview",
-      links: [
-        {
-          title: "NASA Delay-Tolerant Networking Overview",
-          url: "https://www.nasa.gov/directorates/heo/scan/engineering/technology/disruption_tolerant_networking",
-          description:
-            "Introduction to NASA's DTN programme and its applications in space communications.",
-        },
-        {
-          title: "NASA DTN: Operational, Evolving, and Ready for Expansion",
-          url: "https://www.nasa.gov/dtn-operational",
-          description:
-            "Overview of NASA's operational DTN deployment and future expansion plans.",
-        },
-      ],
-    },
-    {
-      name: "NASA HDTN",
-      links: [
-        {
-          title: "HDTN (High-rate Delay Tolerant Networking)",
-          url: "https://github.com/nasa/HDTN",
-          description:
-            "NASA Glenn's high-performance DTN implementation designed for high data rates and modern architectures.",
-        },
-        {
-          title: "HDTN Documentation",
-          url: "https://github.com/nasa/HDTN/wiki",
-          description:
-            "Documentation and resources for the HDTN software suite.",
-        },
-      ],
-    },
-    {
-      name: "Bundle Protocol References",
-      links: [
-        {
-          title: "RFC 9171: Bundle Protocol Version 7",
-          url: "https://www.rfc-editor.org/rfc/rfc9171.html",
-          description: "The core Bundle Protocol specification for DTN.",
-        },
-        {
-          title: "RFC 5326: Licklider Transmission Protocol (LTP)",
-          url: "https://www.rfc-editor.org/rfc/rfc5326.html",
-          description:
-            "Reliable transmission protocol designed for deep-space links.",
-        },
-      ],
-    },
-    {
-      name: "AMSAT Resources",
-      links: [
-        {
-          title: "AMSAT-UK",
-          url: "https://amsat-uk.org",
-          description:
-            "Radio Amateur Satellite Corporation of the United Kingdom.",
-        },
-        {
-          title: "AMSAT-DL",
-          url: "https://amsat-dl.org",
-          description:
-            "Radio Amateur Satellite Corporation of Germany.",
-        },
-      ],
-    },
-    {
-      name: "AX.25 / KISS Background",
-      links: [
-        {
-          title: "AX.25 Link Access Protocol Specification",
-          url: "http://www.ax25.net/AX25.2.2-Jul%2098-2.pdf",
-          description:
-            "The AX.25 amateur radio data link layer protocol specification.",
-        },
-        {
-          title: "KISS TNC Protocol",
-          url: "https://www.ax25.net/kiss.aspx",
-          description:
-            "Keep It Simple, Stupid — the serial protocol for TNC communication.",
-        },
-      ],
-    },
-  ],
-};
-
 
 const conops: ConOpsContent = {
   concept:
@@ -505,7 +348,7 @@ const conops: ConOpsContent = {
     "disrupted-network analogues.",
   rfLinkTypes: [
     "Amateur packet radio (VHF/UHF AX.25 at 9600 baud)",
-    "Microwave point-to-point paths (10 GHz, 24 GHz)",
+    "Microwave point-to-point paths (10 GHz, 2.4 GHz)",
     "Satellite-style scheduled links (QO-100 transponder)",
     "EME-inspired operational patterns (moonbounce timing disciplines)",
     "Weak-signal / intermittent links (troposcatter, aircraft scatter)",
@@ -549,11 +392,6 @@ const conops: ConOpsContent = {
       url: "https://www.nasa.gov/cislunar-comms",
       description: "NASA architecture for cislunar communication networks.",
     },
-    {
-      title: "NASA's Lunar Communications and Navigation Architecture",
-      url: "https://www.nasa.gov/lunar-comms-nav",
-      description: "The planned communications and navigation infrastructure for lunar missions.",
-    },
   ],
 };
 
@@ -562,9 +400,6 @@ const nav: NavItem[] = [
   { label: "Roadmap", href: "/roadmap", active: false },
   { label: "ConOps", href: "/conops", active: false },
   { label: "Documentation", href: "/docs", active: false },
-  { label: "Resources", href: "/resources", active: false },
-  { label: "Getting Started", href: "/getting-started", active: false },
-  { label: "Contributing", href: "/contributing", active: false },
   { label: "Contact", href: "/contact", active: false },
   { label: "Privacy", href: "/privacy", active: false },
 ];
@@ -574,12 +409,9 @@ const nav: NavItem[] = [
 export const siteContent: SiteContent = {
   overview,
   roadmap,
-  gettingStarted,
-  contributing,
   documentation,
   contact,
   privacy,
-  resources,
   conops,
   nav,
 };
