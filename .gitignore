@@ -42,3 +42,7 @@ integration.test
 # Environment variables (secrets)
 .env
 website/.env
+
+# Deployment packages
+dist/
+*.zip

@@ -86,13 +86,14 @@ export function guestOnly(): Middleware {
 
 /**
  * Sets the session cookie on the response.
- * HTTP-only, SameSite=Lax, path=/. Secure flag is only set over HTTPS.
+ * HTTP-only, SameSite=Lax, path=/. Secure flag is not set because Oak
+ * checks the direct connection (HTTP from Apache proxy), not the client-facing
+ * HTTPS. The browser still receives the cookie over HTTPS via Apache.
  */
 export async function setSessionCookie(ctx: Context, token: string): Promise<void> {
-  const isSecure = ctx.request.url.protocol === "https:";
   await ctx.cookies.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: isSecure,
+    secure: false,
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60, // 1 hour in seconds

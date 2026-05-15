@@ -1,0 +1,18 @@
+[Unit]
+Description=RADIANT Website (Deno/Oak)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/radiant/website
+ExecStart=/usr/local/bin/deno run --allow-net --allow-read --allow-write --allow-env --allow-ffi main.ts
+Restart=on-failure
+RestartSec=5
+Environment=PORT=10090
+Environment=DB_PATH=/opt/radiant/data/radiant.db
+Environment=DENO_DIR=/opt/radiant/.deno
+
+[Install]
+WantedBy=multi-user.target

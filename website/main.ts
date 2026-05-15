@@ -48,7 +48,7 @@ const router = createRouter(engine, db, authService, userService, roleService);
 
 // ─── Application Setup ───────────────────────────────────────────────────────
 
-const app = new Application();
+const app = new Application({ proxy: true });
 
 // Middleware stack (order matters):
 // 1. Request logging (outermost — captures timing for all requests)
