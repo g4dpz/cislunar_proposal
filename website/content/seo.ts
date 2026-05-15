@@ -27,7 +27,7 @@ const BASE_KEYWORDS = [
 
 const pageMeta: Record<string, PageMeta> = {
   home: {
-    title: "ARTHUR — Amateur Radio Transport for High-latency Unreliable Routes",
+    title: "RADIANT — Radio Amateur Delay-tolerant Interplanetary Networking Testbed",
     description:
       "From amateur packet radio to CubeSat relay to cislunar networking. " +
       "Bringing Delay-Tolerant Networking and Bundle Protocol to amateur radio links.",
@@ -38,14 +38,14 @@ const pageMeta: Record<string, PageMeta> = {
       "store-and-forward",
       "AX.25",
     ],
-    ogTitle: "ARTHUR — Amateur Radio Transport for High-latency Unreliable Routes",
+    ogTitle: "RADIANT — Radio Amateur Delay-tolerant Interplanetary Networking Testbed",
     ogDescription:
       "Open-source project bringing DTN and Bundle Protocol to amateur radio, " +
       "from terrestrial links to cislunar space.",
     canonicalUrl: "/",
   },
   roadmap: {
-    title: "Project Roadmap — ARTHUR",
+    title: "Project Roadmap — RADIANT",
     description:
       "Five-phase roadmap from terrestrial DTN validation through QO-100 GEO satellite, " +
       "CubeSat engineering model, LEO flight, to cislunar deep-space communication.",
@@ -57,13 +57,13 @@ const pageMeta: Record<string, PageMeta> = {
       "QO-100",
       "deep-space",
     ],
-    ogTitle: "Project Roadmap — ARTHUR",
+    ogTitle: "Project Roadmap — RADIANT",
     ogDescription:
       "From ground-based amateur radio DTN to cislunar deep-space networking in five phases.",
     canonicalUrl: "/roadmap",
   },
   conops: {
-    title: "Concept of Operations — ARTHUR",
+    title: "Concept of Operations — RADIANT",
     description:
       "Concept of operations for the terrestrial analogue architecture mirroring " +
       "cislunar communications using amateur radio DTN links.",
@@ -74,13 +74,13 @@ const pageMeta: Record<string, PageMeta> = {
       "terrestrial analogue",
       "RF links",
     ],
-    ogTitle: "Concept of Operations — ARTHUR",
+    ogTitle: "Concept of Operations — RADIANT",
     ogDescription:
       "Terrestrial analogue architecture for cislunar DTN operations using amateur radio.",
     canonicalUrl: "/conops",
   },
   docs: {
-    title: "Documentation — ARTHUR",
+    title: "Documentation — RADIANT",
     description:
       "Technical documentation including phase-specific requirements, design documents, " +
       "RFC references for Bundle Protocol (BPv7), LTP, and AX.25.",
@@ -92,15 +92,15 @@ const pageMeta: Record<string, PageMeta> = {
       "AX.25",
       "LTP",
     ],
-    ogTitle: "Documentation — ARTHUR",
+    ogTitle: "Documentation — RADIANT",
     ogDescription:
       "Phase-specific documentation and protocol references for the amateur radio DTN project.",
     canonicalUrl: "/docs",
   },
   contact: {
-    title: "Contact — ARTHUR",
+    title: "Contact — RADIANT",
     description:
-      "Get in touch with the ARTHUR project team. Collaboration enquiries, " +
+      "Get in touch with the RADIANT project team. Collaboration enquiries, " +
       "amateur radio contact, AMSAT-UK, AMSAT-DL partnerships.",
     keywords: [
       ...BASE_KEYWORDS,
@@ -110,31 +110,31 @@ const pageMeta: Record<string, PageMeta> = {
       "AMSAT-DL",
       "partnership",
     ],
-    ogTitle: "Contact — ARTHUR",
+    ogTitle: "Contact — RADIANT",
     ogDescription:
       "Reach the project team for collaboration, partnership, or general enquiries.",
     canonicalUrl: "/contact",
   },
   privacy: {
-    title: "Privacy Policy — ARTHUR",
+    title: "Privacy Policy — RADIANT",
     description:
-      "GDPR privacy statement for the ARTHUR website. " +
+      "GDPR privacy statement for the RADIANT website. " +
       "Data collection, legal basis, retention, and cookie policy.",
     keywords: ["privacy", "GDPR", "data protection", "cookies"],
-    ogTitle: "Privacy Policy — ARTHUR",
+    ogTitle: "Privacy Policy — RADIANT",
     ogDescription:
       "How we handle your data: GDPR-compliant privacy statement.",
     canonicalUrl: "/privacy",
   },
   profile: {
-    title: "My Profile — ARTHUR",
+    title: "My Profile — RADIANT",
     description:
-      "View and manage your ARTHUR account profile, update your name and email, " +
+      "View and manage your RADIANT account profile, update your name and email, " +
       "or change your password.",
     keywords: [...BASE_KEYWORDS, "profile", "account", "settings"],
-    ogTitle: "My Profile — ARTHUR",
+    ogTitle: "My Profile — RADIANT",
     ogDescription:
-      "Manage your ARTHUR account settings and profile information.",
+      "Manage your RADIANT account settings and profile information.",
     canonicalUrl: "/profile",
   },
 };

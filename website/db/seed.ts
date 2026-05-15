@@ -12,7 +12,7 @@ const DEFAULT_ROLES = [
 
 const DEFAULT_ADMIN = {
   name: "Admin",
-  email: "admin@arthur.radio",
+  email: "admin@radiant.radio",
   password: "admin123!",
 } as const;
 

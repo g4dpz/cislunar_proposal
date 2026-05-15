@@ -61,19 +61,28 @@ export function contactPostHandler(db: Database) {
     const body = ctx.request.body;
     const formData = await body.formData();
 
-    const name = formData.get("name")?.toString() ?? "";
+    const email = formData.get("email")?.toString().trim() ?? "";
     const callsignOrOrg = formData.get("callsign_or_org")?.toString() ?? "";
     const areaOfInterest = formData.get("area_of_interest")?.toString() ?? "";
     const message = formData.get("message")?.toString() ?? "";
 
-    if (!name || !message) {
+    // Validate required fields
+    if (!email || !message) {
       ctx.response.status = 400;
-      ctx.response.body = "Name and message are required.";
+      ctx.response.body = "Email and message are required.";
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      ctx.response.status = 400;
+      ctx.response.body = "Please enter a valid email address.";
       return;
     }
 
     saveContactSubmission(db, {
-      name,
+      name: email,
       callsignOrOrg,
       areaOfInterest,
       message,
@@ -83,7 +92,7 @@ export function contactPostHandler(db: Database) {
     if (emailConfig) {
       try {
         await sendContactEmail(emailConfig, {
-          name,
+          name: email,
           callsignOrOrg,
           areaOfInterest,
           message,

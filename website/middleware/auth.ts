@@ -5,7 +5,7 @@ import type { AuthService, UserWithRoles } from "../services/auth.ts";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-export const SESSION_COOKIE_NAME = "arthur_session";
+export const SESSION_COOKIE_NAME = "radiant_session";
 
 // ─── Main Auth Middleware ─────────────────────────────────────────────────────
 
@@ -85,13 +85,14 @@ export function guestOnly(): Middleware {
 // ─── Cookie Helpers ───────────────────────────────────────────────────────────
 
 /**
- * Sets the session cookie on the response with secure defaults.
- * HTTP-only, Secure, SameSite=Lax, path=/.
+ * Sets the session cookie on the response.
+ * HTTP-only, SameSite=Lax, path=/. Secure flag is only set over HTTPS.
  */
 export async function setSessionCookie(ctx: Context, token: string): Promise<void> {
+  const isSecure = ctx.request.url.protocol === "https:";
   await ctx.cookies.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: true,
+    secure: isSecure,
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60, // 1 hour in seconds

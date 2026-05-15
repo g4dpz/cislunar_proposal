@@ -136,10 +136,10 @@ const collaborators: Collaborator[] = [
 
 
 const overview: OverviewContent = {
-  title: "ARTHUR — Amateur Radio Transport for High-latency Unreliable Routes",
+  title: "RADIANT — Radio Amateur Delay-tolerant Interplanetary Networking Testbed",
   tagline: "From amateur packet radio to CubeSat relay to cislunar networking.",
   missionSummary:
-    "ARTHUR brings Delay-Tolerant Networking (DTN) to amateur radio, enabling " +
+    "RADIANT brings Delay-Tolerant Networking (DTN) to amateur radio, enabling " +
     "store-and-forward messaging across disrupted links from terrestrial ground stations " +
     "to Low Earth Orbit (LEO) and ultimately to cislunar space.",
   missionSummary2:
@@ -290,9 +290,9 @@ const contact: ContactContent = {
   ],
   formFields: [
     {
-      name: "name",
-      label: "Name",
-      type: "text",
+      name: "email",
+      label: "Email",
+      type: "email",
       required: true,
     },
     {

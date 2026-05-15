@@ -47,6 +47,24 @@
           {{/each}}
           <button type="submit" class="btn btn-primary">Send Message</button>
         </form>
+        <script>
+          (function() {
+            const form = document.querySelector('form.needs-validation');
+            if (!form) return;
+            form.addEventListener('submit', function(e) {
+              const emailInput = form.querySelector('input[type="email"]');
+              if (emailInput) {
+                const email = emailInput.value.trim();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                  e.preventDefault();
+                  alert('Please enter a valid email address.');
+                  emailInput.focus();
+                }
+              }
+            });
+          })();
+        </script>
       </div>
     </div>
   </div>
