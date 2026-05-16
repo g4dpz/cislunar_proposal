@@ -1,0 +1,27 @@
+# robots.txt — RADIANT Cislunar DTN Project Website
+
+User-agent: *
+
+# Public pages — allow indexing
+Allow: /
+Allow: /roadmap
+Allow: /conops
+Allow: /contact
+Allow: /privacy
+
+# Static assets
+Allow: /css/
+Allow: /images/
+Allow: /js/
+
+# Authenticated and admin areas — disallow
+Disallow: /docs
+Disallow: /docs/
+Disallow: /profile
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /logout
+
+# Sitemap location
+Sitemap: https://radiant.w5djt.com/sitemap.xml

@@ -9,7 +9,7 @@ REPO_URL="https://github.com/g4dpz/cislunar_proposal.git"
 INSTALL_DIR="/opt/radiant"
 SERVICE_NAME="radiant"
 APACHE_SITE="radiant"
-DOMAIN="cislunar-project.amsat-uk.org"
+DOMAIN="radiant.amsat-uk.org"
 
 echo "=== RADIANT Service Setup ==="
 echo ""

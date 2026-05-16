@@ -54,12 +54,12 @@ sudo a2ensite radiant
 ## 5. Set up TLS with Let's Encrypt
 
 ```bash
-sudo certbot certonly --webroot -w /var/www/html -d cislunar-project.amsat-uk.org
+sudo certbot certonly --webroot -w /var/www/html -d radiant.amsat-uk.org
 ```
 
 Or if Apache is already running:
 ```bash
-sudo certbot --apache -d cislunar-project.amsat-uk.org
+sudo certbot --apache -d radiant.amsat-uk.org
 ```
 
 ## 6. Restart Apache
@@ -71,7 +71,7 @@ sudo systemctl restart apache2
 ## 7. Verify
 
 ```bash
-curl -I https://cislunar-project.amsat-uk.org
+curl -I https://radiant.amsat-uk.org
 ```
 
 ## Updating

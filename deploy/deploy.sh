@@ -89,5 +89,5 @@ echo "=== Deployment Complete ==="
 echo ""
 systemctl status "$SERVICE_NAME" --no-pager -l | head -5
 echo ""
-echo "Site: https://cislunar-project.amsat-uk.org"
+echo "Site: https://radiant.amsat-uk.org"
 echo "Logs: journalctl -u $SERVICE_NAME -f"
