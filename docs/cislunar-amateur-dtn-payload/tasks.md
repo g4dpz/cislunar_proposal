@@ -2,9 +2,9 @@
 
 ## Overview
 
-This implementation plan covers the complete four-phase DTN system for amateur radio: terrestrial validation (RPi + Mobilinkd TNC4 + FT-817), CubeSat Engineering Model (STM32U585 + Ettus B200mini), LEO CubeSat flight (STM32U585 + flight IQ transceiver), and cislunar deep-space communication. The system uses ION-DTN (BPv7/LTP) over AX.25 with callsign-based addressing, supporting ping and store-and-forward operations with no relay functionality.
+This implementation plan covers the complete four-phase DTN system for amateur radio: terrestrial validation (RPi + Mobilinkd TNC4 + FT-817), CubeSat Engineering Model (STM32U585 + Ettus B200mini), LEO CubeSat flight (STM32U585 + flight IQ transceiver), and cislunar deep-space communication. The system uses ION-DTN (BPv7/LTP) over KISS framing with callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) for station identification, supporting ping and store-and-forward operations with no relay functionality.
 
-Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LTP, bundle storage, priority handling, lifetime enforcement). Our code provides: AX.25 frame validation, ION-DTN configuration management, node orchestration, telemetry collection, contact plan management (CGR-based pass prediction), and integration testing.
+Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LTP, bundle storage, priority handling, lifetime enforcement). Our code provides: KISS frame validation, ION-DTN configuration management, node orchestration, telemetry collection, contact plan management (CGR-based pass prediction), and integration testing.
 
 ## Tasks
 
@@ -30,7 +30,7 @@ Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LT
 
   - [x] 1.4 Implement Convergence Layer Adapter (CLA) abstraction
     - Create `pkg/cla/` package with CLA interface for all link types
-    - Implement AX.25/LTP framing abstraction
+    - Implement KISS/LTP framing abstraction
     - Support multiple CLA types: VHF/UHF TNC, UHF IQ (B200mini), UHF/S-band/X-band IQ (flight)
     - _Requirements: 10.1, 10.2, 10.3, 10.4_
 
@@ -354,9 +354,9 @@ Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LT
     - Compute link margin for LEO UHF and cislunar S-band
     - _Requirements: 18.1, 18.2, 18.3_
 
-  - [x] 13.2 Implement AX.25 callsign framing validation
-    - Verify all CLA implementations produce valid AX.25 frames
-    - Verify source/destination callsigns in every frame
+  - [x] 13.2 Implement DTN EID callsign validation
+    - Verify all CLA implementations produce valid DTN EIDs (dtn://callsign-ssid) with callsigns
+    - Verify callsign present in every bundle's primary block
     - _Requirements: 10.1_
 
   - [x] 13.3 Implement LTP segmentation/reassembly testing
@@ -364,10 +364,10 @@ Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LT
     - Verify round-trip identity for bundles exceeding single frame
     - _Requirements: 10.3_
 
-  - [x]* 13.4 Write property test for AX.25 Callsign Framing
-    - **Property 20: AX.25 Callsign Framing**
+  - [x]* 13.4 Write property test for DTN EID Callsign Validation
+    - **Property 20: DTN EID Callsign Validation**
     - **Validates: Requirement 10.1**
-    - Generate arbitrary bundles, verify AX.25 framing with callsigns
+    - Generate arbitrary bundles, verify DTN EID contains valid callsign
 
   - [x]* 13.5 Write property test for LTP Segmentation/Reassembly Round-Trip
     - **Property 21: LTP Segmentation/Reassembly Round-Trip**

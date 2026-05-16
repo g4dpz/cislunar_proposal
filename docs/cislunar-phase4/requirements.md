@@ -4,7 +4,7 @@
 
 This document specifies the requirements for Phase 4 of the cislunar amateur DTN project: Cislunar Mission. Phase 4 extends DTN operations from LEO (Phase 3) to cislunar distances (~384,000 km Earth–Moon), enabling amateur participation in deep-space delay-tolerant networking.
 
-The system uses the same ION-DTN (BPv7/LTP over AX.25) protocol stack validated in Phases 1–3. The key changes from Phase 3 are: S-band 2.2 GHz replaces UHF 437 MHz, 500 bps replaces 9.6 kbps, BPSK + LDPC/Turbo FEC replaces GMSK/BPSK, 1–2 second one-way light-time delay (vs. milliseconds in LEO), hours-long contact arcs replace 5–10 minute LEO passes, Tier 3/4 ground stations (3–5m dishes) replace Tier 1/2 stations, external NVM is expanded to 256 MB–1 GB for long-duration storage, power budget increases to 10–20 W, and enhanced radiation tolerance is required for the cislunar environment beyond the Van Allen belts.
+The system uses the same ION-DTN (BPv7/LTP over KISS) protocol stack validated in Phases 1–3. The key changes from Phase 3 are: S-band 2.2 GHz replaces UHF 437 MHz, 500 bps replaces 9.6 kbps, BPSK + LDPC/Turbo FEC replaces GMSK/BPSK, 1–2 second one-way light-time delay (vs. milliseconds in LEO), hours-long contact arcs replace 5–10 minute LEO passes, Tier 3/4 ground stations (3–5m dishes) replace Tier 1/2 stations, external NVM is expanded to 256 MB–1 GB for long-duration storage, power budget increases to 10–20 W, and enhanced radiation tolerance is required for the cislunar environment beyond the Van Allen belts.
 
 The OBC baseline is the STM32U585 (same as Phase 3), with the option to upgrade to a more capable processor if mission requirements demand it. The design is processor-flexible — all interfaces are defined to work on the STM32U585 baseline while accommodating a higher-capability OBC.
 
@@ -12,7 +12,7 @@ The system supports two core operations: ping (DTN reachability test) and store-
 
 CGR contact prediction is adapted for cislunar orbital mechanics — using numerical orbit propagation or pre-computed ephemeris tables instead of SGP4/SDP4 (which is designed for near-Earth orbits). Contact windows are hours-long arcs with slower Doppler dynamics but longer duration than LEO passes.
 
-Phase 3 (LEO CubeSat Flight) is complete and provides the validated firmware: ION-DTN BPA, LTP, AX.25 CLA plugin architecture, IQ baseband DSP, NVM bundle store with atomic writes, pool allocator, CGR framework, Doppler compensation, radiation monitor, autonomous operation cycle, and all supporting subsystems.
+Phase 3 (LEO CubeSat Flight) is complete and provides the validated firmware: ION-DTN BPA, LTP, KISS CLA architecture, IQ baseband DSP, NVM bundle store with atomic writes, pool allocator, CGR framework, Doppler compensation, radiation monitor, autonomous operation cycle, and all supporting subsystems.
 
 Out of scope: relay functionality, X-band (future enhancement), optical communication, Mars-relay simulations.
 
@@ -25,12 +25,12 @@ Out of scope: relay functionality, X-band (future enhancement), optical communic
 - **Bundle_Store**: Persistent storage subsystem backed by external NVM for bundles awaiting delivery
 - **CGR_Engine**: ION-DTN's Contact Graph Routing module running on the OBC, adapted for cislunar orbital mechanics — used exclusively for contact prediction (pass scheduling) using numerical propagation or pre-computed ephemeris, not for multi-hop relay routing
 - **Contact_Plan_Manager**: Subsystem that maintains CGR-predicted communication windows and manages contact scheduling autonomously onboard the cislunar payload
-- **CLA**: Convergence Layer Adapter — native ION-DTN CLA plugin running on the OBC that provides AX.25 framing as the LTP link service layer, adapted for S-band 2.2 GHz at 500 bps with BPSK + LDPC/Turbo FEC
+- **CLA**: Convergence Layer Adapter — native ION-DTN CLA plugin running on the OBC that provides KISS framing as the LTP link service layer, adapted for S-band 2.2 GHz at 500 bps with BPSK + LDPC/Turbo FEC
 - **Node_Controller**: Top-level autonomous orchestrator running on the OBC — manages the operation cycle (wake, transmit, receive, sleep) without external control
-- **Firmware**: C code running on the OBC implementing ION-DTN BPv7/LTP, AX.25 CLA, IQ baseband DSP, NVM bundle store, CGR contact prediction, and power management
+- **Firmware**: C code running on the OBC implementing ION-DTN BPv7/LTP, KISS CLA, IQ baseband DSP, NVM bundle store, CGR contact prediction, and power management
 - **ION-DTN**: NASA JPL's Interplanetary Overlay Network — the DTN implementation providing BPv7, LTP, CGR, and related protocols
-- **LTP**: Licklider Transmission Protocol — runs on top of AX.25 providing reliable transfer with deferred acknowledgment; deferred ACK is critical at cislunar distances (2–4 second RTT)
-- **AX.25**: Link-layer framing protocol providing callsign-based source/destination addressing for amateur radio compliance
+- **LTP**: Licklider Transmission Protocol — runs directly over KISS framing, providing reliable transfer with deferred acknowledgment; deferred ACK is critical at cislunar distances (2–4 second RTT)
+- **KISS**: Minimal serial framing protocol (FEND/CMD/DATA/FEND) wrapping LTP segments for IQ baseband transport
 - **DMA**: Direct Memory Access — OBC peripheral for streaming IQ samples between memory and the Flight_Transceiver interface without CPU intervention
 - **LDPC**: Low-Density Parity-Check code — strong forward error correction used for the cislunar S-band link at 500 bps
 - **Turbo_Code**: Turbo error correction code — alternative strong FEC option for the cislunar S-band link
@@ -64,7 +64,7 @@ Out of scope: relay functionality, X-band (future enhancement), optical communic
 4. THE CLA SHALL interface with the Flight_Transceiver IQ path (OBC DMA → DAC/ADC or SPI → Flight_Transceiver) for S-band 2.2 GHz operation
 5. THE Firmware SHALL configure the Flight_Transceiver for S-band 2.2 GHz center frequency with sufficient bandwidth to support 500 bps BPSK modulation
 6. THE Firmware SHALL manage IQ sample buffers within the OBC SRAM budget, sharing memory with the ION-DTN runtime, Bundle_Store index, and CGR_Engine state
-7. FOR ALL valid AX.25 frames, modulating a frame into IQ samples via the S-band Flight_Transceiver path and then demodulating the IQ samples back SHALL produce a frame equivalent to the original (round-trip property for the S-band baseband DSP path)
+7. FOR ALL valid KISS frames, modulating a frame into IQ samples via the S-band Flight_Transceiver path and then demodulating the IQ samples back SHALL produce a frame equivalent to the original (round-trip property for the S-band baseband DSP path)
 
 ### Requirement 2: LDPC/Turbo Forward Error Correction
 
@@ -199,17 +199,17 @@ Out of scope: relay functionality, X-band (future enhancement), optical communic
 1. THE BPA SHALL transmit a bundle only to the node matching the bundle's final destination Endpoint_ID — the BPA SHALL NOT forward bundles on behalf of other nodes
 2. WHEN the Node_Controller looks up a delivery route for a bundle, THE Contact_Plan_Manager SHALL return only direct Contact_Windows with the destination node, with no multi-hop paths
 
-### Requirement 13: AX.25 and LTP Convergence Layer (S-Band)
+### Requirement 13: KISS CLA and LTP Convergence Layer (S-Band)
 
-**User Story:** As a regulatory compliance engineer, I want all DTN transmissions to use AX.25 framing with callsign addressing over LTP via the S-band IQ baseband radio, so that every cislunar transmission complies with amateur radio regulations.
+**User Story:** As a regulatory compliance engineer, I want all DTN transmissions to use KISS framing with callsign-embedded DTN EIDs (dtn://callsign-ssid) over LTP via the S-band IQ baseband radio, so that every cislunar transmission complies with amateur radio regulations.
 
 #### Acceptance Criteria
 
-1. THE CLA SHALL encapsulate all bundle transmissions in AX.25 frames carrying the source amateur radio callsign and the destination amateur radio callsign
-2. THE CLA SHALL run LTP sessions on top of AX.25 frames, providing reliable transfer with deferred acknowledgment for all bundle delivery
-3. THE CLA SHALL perform LTP segmentation for bundles that exceed a single AX.25 frame size, and reassemble received LTP segments into complete bundles
+1. THE CLA SHALL encapsulate all bundle transmissions in KISS frames carrying LTP segments, with station identification provided by the callsign embedded in the DTN Endpoint Identifier (dtn://callsign-ssid) in every bundle's primary block
+2. THE CLA SHALL run LTP sessions directly over KISS frames, providing reliable transfer with deferred acknowledgment for all bundle delivery
+3. THE CLA SHALL perform LTP segmentation for bundles that exceed a single KISS frame size, and reassemble received LTP segments into complete bundles
 4. THE CLA SHALL interface with the Flight_Transceiver IQ path (OBC DMA → DAC/ADC or SPI → Flight_Transceiver) as the physical transport at S-band 2.2 GHz
-5. FOR ALL valid Bundle objects, encapsulating a bundle into AX.25/LTP frames, encoding with LDPC/Turbo FEC, modulating to IQ via the S-band Flight_Transceiver, demodulating from IQ, decoding FEC, and reassembling the frames back into a bundle SHALL produce a bundle equivalent to the original (end-to-end round-trip property)
+5. FOR ALL valid Bundle objects, encapsulating a bundle into LTP segments over KISS frames, encoding with LDPC/Turbo FEC, modulating to IQ via the S-band Flight_Transceiver, demodulating from IQ, decoding FEC, and reassembling the frames back into a bundle SHALL produce a bundle equivalent to the original (end-to-end round-trip property)
 
 ### Requirement 14: Autonomous Contact Arc Execution
 
@@ -222,7 +222,7 @@ Out of scope: relay functionality, X-band (future enhancement), optical communic
 3. THE Node_Controller SHALL cease all transmission when the Contact_Window end time is reached
 4. WHEN a Contact_Window completes, THE Node_Controller SHALL record link metrics (bytes transferred, duration, bundles sent, bundles received, signal quality, Doppler tracking accuracy, FEC decode statistics) and update contact statistics
 5. WHEN a Contact_Window completes and no further Contact_Windows are predicted within the next 5 minutes, THE Firmware SHALL deactivate the Flight_Transceiver, flush NVM, and transition the OBC into Stop_2_Mode
-6. IF the CLA fails to establish the S-band IQ baseband link during a scheduled Contact_Window (Flight_Transceiver not responding, no AX.25 connection established, or signal quality below threshold), THEN THE Node_Controller SHALL mark the contact as missed, retain all queued bundles for the next window, and increment the contacts-missed counter
+6. IF the CLA fails to establish the S-band IQ baseband link during a scheduled Contact_Window (Flight_Transceiver not responding, no KISS connection established, or signal quality below threshold), THEN THE Node_Controller SHALL mark the contact as missed, retain all queued bundles for the next window, and increment the contacts-missed counter
 
 ### Requirement 15: No Cryptography (Amateur Radio Compliance)
 
@@ -253,7 +253,7 @@ Out of scope: relay functionality, X-band (future enhancement), optical communic
 
 #### Acceptance Criteria
 
-1. THE Firmware SHALL operate within the OBC SRAM for all concurrent operations: ION-DTN runtime, IQ sample buffers (TX and RX), LDPC/Turbo FEC codec state, AX.25/LTP frame buffers, bundle metadata index, and CGR_Engine state and computation buffers
+1. THE Firmware SHALL operate within the OBC SRAM for all concurrent operations: ION-DTN runtime, IQ sample buffers (TX and RX), LDPC/Turbo FEC codec state, KISS/LTP frame buffers, bundle metadata index, and CGR_Engine state and computation buffers
 2. THE Firmware SHALL use static or pool-based memory allocation (Pool_Allocator) for all runtime data structures, avoiding dynamic heap allocation that could cause fragmentation on the constrained MCU
 3. THE Firmware SHALL report peak and current SRAM utilization as part of telemetry, broken down by subsystem (ION-DTN, IQ buffers, FEC codec, bundle index, CGR_Engine)
 4. IF an operation would exceed the SRAM budget, THEN THE Firmware SHALL reject the operation and log the memory exhaustion event rather than corrupting adjacent memory regions

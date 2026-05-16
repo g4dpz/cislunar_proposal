@@ -6,13 +6,13 @@ This design describes the Phase 1 terrestrial DTN validation system for amateur 
 
 The system supports two core operations: **ping** (DTN reachability test — send a bundle echo request and receive an echo response) and **store-and-forward** (point-to-point bundle delivery during scheduled contact windows). There is **no relay functionality** — nodes do not forward bundles on behalf of other nodes. All bundle delivery is direct (source → destination).
 
-The protocol stack is: BPv7 bundles over LTP sessions over AX.25 frames. AX.25 provides callsign-based source/destination addressing for amateur radio regulatory compliance. LTP provides reliable transfer with deferred acknowledgment. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
+The protocol stack is: BPv7 bundles over LTP sessions over KISS frames. Station identification for amateur radio regulatory compliance is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) in the bundle primary block, plus periodic beacon bundles. LTP provides reliable transfer with deferred acknowledgment. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
 
-All code is implemented in Go, targeting Linux and macOS (amd64/arm64). The system wraps ION-DTN's C libraries via cgo for BPv7/LTP protocol operations, with Go managing the application-level orchestration, bundle store, contact plan, and node lifecycle. The AX.25 Convergence Layer Adapter (CLA) is implemented as a native ION-DTN CLA plugin — a C module that registers with ION-DTN's convergence layer framework and implements the ION LTP link service adapter interface. This means ION-DTN directly invokes the CLA for bundle transmission and reception with no UDP intermediary. The CLA provides AX.25 framing as the link service layer below ION's LTP engine, sending and receiving LTP segments over AX.25 frames via the TNC4 USB serial connection. The bundle data path is: ION-DTN BPA → ION-DTN LTP → AX.25 CLA (ION CLA plugin) → TNC4 USB → FT-817 radio. No UDP sockets are involved anywhere in the data path.
+All code is implemented in Go, targeting Linux and macOS (amd64/arm64). The system wraps ION-DTN's C libraries via cgo for BPv7/LTP protocol operations, with Go managing the application-level orchestration, bundle store, contact plan, and node lifecycle. The KISS Convergence Layer Adapter (CLA) is ION-DTN's native KISS CLA — the `ltpkisscli` (receive) and `ltpkissclo` (transmit) programs that wrap LTP segments in KISS frames for serial TNCs. This means ION-DTN directly handles bundle transmission and reception over KISS with no UDP intermediary. The CLA provides KISS framing as the link service layer below ION's LTP engine, sending and receiving LTP segments over KISS frames via the TNC4 USB serial connection. Station identification is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) in every bundle's primary block. The bundle data path is: ION-DTN BPA → ION-DTN LTP → KISS CLA (ltpkisscli/ltpkissclo) → TNC4 USB → FT-817 radio. No UDP sockets are involved anywhere in the data path.
 
 ### Scope Boundaries
 
-**In scope**: Linux/macOS ground nodes, Mobilinkd TNC4 (USB), Yaesu FT-817 (9600 baud), ION-DTN BPv7/LTP/AX.25, native ION-DTN CLA plugin (C module via cgo) implementing the ION LTP link service adapter for AX.25 framing, ping, store-and-forward, priority handling, bundle persistence, contact plan management, rate limiting, telemetry.
+**In scope**: Linux/macOS ground nodes, Mobilinkd TNC4 (USB), Yaesu FT-817 (9600 baud), ION-DTN BPv7/LTP/KISS, ION-DTN's native KISS CLA (ltpkisscli/ltpkissclo) for LTP-over-KISS framing, callsign-embedded DTN EIDs (dtn://callsign-ssid) for station identification, ping, store-and-forward, priority handling, bundle persistence, contact plan management, rate limiting, telemetry.
 
 **Out of scope**: STM32U585 OBC, IQ baseband, SDR, Ettus B200mini, CGR orbital prediction, orbital mechanics, space segment (CubeSat, cislunar), S-band/X-band, flight hardware, relay functionality, UDP-based external CLA interfaces, cryptography (prohibited by amateur radio regulations).
 
@@ -29,7 +29,7 @@ graph TD
         subgraph "ION-DTN Stack (C libraries via cgo)"
             BPA[Bundle Protocol Agent<br/>ION-DTN BPA]
             LTP[LTP Engine<br/>ION-DTN LTP]
-            CLA[AX.25 CLA Plugin<br/>ION CLA plugin — C module<br/>LTP link service adapter]
+            CLA[KISS CLA<br/>ltpkisscli/ltpkissclo<br/>LTP link service adapter]
         end
     end
 
@@ -63,16 +63,16 @@ graph LR
     subgraph "Node A"
         A_NC[Node Controller] --> A_BPA[ION-DTN BPA]
         A_BPA --> A_LTP[ION-DTN LTP]
-        A_LTP --> A_CLA[AX.25 CLA Plugin]
+        A_LTP --> A_CLA[KISS CLA]
         A_CLA --> A_TNC[TNC4 USB]
         A_TNC --> A_FT[FT-817]
     end
 
-    A_FT <-->|"AX.25 frames<br/>9600 baud VHF/UHF"| B_FT
+    A_FT <-->|"KISS frames<br/>9600 baud VHF/UHF"| B_FT
 
     subgraph "Node B"
         B_FT[FT-817] --> B_TNC[TNC4 USB]
-        B_TNC --> B_CLA[AX.25 CLA Plugin]
+        B_TNC --> B_CLA[KISS CLA]
         B_CLA --> B_LTP[ION-DTN LTP]
         B_LTP --> B_BPA[ION-DTN BPA]
         B_BPA --> B_NC[Node Controller]
@@ -90,7 +90,7 @@ sequenceDiagram
     participant BPA as Bundle Protocol Agent
     participant BS as Bundle Store
     participant LTP as ION-DTN LTP Engine
-    participant CLA as AX.25 CLA Plugin (C)
+    participant CLA as KISS CLA (ltpkisscli/ltpkissclo)
     participant TNC as TNC4 USB
     participant Remote as Remote Node
 
@@ -103,12 +103,12 @@ sequenceDiagram
     BS-->>NC: [ping request bundle]
     NC->>BPA: Transmit bundle
     BPA->>LTP: LTP session send
-    LTP->>CLA: LTP segments → AX.25 frames
+    LTP->>CLA: LTP segments → KISS frames
     CLA->>TNC: USB serial write
     TNC->>Remote: 9600 baud RF
     Remote-->>TNC: Ping response RF
     TNC-->>CLA: USB serial read
-    CLA-->>LTP: AX.25 frames → LTP segments
+    CLA-->>LTP: KISS frames → LTP segments
     LTP-->>BPA: Reassembled bundle
     BPA-->>NC: Ping response bundle
     NC->>NC: HandlePingResponse
@@ -125,7 +125,7 @@ sequenceDiagram
     participant BS as Bundle Store
     participant CPM as Contact Plan Manager
     participant LTP as ION-DTN LTP Engine
-    participant CLA as AX.25 CLA Plugin (C)
+    participant CLA as KISS CLA (ltpkisscli/ltpkissclo)
     participant TNC as TNC4 USB
     participant Remote as Remote Node
 
@@ -144,7 +144,7 @@ sequenceDiagram
     loop For each bundle (priority order)
         NC->>BPA: Transmit bundle
         BPA->>LTP: LTP session send
-        LTP->>CLA: LTP segments → AX.25 frames
+        LTP->>CLA: LTP segments → KISS frames
         CLA->>TNC: USB serial write
         TNC->>Remote: 9600 baud RF
         Remote-->>TNC: LTP ACK RF
@@ -308,8 +308,8 @@ type BundleStore interface {
 type LinkType int
 
 const (
-    LinkTypeVHF LinkType = 0 // AX.25/LTP over VHF (9600 baud via TNC4 + FT-817)
-    LinkTypeUHF LinkType = 1 // AX.25/LTP over UHF (9600 baud via TNC4 + FT-817)
+    LinkTypeVHF LinkType = 0 // LTP-over-KISS over VHF (9600 baud via TNC4 + FT-817)
+    LinkTypeUHF LinkType = 1 // LTP-over-KISS over UHF (9600 baud via TNC4 + FT-817)
 )
 
 // ContactWindow represents a scheduled communication window.
@@ -369,15 +369,15 @@ type ContactPlanManager interface {
 - Persist plan to filesystem, reload on restart
 - Support ION-DTN contact plan file format
 
-### Component 4: Convergence Layer Adapter (CLA) — ION-DTN Native CLA Plugin
+### Component 4: Convergence Layer Adapter (CLA) — ION-DTN Native KISS CLA
 
-**Purpose**: A native ION-DTN CLA plugin implemented as a C module that registers with ION-DTN's convergence layer framework and implements the ION LTP link service adapter interface. The CLA provides AX.25 framing as the link service layer below ION's LTP engine — it sends and receives LTP segments over AX.25 frames via the Mobilinkd TNC4 USB serial connection. ION-DTN directly invokes this CLA for bundle transmission and reception; there is no UDP intermediary anywhere in the data path. The Go Node Controller manages the CLA lifecycle (initialization, contact scheduling, telemetry, error recovery) and interfaces with the C CLA module via cgo.
+**Purpose**: ION-DTN's native KISS CLA programs (`ltpkisscli` for receive, `ltpkissclo` for transmit) that wrap LTP segments in KISS frames for serial TNCs. The CLA provides KISS framing as the link service layer below ION's LTP engine — it sends and receives LTP segments over KISS frames via the Mobilinkd TNC4 USB serial connection. Station identification is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) in every bundle's primary block, not in the link-layer framing. ION-DTN directly handles bundle transmission and reception through the KISS CLA; there is no UDP intermediary anywhere in the data path. The Go Node Controller manages the CLA lifecycle (initialization, contact scheduling, telemetry, error recovery).
 
 **ION-DTN Integration**:
-- The CLA implements ION-DTN's `ltpei` (LTP Engine Interface) link service adapter callbacks
-- ION's LTP engine calls the CLA's `sendSegment` callback to transmit LTP segments as AX.25 frames
-- The CLA's receive loop delivers incoming AX.25 frames (containing LTP segments) back to ION's LTP engine via `ltpei` receive callbacks
-- ION's LTP engine handles segmentation, reassembly, retransmission, and acknowledgment natively — the CLA only handles AX.25 framing and TNC4 serial I/O
+- The CLA uses ION-DTN's `ltpkissclo` program to transmit LTP segments as KISS frames over serial
+- The CLA uses ION-DTN's `ltpkisscli` program to receive KISS frames (containing LTP segments) from serial and deliver them to ION's LTP engine
+- ION's LTP engine handles segmentation, reassembly, retransmission, and acknowledgment natively — the KISS CLA only handles KISS framing and TNC4 serial I/O
+- Station identification is in the DTN EID (dtn://callsign-ssid) in the bundle primary block, not in link-layer headers
 
 **Interface**:
 ```go
@@ -400,31 +400,25 @@ type LinkMetrics struct {
     FramesReceived   uint64
 }
 
-// Callsign represents an amateur radio callsign for AX.25 addressing.
-type Callsign struct {
-    Call string // e.g., "W1AW"
-    SSID uint8  // 0-15
-}
-
-// AX25CLAPlugin defines the Go-side management interface for the ION-DTN CLA plugin.
-// The actual CLA protocol logic is in C, registered with ION-DTN's CLA framework.
+// KISSCLAPlugin defines the Go-side management interface for ION-DTN's native KISS CLA.
+// The actual CLA protocol logic is handled by ION-DTN's ltpkisscli/ltpkissclo programs.
 // This interface manages the CLA lifecycle from the Go Node Controller.
-type AX25CLAPlugin interface {
-    // Init initializes the C CLA plugin module and registers it with ION-DTN's
-    // convergence layer framework as an LTP link service adapter.
-    // Called once at node startup via cgo.
+type KISSCLAPlugin interface {
+    // Init initializes the KISS CLA by configuring ION-DTN's ltpkisscli/ltpkissclo
+    // with the TNC4 serial device path and baud rate.
+    // Called once at node startup.
     Init(config CLAConfig) error
 
     // ActivateLink opens the TNC4 USB serial connection and signals ION-DTN
     // that the link service is available for the given contact window.
-    // ION's LTP engine will begin sending segments through the CLA's callbacks.
+    // ION's LTP engine will begin sending segments through the KISS CLA.
     ActivateLink(contact ContactWindow) error
 
     // DeactivateLink signals ION-DTN that the link service is no longer available
     // and closes the TNC4 USB serial connection.
     DeactivateLink() error
 
-    // Shutdown unregisters the CLA plugin from ION-DTN and releases resources.
+    // Shutdown stops the KISS CLA programs and releases resources.
     Shutdown() error
 
     // Status returns the current CLA state.
@@ -437,63 +431,47 @@ type AX25CLAPlugin interface {
     IsConnected() bool
 }
 
-// CLAConfig holds configuration for the ION-DTN CLA plugin.
+// CLAConfig holds configuration for the ION-DTN KISS CLA.
 type CLAConfig struct {
-    LocalCallsign   Callsign
+    LocalEID        EndpointID    // DTN EID with callsign, e.g. dtn://g4dpz-1
     TNCDevice       string        // USB serial device path, e.g. "/dev/ttyACM0"
     TNCBaudRate     int           // 9600
-    MaxFrameSize    int           // max AX.25 information field size
+    MaxFrameSize    int           // max KISS frame information field size
     RetryInterval   time.Duration // USB reconnection retry interval
 }
 ```
 
-**C CLA Plugin Callbacks** (implemented in C, called by ION-DTN's LTP engine):
-```c
-// ION LTP link service adapter callbacks implemented by the AX.25 CLA plugin.
-// These are registered with ION-DTN's CLA framework at initialization.
-
-// Called by ION's LTP engine to transmit an LTP segment.
-// The CLA wraps the segment in an AX.25 frame and writes it to TNC4 via USB serial.
-int ax25cla_sendSegment(unsigned char *segment, int segmentLen, void *context);
-
-// Receive loop: reads AX.25 frames from TNC4 USB serial, extracts LTP segments,
-// and delivers them to ION's LTP engine via ltpei receive interface.
-void *ax25cla_recvLoop(void *context);
-
-// Called by the Go Node Controller (via cgo) to initialize the CLA plugin
-// and register it with ION-DTN's convergence layer framework.
-int ax25cla_init(const char *tncDevice, int baudRate, const char *localCallsign);
-
-// Called to activate/deactivate the link service for a contact window.
-int ax25cla_activateLink(const char *remoteCallsign);
-int ax25cla_deactivateLink(void);
-
-// Called to shut down the CLA plugin and unregister from ION-DTN.
-int ax25cla_shutdown(void);
+**ION-DTN KISS CLA Programs** (provided by ION-DTN at `ION-DTN/ltp/kiss/`):
+```
+ltpkissclo — Transmit: wraps LTP segments in KISS frames and writes to TNC4 via USB serial.
+ltpkisscli — Receive: reads KISS frames from TNC4 USB serial, extracts LTP segments,
+             and delivers them to ION's LTP engine.
 ```
 
+These are configured via ION-DTN's `ltprc` configuration file with the TNC4 serial device path and baud rate. No custom C code is required — ION-DTN provides this functionality natively.
+
 **Responsibilities**:
-- Register as a native ION-DTN CLA plugin implementing the LTP link service adapter interface
-- Provide `sendSegment` callback: wrap LTP segments in AX.25 frames with source/destination callsigns, write to TNC4 USB serial
-- Provide receive loop: read AX.25 frames from TNC4 USB serial, extract LTP segments, deliver to ION's LTP engine
-- AX.25 framing with source/destination amateur radio callsigns in every frame (regulatory compliance)
+- Use ION-DTN's native KISS CLA programs (ltpkisscli/ltpkissclo) for LTP-over-KISS framing
+- KISS framing (FEND/CMD/DATA/FEND) wrapping LTP segments for TNC transport
+- Station identification via callsign-embedded DTN EIDs (dtn://callsign-ssid) in every bundle's primary block
 - USB serial interface to Mobilinkd TNC4 (not Bluetooth)
 - Drive FT-817 at 9600 baud via TNC4 (G3RUH GFSK)
 - Link quality monitoring (RSSI, SNR, BER, frame counts)
 - Detect USB disconnection within 5 seconds, attempt reconnection at configurable interval
 - No LTP segmentation/reassembly logic — ION-DTN's LTP engine handles that natively
-- No UDP sockets — all data flows through ION-DTN's internal CLA callback mechanism
+- No UDP sockets — all data flows through ION-DTN's KISS CLA programs
 
 ### Component 5: Node Controller
 
-**Purpose**: Top-level orchestrator tying together BPA, Bundle Store, Contact Plan Manager, and CLA. Manages the autonomous operation cycle: check contacts, transmit queued bundles, receive incoming bundles, handle pings, expire old bundles, collect telemetry. Interfaces with the C CLA plugin via cgo for link lifecycle management (activation/deactivation), while ION-DTN's internal stack handles the actual bundle transmission through the CLA plugin's callbacks.
+**Purpose**: Top-level orchestrator tying together BPA, Bundle Store, Contact Plan Manager, and CLA. Manages the autonomous operation cycle: check contacts, transmit queued bundles, receive incoming bundles, handle pings, expire old bundles, collect telemetry. Interfaces with ION-DTN's KISS CLA for link lifecycle management (activation/deactivation), while ION-DTN's internal stack handles the actual bundle transmission through the KISS CLA programs.
 
 **Interface**:
 ```go
 // NodeConfig holds the configuration for a terrestrial DTN node.
 type NodeConfig struct {
     NodeID           NodeID
-    Callsign         Callsign
+    Callsign         string    // Amateur radio callsign for DTN EID (e.g., "G4DPZ")
+    SSID             uint8     // SSID for DTN EID (e.g., 1 → dtn://g4dpz-1)
     Endpoints        []EndpointID
     MaxStorageBytes  uint64   // bundle store capacity
     DefaultPriority  Priority
@@ -552,15 +530,15 @@ type NodeController interface {
 
 **Responsibilities**:
 - Orchestrate the check-contacts → activate-CLA-link → transmit → receive → cleanup cycle (target: 100ms)
-- Manage CLA plugin lifecycle: initialization, link activation/deactivation per contact window, shutdown
+- Manage CLA lifecycle: initialization, link activation/deactivation per contact window, shutdown
 - Submit queued bundles to ION-DTN BPA in priority order during active contact windows
 - Process incoming bundles delivered by ION-DTN: validate, store data bundles, handle ping requests
 - Generate ping echo responses and queue for delivery
 - Enforce rate limiting per source EID
 - Enforce maximum bundle size
 - Run bundle lifetime expiry cleanup
-- Collect telemetry (including CLA plugin link metrics) and expose via local interface
-- Handle USB disconnection detection and reconnection via CLA plugin
+- Collect telemetry (including KISS CLA link metrics) and expose via local interface
+- Handle USB disconnection detection and reconnection via KISS CLA
 - Reload state from filesystem on restart
 - No relay — direct delivery only
 
@@ -652,8 +630,8 @@ func (nc *nodeController) RunCycle(currentTime uint64) error {
     // Step 1: Check for active contact windows
     // Step 2: For each active contact, activate CLA link and submit queued bundles
     //         to ION-DTN BPA in priority order (direct delivery only — no relay).
-    //         ION-DTN's LTP engine transmits segments through the CLA plugin's callbacks.
-    // Step 3: Process incoming bundles delivered by ION-DTN (received via CLA plugin)
+    //         ION-DTN's LTP engine transmits segments through the KISS CLA.
+    // Step 3: Process incoming bundles delivered by ION-DTN (received via KISS CLA)
     //         - Data bundles: validate, store, deliver if local
     //         - Ping requests: generate echo response, queue for delivery
     // Step 4: Expire old bundles (lifetime enforcement)
@@ -681,7 +659,7 @@ func (nc *nodeController) RunCycle(currentTime uint64) error {
 ```go
 func (nc *nodeController) ProcessIncomingBundle(b *Bundle, currentTime uint64) error {
     // 1. Validate bundle (version, EID, lifetime, timestamp, CRC)
-    //    (bundle received from ION-DTN BPA, which received it via LTP → CLA plugin)
+    //    (bundle received from ION-DTN BPA, which received it via LTP → KISS CLA)
     // 2. Check rate limit for source EID
     // 3. Check bundle size limit
     // 4. Check if expired (createdAt + lifetime <= currentTime)
@@ -693,7 +671,7 @@ func (nc *nodeController) ProcessIncomingBundle(b *Bundle, currentTime uint64) e
 ```
 
 **Preconditions**:
-- `b` is a received bundle delivered by ION-DTN (received via LTP → CLA plugin → TNC4)
+- `b` is a received bundle delivered by ION-DTN (received via LTP → KISS CLA → TNC4)
 - `currentTime` is the current epoch time
 
 **Postconditions**:
@@ -710,17 +688,17 @@ func (nc *nodeController) ExecuteContactWindow(contact ContactWindow, currentTim
     // 1. Activate CLA link for the contact (signals ION-DTN link service is available)
     // 2. Retrieve bundles destined for contact.RemoteNode, sorted by priority
     // 3. Submit each bundle to ION-DTN BPA for transmission while currentTime < contact.EndTime
-    //    (ION-DTN's LTP engine sends segments through the CLA plugin's sendSegment callback)
+    //    (ION-DTN's LTP engine sends segments through the KISS CLA)
     // 4. On ACK (reported by ION-DTN LTP): delete bundle from store
     // 5. On failure: stop sending, retain remaining bundles
     // 6. Deactivate CLA link (signals ION-DTN link service is no longer available)
-    // 7. Record link metrics from CLA plugin
+    // 7. Record link metrics from KISS CLA
 }
 ```
 
 **Preconditions**:
 - `contact.StartTime <= currentTime < contact.EndTime`
-- CLA plugin is initialized and registered with ION-DTN
+- CLA is initialized and registered with ION-DTN
 - TNC4 USB connection is available (or gracefully degraded)
 
 **Postconditions**:
@@ -728,7 +706,7 @@ func (nc *nodeController) ExecuteContactWindow(contact ContactWindow, currentTim
 - Unacknowledged bundles retained for retry
 - `sent <= initial bundle count for destination`
 - `bytesSent <= contact.DataRate * (contact.EndTime - contact.StartTime) / 8`
-- Link metrics recorded from CLA plugin
+- Link metrics recorded from KISS CLA
 - CLA link deactivated (ION-DTN notified link service is unavailable)
 
 ### Function 4: EvictBundles
@@ -788,9 +766,9 @@ func (cpm *contactPlanManager) FindDirectContact(dest EndpointID, afterTime uint
 
 **Validates: Requirements 2.2**
 
-### Property 3: AX.25/LTP Encapsulation Round-Trip
+### Property 3: LTP-over-KISS Encapsulation Round-Trip
 
-*For any* valid Bundle, encapsulating it into AX.25/LTP frames (with LTP segmentation if the bundle exceeds a single AX.25 frame) and then reassembling the frames back into a bundle SHALL produce a Bundle equivalent to the original.
+*For any* valid Bundle, encapsulating it into LTP segments over KISS frames (with LTP segmentation if the bundle exceeds a single KISS frame) and then reassembling the frames back into a bundle SHALL produce a Bundle equivalent to the original.
 
 **Validates: Requirements 9.6**
 
@@ -878,9 +856,9 @@ func (cpm *contactPlanManager) FindDirectContact(dest EndpointID, afterTime uint
 
 **Validates: Requirements 8.4**
 
-### Property 18: AX.25 Callsign Framing
+### Property 18: DTN EID Callsign Validation
 
-*For any* bundle transmitted through the CLA, the output AX.25 frame SHALL carry a valid source amateur radio callsign and a valid destination amateur radio callsign.
+*For any* bundle transmitted through the CLA, the bundle's primary block SHALL carry a valid DTN Endpoint Identifier (dtn://callsign-ssid) containing a valid amateur radio callsign as the source EID.
 
 **Validates: Requirements 9.1**
 
@@ -919,7 +897,7 @@ func (cpm *contactPlanManager) FindDirectContact(dest EndpointID, afterTime uint
 
 ### Error Scenario 2: Contact Window Missed
 
-**Condition**: CLA plugin fails to establish AX.25 link service during a scheduled contact window (TNC4 not responding, radio not keyed, no AX.25 connection established via TNC4 USB serial).
+**Condition**: KISS CLA fails to establish LTP link service during a scheduled contact window (TNC4 not responding, radio not keyed, no KISS connection established via TNC4 USB serial).
 **Response**: Mark the contact as missed in statistics. Retain all queued bundles for the next available contact window with the same destination. Increment `ContactsMissed` counter.
 **Recovery**: Bundles remain in store for delivery during the next contact. If consecutive misses exceed a configurable threshold, log a health alert.
 
@@ -932,8 +910,8 @@ func (cpm *contactPlanManager) FindDirectContact(dest EndpointID, afterTime uint
 ### Error Scenario 4: USB Disconnection (TNC4)
 
 **Condition**: USB connection to the Mobilinkd TNC4 is lost during operation.
-**Response**: CLA plugin detects disconnection within 5 seconds. Mark the current contact as interrupted. Retain all queued bundles. ION-DTN's LTP engine is notified that the link service is unavailable.
-**Recovery**: CLA plugin attempts to re-establish the USB connection at the configured retry interval. Once reconnected, the CLA re-registers the link service with ION-DTN and normal operation resumes. Bundles queued during disconnection are delivered during the next available contact window.
+**Response**: KISS CLA detects disconnection within 5 seconds. Mark the current contact as interrupted. Retain all queued bundles. ION-DTN's LTP engine is notified that the link service is unavailable.
+**Recovery**: KISS CLA attempts to re-establish the USB connection at the configured retry interval. Once reconnected, the CLA re-registers the link service with ION-DTN and normal operation resumes. Bundles queued during disconnection are delivered during the next available contact window.
 
 ### Error Scenario 6: Process Crash and Restart
 
@@ -968,7 +946,7 @@ Test each component in isolation with example-based tests:
 - **BPA**: Bundle creation with all three types (data, ping request, ping response). Validation with valid and invalid bundles (wrong version, empty EID, zero lifetime, future timestamp, bad CRC). Default priority assignment.
 - **Bundle Store**: Store/retrieve/delete operations. Priority-ordered listing. Capacity enforcement. Eviction with mixed priorities. Reload after simulated restart.
 - **Contact Plan Manager**: Load plan with valid/invalid contacts. Active contact queries at boundary times. Next contact lookup. Overlap rejection. ION-DTN format file parsing.
-- **CLA**: AX.25 frame construction with callsigns via the C CLA plugin. ION-DTN CLA plugin registration and callback invocation. LTP link service adapter interface compliance. TNC4 USB serial I/O. Link metrics collection. No UDP socket tests — all data flows through ION-DTN's internal CLA callback mechanism.
+- **CLA**: KISS frame construction via ION-DTN's KISS CLA programs. ION-DTN KISS CLA configuration and operation. LTP link service adapter interface compliance. TNC4 USB serial I/O. Link metrics collection. No UDP socket tests — all data flows through ION-DTN's KISS CLA programs.
 - **Node Controller**: Single cycle execution. Ping request/response flow. Rate limiting. Bundle size rejection.
 - **Rate Limiter**: Acceptance within limit. Rejection beyond limit. Sliding window reset.
 
@@ -987,7 +965,7 @@ Key property tests:
 
 1. **Bundle serialization round-trip** (Property 1): Generate random valid Bundles, serialize to CBOR, deserialize, assert equality.
 2. **Bundle store/retrieve round-trip** (Property 2): Generate random Bundles, store, retrieve by ID, assert equality.
-3. **AX.25/LTP encapsulation round-trip** (Property 3): Generate random Bundles of varying sizes, pass through ION-DTN's LTP engine and the AX.25 CLA plugin (using the ION CLA plugin interface), reassemble via ION-DTN's LTP, assert equality.
+3. **LTP-over-KISS encapsulation round-trip** (Property 3): Generate random Bundles of varying sizes, pass through ION-DTN's LTP engine and the KISS CLA (using the ION KISS CLA programs), reassemble via ION-DTN's LTP, assert equality.
 4. **Validation correctness** (Property 4): Generate random Bundles with random field mutations, verify validator accepts iff all fields are valid.
 5. **Priority ordering** (Property 5): Generate random bundle sets with random priorities, store, list by priority, verify non-increasing priority sequence.
 6. **Eviction ordering** (Property 6): Generate random stores at capacity with mixed priorities, trigger eviction, verify expired first then ascending priority order, critical last.
@@ -1002,7 +980,7 @@ Key property tests:
 15. **Contact plan validity** (Property 15): Generate random contact plans, verify all contacts within valid range and no overlaps on same link.
 16. **No transmission after window end** (Property 16): Generate random contact windows and time sequences, verify no transmission after end time.
 17. **Missed contact retains bundles** (Property 17): Generate random failed contacts, verify bundles retained and missed counter incremented.
-18. **AX.25 callsign framing** (Property 18): Generate random bundles, transmit through the ION CLA plugin, verify output AX.25 frames carry valid source/dest callsigns.
+18. **DTN EID callsign validation** (Property 18): Generate random bundles, transmit through the ION KISS CLA, verify output bundles carry valid DTN EIDs (dtn://callsign-ssid) with valid source callsigns.
 19. **Rate limiting** (Property 19): Generate random submission sequences at various rates, verify correct acceptance/rejection.
 22. **Bundle size limit** (Property 22): Generate random bundles of varying sizes, verify oversized rejected.
 23. **Statistics monotonicity** (Property 23): Generate random operation sequences, verify cumulative stats are non-decreasing.
@@ -1010,12 +988,12 @@ Key property tests:
 
 ### Integration Testing
 
-- **End-to-end store-and-forward**: Two nodes exchange data bundles over the ION-DTN stack (BPA → LTP → AX.25 CLA plugin) using simulated TNC4 serial I/O during a contact window.
+- **End-to-end store-and-forward**: Two nodes exchange data bundles over the ION-DTN stack (BPA → LTP → KISS CLA) using simulated TNC4 serial I/O during a contact window.
 - **End-to-end ping**: Node A pings Node B through the full ION-DTN stack, receives echo response, measures RTT.
-- **Contact window lifecycle**: Schedule a contact, verify CLA plugin link activation, ION-DTN LTP session establishment, bundle transmission through CLA callbacks, link deactivation, and metrics recording.
-- **ION-DTN CLA plugin registration**: Verify the C CLA module correctly registers with ION-DTN's convergence layer framework and receives LTP segment callbacks.
+- **Contact window lifecycle**: Schedule a contact, verify KISS CLA link activation, ION-DTN LTP session establishment, bundle transmission through KISS CLA, link deactivation, and metrics recording.
+- **ION-DTN KISS CLA operation**: Verify the KISS CLA programs correctly interface with ION-DTN's convergence layer framework and handle LTP segment transmission/reception.
 - **Crash recovery**: Populate store and contact plan, kill process, restart, verify state recovered and operation resumes.
-- **USB disconnection**: Simulate TNC4 USB disconnect, verify CLA plugin detection within 5 seconds, bundle retention, and reconnection.
+- **USB disconnection**: Simulate TNC4 USB disconnect, verify KISS CLA detection within 5 seconds, bundle retention, and reconnection.
 - **ION-DTN format parsing**: Load a real ION-DTN contact plan file, verify correct interpretation.
 
 ### Performance Benchmarks

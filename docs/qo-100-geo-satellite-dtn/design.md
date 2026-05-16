@@ -4,7 +4,7 @@
 
 This design extends the Phase 1 terrestrial DTN system to operate over the QO-100 (Es'hail-2) geostationary amateur radio satellite, validating the DTN protocol stack with real space delays and RF propagation through space. QO-100 is positioned at 25.9°E in geostationary orbit at approximately 35,786 km altitude, providing an always-visible amateur radio transponder with 2.4 GHz uplink and 10.45 GHz downlink.
 
-The system reuses the Phase 1 software architecture: ION-DTN (BPv7, LTP), the dtn-node Go orchestrator, and AX.25 framing. The primary changes are hardware-specific: a 2.4 GHz uplink transmitter (typically 5-10W with a 60-90cm dish), a 10.45 GHz downlink receiver (LNB + SDR), and digital modem capability for data transmission through the satellite's narrowband (500 kHz) or wideband (8 MHz) transponders.
+The system reuses the Phase 1 software architecture: ION-DTN (BPv7, LTP), the dtn-node Go orchestrator, and KISS framing. The primary changes are hardware-specific: a 2.4 GHz uplink transmitter (typically 5-10W with a 60-90cm dish), a 10.45 GHz downlink receiver (LNB + SDR), and digital modem capability for data transmission through the satellite's narrowband (500 kHz) or wideband (8 MHz) transponders.
 
 The geostationary orbit introduces approximately 250ms one-way light time (500ms round-trip), which is the key validation target for this phase. Unlike LEO satellites, QO-100 eliminates pass prediction complexity — the satellite is always visible from ground stations within its coverage footprint, providing an always-on contact window with minimal Doppler shift (typically <100 Hz due to stationkeeping maneuvers).
 
@@ -108,11 +108,11 @@ graph LR
 
 ### Component 1: QO-100 CLA Plugin (Extended from Phase 1)
 
-**Purpose**: A native ION-DTN CLA plugin that extends the Phase 1 AX.25 CLA to support QO-100 hardware: 2.4 GHz uplink transmitter and 10.45 GHz downlink receiver. The CLA provides AX.25 framing over the QO-100 link, sending LTP segments through the satellite transponder. The plugin manages separate uplink and downlink hardware interfaces, handles link budget monitoring, and provides frequency coordination support.
+**Purpose**: A native ION-DTN CLA plugin that extends the Phase 1 KISS CLA to support QO-100 hardware: 2.4 GHz uplink transmitter and 10.45 GHz downlink receiver. The CLA provides KISS framing over the QO-100 link, sending LTP segments through the satellite transponder. The plugin manages separate uplink and downlink hardware interfaces, handles link budget monitoring, and provides frequency coordination support.
 
 **Interface**:
 ```go
-// QO100CLAPlugin extends the Phase 1 AX.25 CLA for QO-100 hardware.
+// QO100CLAPlugin extends the Phase 1 KISS CLA for QO-100 hardware.
 type QO100CLAPlugin interface {
     // Init initializes the C CLA plugin module for QO-100 operation.
     // Registers with ION-DTN's convergence layer framework.
@@ -159,7 +159,7 @@ type QO100CLAConfig struct {
     DownlinkDishGainDBi float64      // Downlink antenna gain (20-25 dBi)
     LNBLocalOscMHz     float64       // LNB LO frequency for downconversion
     LNBNoiseFigureDB   float64       // LNB noise figure
-    MaxFrameSize       int           // max AX.25 information field size
+    MaxFrameSize       int           // max KISS information field size
     RetryInterval      time.Duration // reconnection retry interval
 }
 
@@ -200,10 +200,10 @@ type SpectrumPoint struct {
 
 **Responsibilities**:
 - Register as a native ION-DTN CLA plugin implementing the LTP link service adapter interface
-- Manage 2.4 GHz uplink transmitter: configure frequency, set power, transmit AX.25 frames
-- Manage 10.45 GHz downlink receiver: configure LNB, receive via SDR, decode AX.25 frames
-- Provide `sendSegment` callback: wrap LTP segments in AX.25 frames, transmit on 2.4 GHz uplink
-- Provide receive loop: read 10.45 GHz downlink via SDR, extract AX.25 frames, deliver LTP segments to ION
+- Manage 2.4 GHz uplink transmitter: configure frequency, set power, transmit KISS frames
+- Manage 10.45 GHz downlink receiver: configure LNB, receive via SDR, decode KISS frames
+- Provide `sendSegment` callback: wrap LTP segments in KISS frames, transmit on 2.4 GHz uplink
+- Provide receive loop: read 10.45 GHz downlink via SDR, extract KISS frames, deliver LTP segments to ION
 - Measure and report space link metrics: RTT, RSSI, SNR, BER, Doppler shift
 - Compute link budget: uplink EIRP, downlink G/T, path loss, link margins
 - Provide spectrum monitoring for frequency coordination
@@ -525,7 +525,7 @@ After analyzing all acceptance criteria, I've identified the following propertie
 
 **Properties Identified for PBT:**
 1. Bandwidth limit enforcement (1.3, 9.3)
-2. Callsign inclusion in frames (1.4)
+2. Callsign inclusion in DTN EIDs (1.4)
 3. Contact active when hardware operational (3.2)
 4. Hardware failure handling (3.4, 14.1, 14.2)
 5. RTT validation for space link (4.2, 4.3, 15.2)
@@ -560,7 +560,7 @@ After analyzing all acceptance criteria, I've identified the following propertie
 
 ### Property 2: Callsign Inclusion
 
-*For any* AX.25 frame transmitted on the QO-100 uplink, the frame SHALL contain the configured amateur radio callsign in the source address field.
+*For any* bundle transmitted on the QO-100 uplink, the bundle SHALL contain the configured amateur radio callsign in the source DTN EID (dtn://callsign-ssid).
 
 **Validates: Requirements 1.4**
 
@@ -656,7 +656,7 @@ After analyzing all acceptance criteria, I've identified the following propertie
 
 ### Property 20: Doppler Tolerance
 
-*For any* measured Doppler shift on the 10.45 GHz downlink that is ≤ ±100 Hz, the downlink receiver SHALL successfully receive and decode AX.25 frames.
+*For any* measured Doppler shift on the 10.45 GHz downlink that is ≤ ±100 Hz, the downlink receiver SHALL successfully receive and decode KISS frames.
 
 **Validates: Requirements 10.2**
 
@@ -1053,7 +1053,7 @@ func (cla *qo100CLAPlugin) ComputeLinkBudget() (LinkBudget, error) {
                         228.6 // Boltzmann constant in dB
     
     // Compute downlink margin
-    dataRate_bps := 9600.0 // typical for AX.25 over QO-100
+    dataRate_bps := 9600.0 // typical for KISS over QO-100
     requiredEbN0_dB := 10.0 // typical for BPSK/QPSK with target BER
     downlinkMargin_dB := downlinkCN0_dBHz - 10*math.Log10(dataRate_bps) - requiredEbN0_dB
     
@@ -1310,7 +1310,7 @@ a contact +0 +999999999 2 2 100000
 **QO-100 Narrowband Transponder:**
 - Uplink: 2400.000 - 2400.500 MHz (500 kHz bandwidth)
 - Downlink: 10489.500 - 10490.000 MHz
-- Modes: SSB, CW, PSK, RTTY, AX.25
+- Modes: SSB, CW, PSK, RTTY, KISS
 
 **QO-100 Wideband Transponder:**
 - Uplink: 2401.500 - 2409.500 MHz (8 MHz bandwidth)
@@ -1318,7 +1318,7 @@ a contact +0 +999999999 2 2 100000
 - Modes: DATV, high-speed digital
 
 **DTN Operation:**
-- Use narrowband transponder for AX.25/LTP
+- Use narrowband transponder for KISS/LTP
 - Select uplink frequency with <10 kHz occupied bandwidth
 - Monitor downlink spectrum to avoid interference
 - Coordinate with other users via QO-100 chat or email
@@ -1329,7 +1329,7 @@ a contact +0 +999999999 2 2 100000
 - Operator must hold valid amateur radio license
 - License must authorize 2.4 GHz (13cm band) operation
 - License must authorize 10.45 GHz (3cm band) operation
-- Callsign must be included in every transmitted frame
+- Callsign must be included in every transmitted bundle via DTN EID (dtn://callsign-ssid)
 
 **Power Limits:**
 - Varies by country (typically 100W-1000W EIRP)
@@ -1343,7 +1343,7 @@ a contact +0 +999999999 2 2 100000
 ### Performance Expectations
 
 **Throughput:**
-- AX.25 at 9600 baud: ~960 bytes/sec effective
+- KISS at 9600 baud: ~960 bytes/sec effective
 - With LTP overhead: ~800 bytes/sec
 
 **Latency:**

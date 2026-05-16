@@ -16,7 +16,7 @@
 - [ ] 2.3 Configure DMA double-buffered ping-pong for S-band IQ sample rates (smaller buffers due to lower data rate)
 - [ ] 2.4 Implement S-band flight transceiver initialization, power control, and 2.2 GHz configuration
 - [ ] 2.5 Write unit tests for BPSK modulation/demodulation at 500 bps, FEC integration in DSP pipeline
-- [ ] 2.6 Write property test: S-band radio path round-trip (Property 14) — generate random bundles, full stack BPv7 → LTP → AX.25 → FEC encode → BPSK mod → BPSK demod → FEC decode → AX.25 → LTP → BPv7, assert equality
+- [ ] 2.6 Write property test: S-band radio path round-trip (Property 14) — generate random bundles, full stack BPv7 → LTP → KISS → FEC encode → BPSK mod → BPSK demod → FEC decode → KISS → LTP → BPv7, assert equality
 
 ## Task 3: CLA Adaptation for S-Band and Cislunar LTP
 - [ ] 3.1 Adapt CLA from Phase 3 UHF 437 MHz to S-band 2.2 GHz at 500 bps BPSK
@@ -25,7 +25,7 @@
 - [ ] 3.4 Integrate FEC codec into CLA TX/RX data paths (CLA → FEC → DSP → transceiver)
 - [ ] 3.5 Implement transceiver health check and 3-retry reinitialization logic on failure
 - [ ] 3.6 Write unit tests for CLA activation/deactivation, LTP cislunar timer configuration, FEC integration, transceiver failure handling
-- [ ] 3.7 Write property test: AX.25 callsign framing (Property 15) — generate random bundles, verify frames carry valid callsigns
+- [ ] 3.7 Write property test: DTN EID callsign validation (Property 15) — generate random bundles, verify bundles carry valid DTN EIDs (dtn://callsign-ssid) with valid callsigns
 - [ ] 3.8 Write property test: LTP segmentation/reassembly round-trip (Property 16) — generate random large bundles, segment, reassemble, assert equality
 - [ ] 3.9 Write property test: LTP cislunar timer correctness (Property 29) — generate random session parameters, verify retransmission timer ≥ 2 seconds, concurrent sessions independent
 

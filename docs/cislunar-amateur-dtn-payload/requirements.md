@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document specifies the requirements for a phased Delay/Disruption Tolerant Networking (DTN) system for amateur radio, progressing through four phases: terrestrial validation (RPi + Mobilinkd TNC4 + FT-817), CubeSat Engineering Model (STM32U585 + Ettus B200mini), LEO CubeSat flight (STM32U585 + flight IQ transceiver), and cislunar deep-space communication. The system uses ION-DTN (BPv7/LTP) over AX.25 with callsign-based addressing, supporting two core operations — ping and store-and-forward — with no relay functionality. Requirements are derived from the approved design document.
+This document specifies the requirements for a phased Delay/Disruption Tolerant Networking (DTN) system for amateur radio, progressing through four phases: terrestrial validation (RPi + Mobilinkd TNC4 + FT-817), CubeSat Engineering Model (STM32U585 + Ettus B200mini), LEO CubeSat flight (STM32U585 + flight IQ transceiver), and cislunar deep-space communication. The system uses ION-DTN (BPv7/LTP) over KISS framing with callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) for station identification, supporting two core operations — ping and store-and-forward — with no relay functionality. Requirements are derived from the approved design document.
 
 ## Glossary
 
@@ -14,8 +14,8 @@ This document specifies the requirements for a phased Delay/Disruption Tolerant 
 - **CLA**: Convergence Layer Adapter — abstracts the physical/link layer for bundle transmission across all radio links
 - **Node_Controller**: Top-level orchestrator that ties together BPA, Bundle_Store, Contact_Plan_Manager, and CLA
 - **ION-DTN**: NASA JPL's Interplanetary Overlay Network — the DTN implementation providing BPv7, LTP, and CGR
-- **LTP**: Licklider Transmission Protocol — convergence layer running on top of AX.25 providing reliable transfer with deferred acknowledgment
-- **AX.25**: Link-layer framing protocol providing callsign-based source/destination addressing for amateur radio compliance
+- **LTP**: Licklider Transmission Protocol — convergence layer running directly over KISS framing, providing reliable transfer with deferred acknowledgment
+- **KISS**: Minimal serial framing protocol (FEND/CMD/DATA/FEND) wrapping LTP segments for TNC or IQ baseband transport
 - **STM32U585**: Ultra-low-power ARM Cortex-M33 MCU (160 MHz, 786 KB SRAM, 2 MB flash) used as OBC for EM and flight nodes
 - **B200mini**: Ettus Research USRP B200mini SDR — EM-only RF front-end (USB 3.0, 12-bit ADC/DAC, 70 MHz–6 GHz)
 - **TNC4**: Mobilinkd TNC4 terminal node controller — USB-connected TNC for terrestrial nodes interfacing with FT-817
@@ -130,15 +130,15 @@ This document specifies the requirements for a phased Delay/Disruption Tolerant 
 4. IF the CLA fails to establish a link during a scheduled contact window, THEN THE Node_Controller SHALL mark the contact as missed, retain all queued bundles, and increment the contacts-missed counter
 
 
-### Requirement 10: AX.25 and LTP Convergence Layer
+### Requirement 10: KISS CLA and LTP Convergence Layer
 
-**User Story:** As an amateur radio operator, I want all DTN links to use AX.25 framing with callsign addressing over LTP, so that every transmission complies with amateur radio regulations and provides reliable transfer.
+**User Story:** As an amateur radio operator, I want all DTN links to use KISS framing with callsign-embedded DTN EIDs (dtn://callsign-ssid) over LTP, so that every transmission complies with amateur radio regulations and provides reliable transfer.
 
 #### Acceptance Criteria
 
-1. THE CLA SHALL encapsulate all bundle transmissions in AX.25 frames carrying source and destination amateur radio callsigns, across all phases (terrestrial, EM, LEO, cislunar)
-2. THE CLA SHALL run LTP sessions on top of AX.25 frames, providing reliable transfer with deferred acknowledgment for all bundle delivery
-3. THE CLA SHALL perform LTP segmentation and reassembly for bundles that exceed a single AX.25 frame
+1. THE CLA SHALL encapsulate all bundle transmissions in KISS frames carrying LTP segments, with station identification provided by the callsign embedded in the DTN Endpoint Identifier (dtn://callsign-ssid) in every bundle's primary block, across all phases (terrestrial, EM, LEO, cislunar)
+2. THE CLA SHALL run LTP sessions directly over KISS frames, providing reliable transfer with deferred acknowledgment for all bundle delivery
+3. THE CLA SHALL perform LTP segmentation and reassembly for bundles that exceed a single KISS frame
 4. THE CLA SHALL monitor link quality metrics including RSSI, SNR, and bit error rate during active contacts
 
 ### Requirement 11: Terrestrial Node Operation
@@ -147,7 +147,7 @@ This document specifies the requirements for a phased Delay/Disruption Tolerant 
 
 #### Acceptance Criteria
 
-1. THE CLA SHALL interface with the Mobilinkd TNC4 via USB (not Bluetooth) for AX.25 packet operation on terrestrial nodes
+1. THE CLA SHALL interface with the Mobilinkd TNC4 via USB (not Bluetooth) for KISS frame operation on terrestrial nodes
 2. THE CLA SHALL drive the FT-817 radio at 9600 baud through its 9600 baud data port using G3RUH-compatible GFSK modulation
 3. WHEN operating as a terrestrial node, THE Node_Controller SHALL complete an operation cycle within 100 milliseconds
 4. WHEN operating as a terrestrial node, THE Bundle_Store SHALL complete store operations within 10 milliseconds
@@ -158,7 +158,7 @@ This document specifies the requirements for a phased Delay/Disruption Tolerant 
 
 #### Acceptance Criteria
 
-1. THE EM node SHALL run ION-DTN (BPv7/LTP over AX.25) on the STM32U585 OBC with identical software to the flight unit
+1. THE EM node SHALL run ION-DTN (BPv7/LTP over KISS) on the STM32U585 OBC with identical software to the flight unit
 2. THE CLA SHALL interface with the Ettus B200mini SDR as the RF front-end via a companion Raspberry Pi or PC running UHD, bridging IQ samples to the STM32U585 over SPI or UART/DMA
 3. THE STM32U585 SHALL generate TX IQ samples and process RX IQ samples via its DMA engine for baseband DSP
 4. WHEN operating as an EM node, THE Node_Controller SHALL complete an operation cycle within 1 second
@@ -172,7 +172,7 @@ This document specifies the requirements for a phased Delay/Disruption Tolerant 
 
 #### Acceptance Criteria
 
-1. THE LEO flight node SHALL run ION-DTN (BPv7/LTP over AX.25) on the STM32U585 OBC with a flight-qualified IQ transceiver IC — no companion host or B200mini
+1. THE LEO flight node SHALL run ION-DTN (BPv7/LTP over KISS) on the STM32U585 OBC with a flight-qualified IQ transceiver IC — no companion host or B200mini
 2. THE CLA SHALL perform GMSK/BPSK modulation and demodulation at 9.6 kbps on UHF 437 MHz via IQ baseband on the STM32U585
 3. WHEN operating as a LEO flight node, THE Node_Controller SHALL complete an operation cycle within 1 second
 4. WHEN no contact window is active, THE STM32U585 SHALL enter Stop 2 ultra-low-power mode to comply with the 5–10 W average power budget
@@ -184,7 +184,7 @@ This document specifies the requirements for a phased Delay/Disruption Tolerant 
 
 #### Acceptance Criteria
 
-1. THE cislunar node SHALL run ION-DTN (BPv7/LTP over AX.25) with BPSK modulation and strong FEC (LDPC or Turbo coding) at 500 bps on S-band 2.2 GHz
+1. THE cislunar node SHALL run ION-DTN (BPv7/LTP over KISS) with BPSK modulation and strong FEC (LDPC or Turbo coding) at 500 bps on S-band 2.2 GHz
 2. THE CLA SHALL account for 1–2 second one-way light-time delay in LTP session management for cislunar links
 3. WHEN operating as a cislunar node, THE Node_Controller SHALL complete an operation cycle within 10 seconds
 4. THE cislunar node SHALL support long-duration message storage for bundles awaiting delivery across extended contact gaps

@@ -2,21 +2,21 @@
 
 ## Overview
 
-This design describes the Phase 2 CubeSat Engineering Model (EM) system — a ground-based flatsat that validates the flight DTN software stack on representative hardware before orbital deployment. The EM runs ION-DTN (BPv7/LTP over AX.25) on an STM32U585 ultra-low-power ARM Cortex-M33 MCU (160 MHz, 2 MB flash, 786 KB SRAM), with C firmware implementing the DTN/radio stack and Go orchestration on a companion Raspberry Pi or PC.
+This design describes the Phase 2 CubeSat Engineering Model (EM) system — a ground-based flatsat that validates the flight DTN software stack on representative hardware before orbital deployment. The EM runs ION-DTN (BPv7/LTP over KISS) on an STM32U585 ultra-low-power ARM Cortex-M33 MCU (160 MHz, 2 MB flash, 786 KB SRAM), with C firmware implementing the DTN/radio stack and Go orchestration on a companion Raspberry Pi or PC.
 
-The system uses a split architecture: the STM32U585 runs the complete flight software stack in C (ION-DTN BPA, LTP, AX.25 CLA, IQ baseband DSP, NVM bundle store, power management), while a Go Node Controller on the Companion Host manages contact scheduling, telemetry collection, test orchestration, and bridges IQ samples between the STM32U585 and the Ettus B200mini SDR via UHD. The UART command interface between Go and C firmware carries control messages (contact activate/deactivate, telemetry requests, status queries) — not bundle data. Bundle data flows entirely through the ION-DTN stack on the STM32U585.
+The system uses a split architecture: the STM32U585 runs the complete flight software stack in C (ION-DTN BPA, LTP, KISS CLA, IQ baseband DSP, NVM bundle store, power management), while a Go Node Controller on the Companion Host manages contact scheduling, telemetry collection, test orchestration, and bridges IQ samples between the STM32U585 and the Ettus B200mini SDR via UHD. The UART command interface between Go and C firmware carries control messages (contact activate/deactivate, telemetry requests, status queries) — not bundle data. Bundle data flows entirely through the ION-DTN stack on the STM32U585.
 
 The RF path is: STM32U585 (IQ baseband via DMA) → SPI/UART bridge → Companion Host (UHD) → USB 3.0 → B200mini SDR → UHF 437 MHz over-the-air. The B200mini is EM-only; the flight unit replaces it with a dedicated IQ transceiver IC connected directly to the STM32U585.
 
-The CLA is a native ION-DTN CLA plugin adapted from Phase 1's AX.25 CLA architecture. Phase 1's CLA interfaced with a TNC4 over USB serial; Phase 2's CLA interfaces with the IQ baseband radio path (STM32U585 DMA → IQ Bridge → Companion Host → B200mini). The plugin architecture is identical — it registers with ION-DTN's convergence layer framework as an LTP link service adapter — but the underlying transport is IQ samples instead of TNC4 serial bytes.
+The CLA is a native ION-DTN CLA plugin adapted from Phase 1's KISS CLA architecture. Phase 1's CLA interfaced with a TNC4 over USB serial; Phase 2's CLA interfaces with the IQ baseband radio path (STM32U585 DMA → IQ Bridge → Companion Host → B200mini). The plugin architecture is identical — it registers with ION-DTN's convergence layer framework as an LTP link service adapter — but the underlying transport is IQ samples instead of TNC4 serial bytes.
 
-Key constraints: 786 KB SRAM shared across ION-DTN runtime, IQ sample buffers, AX.25/LTP frame buffers, and bundle metadata index. Static/pool-based memory allocation only (no dynamic heap). External SPI/QSPI NVM (64–256 MB) for persistent bundle storage. Stop 2 ultra-low-power mode (~16 µA) between simulated passes. No cryptographic operations (amateur radio regulatory compliance).
+Key constraints: 786 KB SRAM shared across ION-DTN runtime, IQ sample buffers, KISS/LTP frame buffers, and bundle metadata index. Static/pool-based memory allocation only (no dynamic heap). External SPI/QSPI NVM (64–256 MB) for persistent bundle storage. Stop 2 ultra-low-power mode (~16 µA) between simulated passes. No cryptographic operations (amateur radio regulatory compliance).
 
 The system supports ping (DTN reachability test) and store-and-forward (point-to-point bundle delivery). No relay functionality. All bundle delivery is direct (source → destination). Simulated orbital passes (5–10 min windows, 60–90 min gaps, 4–6 passes/day) validate the complete store-and-forward cycle under flight-representative conditions.
 
 ### Scope Boundaries
 
-**In scope**: STM32U585 C firmware (ION-DTN BPv7/LTP, AX.25 CLA for IQ baseband, GFSK/G3RUH modulation/demodulation, DMA IQ streaming, NVM bundle store, Stop 2 power management, static/pool memory allocation), Go Node Controller on Companion Host (UART command interface, contact scheduling, telemetry, test orchestration, UHD/B200mini IQ bridge), simulated orbital pass testing at UHF 437 MHz / 9.6 kbps. No cryptographic operations (amateur radio regulatory compliance).
+**In scope**: STM32U585 C firmware (ION-DTN BPv7/LTP, KISS CLA for IQ baseband, GFSK/G3RUH modulation/demodulation, DMA IQ streaming, NVM bundle store, Stop 2 power management, static/pool memory allocation), Go Node Controller on Companion Host (UART command interface, contact scheduling, telemetry, test orchestration, UHD/B200mini IQ bridge), simulated orbital pass testing at UHF 437 MHz / 9.6 kbps. No cryptographic operations (amateur radio regulatory compliance).
 
 **Out of scope**: Flight-qualified IQ transceiver IC (Phase 3), orbital deployment (Phase 3), CGR contact prediction / orbital mechanics (Phase 3), S-band / X-band / cislunar communications (Phase 4), relay functionality, Mobilinkd TNC4 (Phase 1 only).
 
@@ -38,7 +38,7 @@ graph TD
         subgraph "Non-Secure World"
             BPA[Bundle Protocol Agent<br/>ION-DTN BPA — BPv7 bundles]
             LTP_E[LTP Engine<br/>ION-DTN LTP — reliable transfer]
-            CLA[AX.25 CLA Plugin<br/>ION CLA — IQ baseband adapter<br/>Adapted from Phase 1 TNC4 CLA]
+            CLA[KISS CLA (ltpkisscli/ltpkissclo)<br/>ION CLA — IQ baseband adapter<br/>Adapted from Phase 1 TNC4 CLA]
             DSP[IQ Baseband DSP<br/>GFSK/G3RUH mod/demod<br/>DMA streaming]
             BS[Bundle Store<br/>NVM-backed — SPI/QSPI flash<br/>64–256 MB external]
             IDX[Bundle Index<br/>SRAM — priority-ordered metadata]
@@ -112,14 +112,14 @@ graph TD
     subgraph "STM32U585 SRAM — 786 KB Total"
         ION_MEM["ION-DTN Runtime<br/>~256 KB<br/>BPA, LTP state, CLA buffers"]
         IQ_BUF["IQ Sample Buffers<br/>~128 KB<br/>TX double-buffer + RX double-buffer<br/>DMA ping-pong"]
-        AX25_BUF["AX.25/LTP Frame Buffers<br/>~64 KB<br/>TX frame + RX frame + reassembly"]
+        KISS_BUF["KISS/LTP Frame Buffers<br/>~64 KB<br/>TX frame + RX frame + reassembly"]
         IDX_MEM["Bundle Metadata Index<br/>~64 KB<br/>Priority-ordered in-SRAM index<br/>Points to NVM bundle locations"]
         POOL["Static Pool Allocator<br/>~242 KB<br/>Fixed-size block pools<br/>No dynamic heap"]
     end
 
     style ION_MEM fill:#1a3a5c,color:#fff
     style IQ_BUF fill:#5c1a3a,color:#fff
-    style AX25_BUF fill:#5c1a3a,color:#fff
+    style KISS_BUF fill:#5c1a3a,color:#fff
     style IDX_MEM fill:#5c3a1a,color:#fff
     style POOL fill:#3a5c1a,color:#fff
 ```
@@ -148,8 +148,8 @@ sequenceDiagram
     Note over B200,FW: Ground station transmits bundles
     B200->>IQB: RX IQ samples (USB 3.0 / UHD)
     IQB->>FW: RX IQ samples (SPI/UART DMA)
-    FW->>FW: Demodulate GFSK/G3RUH → AX.25 frames
-    FW->>FW: ION-DTN: AX.25 → LTP → BPv7 bundle
+    FW->>FW: Demodulate GFSK/G3RUH → KISS frames
+    FW->>FW: ION-DTN: KISS → LTP → BPv7 bundle
     FW->>NVM: Store bundle (atomic write + CRC)
     FW-->>IQB: TX IQ: LTP ACK (modulated)
     IQB-->>B200: TX IQ (USB 3.0 / UHD)
@@ -166,7 +166,7 @@ sequenceDiagram
     NC->>FW: UART: CONTACT_ACTIVATE(dest_node, duration)
     FW->>FW: Wake from Stop 2
     FW->>NVM: Retrieve queued bundles (priority order)
-    FW->>FW: ION-DTN: BPv7 → LTP → AX.25 frames
+    FW->>FW: ION-DTN: BPv7 → LTP → KISS frames
     FW->>FW: Modulate GFSK/G3RUH → TX IQ
     FW->>IQB: TX IQ samples (SPI/UART DMA)
     IQB->>B200: TX IQ (USB 3.0 / UHD)
@@ -189,9 +189,9 @@ sequenceDiagram
     GS->>B200: Ping request (UHF 437 MHz)
     B200->>IQB: RX IQ (USB 3.0)
     IQB->>FW: RX IQ (SPI/UART DMA)
-    FW->>FW: Demod → AX.25 → LTP → BPv7 ping request
+    FW->>FW: Demod → KISS → LTP → BPv7 ping request
     FW->>FW: Generate ping response (dest = sender EID)
-    FW->>FW: BPv7 → LTP → AX.25 → Modulate IQ
+    FW->>FW: BPv7 → LTP → KISS → Modulate IQ
     FW->>IQB: TX IQ (SPI/UART DMA)
     IQB->>B200: TX IQ (USB 3.0)
     B200->>GS: Ping response (UHF 437 MHz)
@@ -416,7 +416,7 @@ bpa_error_t store_flush(void);
 type LinkType int
 
 const (
-    LinkTypeUHF_IQ_B200 LinkType = 0 // AX.25/LTP over UHF via IQ baseband + B200mini (EM)
+    LinkTypeUHF_IQ_B200 LinkType = 0 // KISS/LTP over UHF via IQ baseband + B200mini (EM)
 )
 
 // ContactWindow represents a simulated pass window.
@@ -483,7 +483,7 @@ type ContactPlanManager interface {
 
 ### Component 4: Convergence Layer Adapter (CLA) — STM32U585 C Firmware
 
-**Purpose**: Native ION-DTN CLA plugin running on the STM32U585, adapted from Phase 1's AX.25 CLA architecture. Phase 1's CLA interfaced with a TNC4 over USB serial; this CLA interfaces with the IQ baseband radio path. The plugin registers with ION-DTN's convergence layer framework as an LTP link service adapter — the same plugin architecture as Phase 1. ION-DTN's LTP engine calls the CLA's `sendSegment` callback to transmit LTP segments; the CLA modulates them into IQ samples and streams them via DMA to the IQ Bridge. The receive path demodulates incoming IQ samples into AX.25 frames and delivers LTP segments back to ION's LTP engine.
+**Purpose**: Native ION-DTN CLA plugin running on the STM32U585, adapted from Phase 1's KISS CLA architecture. Phase 1's CLA interfaced with a TNC4 over USB serial; this CLA interfaces with the IQ baseband radio path. The plugin registers with ION-DTN's convergence layer framework as an LTP link service adapter — the same plugin architecture as Phase 1. ION-DTN's LTP engine calls the CLA's `sendSegment` callback to transmit LTP segments; the CLA modulates them into IQ samples and streams them via DMA to the IQ Bridge. The receive path demodulates incoming IQ samples into KISS frames and delivers LTP segments back to ION's LTP engine.
 
 **Interface** (C — STM32U585 firmware):
 ```c
@@ -504,7 +504,7 @@ typedef struct {
     uint32_t frames_received;
 } link_metrics_t;
 
-/* --- AX.25 Callsign --- */
+/* --- Callsign (used in DTN EID: dtn://callsign-ssid) --- */
 typedef struct {
     char call[7];   /* e.g., "W1AW\0\0" null-padded */
     uint8_t ssid;   /* 0-15 */
@@ -513,7 +513,7 @@ typedef struct {
 /* --- CLA Configuration --- */
 typedef struct {
     callsign_t local_callsign;
-    uint16_t   max_frame_size;     /* max AX.25 information field size */
+    uint16_t   max_frame_size;     /* max KISS information field size */
     uint32_t   iq_sample_rate;     /* IQ sample rate in Hz */
     uint32_t   iq_center_freq_hz;  /* 437000000 for UHF */
     uint32_t   data_rate_bps;      /* 9600 */
@@ -522,13 +522,13 @@ typedef struct {
 /* --- ION-DTN CLA Plugin Callbacks (called by ION's LTP engine) --- */
 
 /* Called by ION's LTP engine to transmit an LTP segment.
- * The CLA wraps the segment in an AX.25 frame, modulates to IQ,
+ * The CLA wraps the segment in a KISS frame, modulates to IQ,
  * and streams via DMA to the IQ Bridge. */
-int ax25iq_send_segment(unsigned char *segment, int segment_len, void *context);
+int kissiq_send_segment(unsigned char *segment, int segment_len, void *context);
 
-/* Receive loop: demodulates IQ samples from DMA, extracts AX.25 frames,
+/* Receive loop: demodulates IQ samples from DMA, extracts KISS frames,
  * delivers LTP segments to ION's LTP engine via ltpei receive interface. */
-void ax25iq_recv_process(void *context);
+void kissiq_recv_process(void *context);
 
 /* --- CLA Lifecycle (called by firmware main / UART command handler) --- */
 
@@ -555,9 +555,9 @@ link_metrics_t cla_get_metrics(void);
 
 **Responsibilities**:
 - Register as native ION-DTN CLA plugin implementing LTP link service adapter (same architecture as Phase 1)
-- `sendSegment` callback: wrap LTP segments in AX.25 frames with source/destination callsigns, modulate GFSK/G3RUH to IQ samples, stream via DMA
-- Receive path: demodulate IQ samples from DMA, extract AX.25 frames, deliver LTP segments to ION's LTP engine
-- AX.25 framing with amateur radio callsigns in every frame (regulatory compliance)
+- `sendSegment` callback: wrap LTP segments in KISS frames, modulate GFSK/G3RUH to IQ samples, stream via DMA
+- Receive path: demodulate IQ samples from DMA, extract KISS frames, deliver LTP segments to ION's LTP engine
+- KISS framing with station identification via callsign-embedded DTN EIDs (dtn://callsign-ssid) in every bundle (regulatory compliance)
 - GFSK/G3RUH modulation/demodulation at 9.6 kbps on UHF 437 MHz
 - DMA-based IQ sample streaming (double-buffered ping-pong) — no CPU-bound sample transfers
 - Link quality monitoring (RSSI, SNR, BER, frame counts)
@@ -589,12 +589,12 @@ typedef struct {
  * double-buffers from static pool. */
 bpa_error_t dsp_init(const dsp_config_t *config);
 
-/* Modulate an AX.25 frame into IQ samples.
+/* Modulate a KISS frame into IQ samples.
  * Writes into caller-provided IQ buffer. Returns sample count. */
 int32_t dsp_modulate_frame(const uint8_t *frame, uint32_t frame_len,
                            iq_sample_t *iq_buf, uint32_t buf_capacity);
 
-/* Demodulate IQ samples into an AX.25 frame.
+/* Demodulate IQ samples into a KISS frame.
  * Returns frame length in bytes, or 0 if no complete frame detected. */
 int32_t dsp_demodulate(const iq_sample_t *iq_buf, uint32_t sample_count,
                        uint8_t *frame_buf, uint32_t frame_buf_len);
@@ -617,8 +617,8 @@ uint32_t dsp_get_memory_usage(void);
 ```
 
 **Responsibilities**:
-- GFSK/G3RUH modulation: AX.25 frame bytes → IQ baseband samples at 9.6 kbps
-- GFSK/G3RUH demodulation: IQ baseband samples → AX.25 frame bytes
+- GFSK/G3RUH modulation: KISS frame bytes → IQ baseband samples at 9.6 kbps
+- GFSK/G3RUH demodulation: IQ baseband samples → KISS frame bytes
 - DMA double-buffered ping-pong streaming (TX and RX) — ISR-driven, no CPU polling
 - IQ sample buffers allocated from static pool within the 786 KB SRAM budget
 - Carrier/clock recovery, bit synchronization in the demodulator
@@ -865,7 +865,7 @@ type NodeController interface {
 typedef enum {
     POOL_BUNDLE_PAYLOAD = 0,  /* bundle payload buffers */
     POOL_IQ_BUFFER      = 1,  /* IQ sample DMA buffers */
-    POOL_FRAME_BUFFER   = 2,  /* AX.25/LTP frame buffers */
+    POOL_FRAME_BUFFER   = 2,  /* KISS/LTP frame buffers */
     POOL_INDEX_ENTRY    = 3,  /* bundle metadata index entries */
     POOL_GENERAL        = 4,  /* general-purpose small blocks */
     POOL_COUNT          = 5
@@ -1147,13 +1147,13 @@ typedef struct {
 
 ### Property 13: End-to-End Radio Path Round-Trip
 
-*For any* valid Bundle, encapsulating it into AX.25/LTP frames, modulating to IQ baseband samples (GFSK/G3RUH), demodulating the IQ samples back, and reassembling the frames into a bundle SHALL produce a Bundle equivalent to the original.
+*For any* valid Bundle, encapsulating it into KISS/LTP frames, modulating to IQ baseband samples (GFSK/G3RUH), demodulating the IQ samples back, and reassembling the frames into a bundle SHALL produce a Bundle equivalent to the original.
 
 **Validates: Requirements 7.7, 8.5**
 
-### Property 14: AX.25 Callsign Framing
+### Property 14: DTN EID Station Identification
 
-*For any* bundle transmitted through the CLA, the output AX.25 frame SHALL carry a valid source amateur radio callsign and a valid destination amateur radio callsign.
+*For any* bundle transmitted through the CLA, the bundle SHALL contain a valid source DTN EID (dtn://callsign-ssid) and a valid destination DTN EID embedding amateur radio callsigns for station identification.
 
 **Validates: Requirements 8.1**
 
@@ -1228,7 +1228,7 @@ typedef struct {
 
 ### Error Scenario 2: Contact Window Missed (IQ Link Failure)
 
-**Condition**: CLA fails to establish the IQ baseband link during a scheduled contact window (B200mini not responding, IQ Bridge failure, DMA error, no AX.25 connection established).
+**Condition**: CLA fails to establish the IQ baseband link during a scheduled contact window (B200mini not responding, IQ Bridge failure, DMA error, no KISS connection established).
 **Response**: Mark the contact as missed in statistics. Retain all queued bundles for the next available contact window. Increment `ContactsMissed` counter. Send `CONTACT_METRICS` with failure status to Node Controller via UART.
 **Recovery**: Bundles remain in NVM store for delivery during the next contact. Node Controller logs the failure and may attempt to reinitialize the B200mini via UHD.
 
@@ -1288,7 +1288,7 @@ Test each component in isolation with example-based tests:
 
 - **BPA (C)**: Bundle creation with all three types (data, ping request, ping response). Validation with valid and invalid bundles (wrong version, empty EID, zero lifetime, future timestamp, bad CRC). Default priority assignment. Pool allocation and release.
 - **NVM Bundle Store (C)**: Store/retrieve/delete operations on mock NVM. Priority-ordered listing. Capacity enforcement. Eviction with mixed priorities. Reload after simulated restart with CRC validation. Corrupted entry handling.
-- **IQ Baseband DSP (C)**: Modulation of known AX.25 frames. Demodulation of known IQ samples. DMA buffer management. Signal quality measurement.
+- **IQ Baseband DSP (C)**: Modulation of known KISS frames. Demodulation of known IQ samples. DMA buffer management. Signal quality measurement.
 - **UART Command Handler (C)**: Command frame parsing with valid/invalid CRC. Response frame construction. Command dispatch to subsystems.
 - **Pool Allocator (C)**: Allocation until exhaustion. Free and re-allocate. Peak tracking. Multi-pool isolation.
 - **Power Manager (C)**: State transition logging. RTC alarm configuration.
@@ -1327,8 +1327,8 @@ Key property tests:
 10. **Local vs remote routing** (Property 10): Generate random bundles with destinations matching and not matching local EIDs. Verify correct routing.
 11. **ACK/no-ACK behavior** (Property 11): Generate random transmission scenarios with random ACK outcomes. Verify ACKed bundles deleted, unACKed retained.
 12. **No relay** (Property 12): Generate random bundles and contacts. Verify bundles only transmitted to contacts matching their destination.
-13. **End-to-end radio path round-trip** (Property 13): Generate random valid bundles of varying sizes. Push through full stack: BPv7 → LTP → AX.25 → IQ mod → IQ demod → AX.25 → LTP → BPv7. Assert bundle equality.
-14. **AX.25 callsign framing** (Property 14): Generate random bundles. Transmit through CLA. Verify output AX.25 frames carry valid source/dest callsigns.
+13. **End-to-end radio path round-trip** (Property 13): Generate random valid bundles of varying sizes. Push through full stack: BPv7 → LTP → KISS → IQ mod → IQ demod → KISS → LTP → BPv7. Assert bundle equality.
+14. **DTN EID station identification** (Property 14): Generate random bundles. Transmit through CLA. Verify bundles contain valid source/dest DTN EIDs (dtn://callsign-ssid).
 15. **No cryptographic operations** (Property 20): Generate random bundles. Process through BPA. Verify no cryptographic blocks present.
 16. **No encryption** (Property 21): Generate random bundles. Process through BPA. Verify no encrypted blocks present.
 17. **Rate limiting** (Property 22): Generate random submission sequences at various rates from random source EIDs. Verify correct acceptance/rejection.

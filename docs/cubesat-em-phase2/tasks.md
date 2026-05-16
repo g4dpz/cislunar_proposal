@@ -2,21 +2,21 @@
 
 ## Overview
 
-This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C firmware on the STM32U585 (ION-DTN BPv7/LTP, AX.25 CLA, IQ baseband DSP, NVM bundle store, power management, static pool allocator) and Go orchestration on the Companion Host (Node Controller, Contact Plan Manager, IQ Bridge, telemetry, test orchestration). Tasks are ordered so each builds on the previous, with property-based tests (theft for C, rapid for Go) placed close to the code they validate.
+This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C firmware on the STM32U585 (ION-DTN BPv7/LTP, KISS CLA, IQ baseband DSP, NVM bundle store, power management, static pool allocator) and Go orchestration on the Companion Host (Node Controller, Contact Plan Manager, IQ Bridge, telemetry, test orchestration). Tasks are ordered so each builds on the previous, with property-based tests (theft for C, rapid for Go) placed close to the code they validate.
 
 ## Tasks
 
-- [ ] 1. Half-Duplex AX.25 Transfer Validation via IQ Baseband (Pre-ION-DTN)
-  - [ ] 1.1 Implement basic AX.25 frame construction and parsing (C — STM32U585)
-    - Implement AX.25 UI frame builder with source/destination callsigns and SSID
-    - Implement AX.25 frame parser to extract callsigns and information field
-    - Validate callsign encoding/decoding (bit-shifted format per AX.25 spec)
+- [ ] 1. Half-Duplex KISS Transfer Validation via IQ Baseband (Pre-ION-DTN)
+  - [ ] 1.1 Implement basic KISS frame construction and parsing (C — STM32U585)
+    - Implement KISS frame builder with FEND/CMD/DATA/FEND structure
+    - Implement KISS frame parser to extract data field
+    - Validate KISS byte stuffing (FEND and FESC escaping)
     - Pool-allocated buffers from POOL_FRAME_BUFFER
     - _Requirements: 8.1_
 
-  - [ ] 1.2 Implement IQ baseband modulation/demodulation for AX.25 frames (C — STM32U585)
-    - Implement GFSK/G3RUH modulation: AX.25 frame bytes → IQ baseband samples at 9.6 kbps
-    - Implement GFSK/G3RUH demodulation: IQ baseband samples → AX.25 frame bytes
+  - [ ] 1.2 Implement IQ baseband modulation/demodulation for KISS frames (C — STM32U585)
+    - Implement GFSK/G3RUH modulation: KISS frame bytes → IQ baseband samples at 9.6 kbps
+    - Implement GFSK/G3RUH demodulation: IQ baseband samples → KISS frame bytes
     - Configure DMA double-buffered streaming for IQ samples
     - IQ sample buffers from POOL_IQ_BUFFER within 786 KB SRAM budget
     - _Requirements: 7.1, 7.2, 7.3, 7.6_
@@ -27,21 +27,21 @@ This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C fir
     - Transparent bridging — no sample modification
     - _Requirements: 7.4, 7.5_
 
-  - [ ] 1.4 Implement half-duplex AX.25 send/receive test harness
-    - Build a test that sends an AX.25 UI frame from the STM32U585 EM through the IQ baseband path (STM32U585 → IQ Bridge → B200mini → over-the-air UHF 437 MHz)
-    - Build a test that receives an AX.25 UI frame at the EM from a ground station (over-the-air → B200mini → IQ Bridge → STM32U585)
+  - [ ] 1.4 Implement half-duplex KISS send/receive test harness
+    - Build a test that sends a KISS frame from the STM32U585 EM through the IQ baseband path (STM32U585 → IQ Bridge → B200mini → over-the-air UHF 437 MHz)
+    - Build a test that receives a KISS frame at the EM from a ground station (over-the-air → B200mini → IQ Bridge → STM32U585)
     - Demonstrate half-duplex operation: EM transmits, ground station receives, then roles swap
-    - Verify frames are received intact with correct source/destination callsigns
+    - Verify frames are received intact with correct data
     - _Requirements: 7.7, 8.1, 8.4, 8.5_
 
-  - [ ] 1.5 Write AX.25 frame round-trip test (EM ↔ ground station)
+  - [ ] 1.5 Write KISS frame round-trip test (EM ↔ ground station)
     - Send a frame from ground station → B200mini → STM32U585 (receive and verify)
     - Send a frame from STM32U585 → B200mini → ground station (receive and verify)
-    - Confirm half-duplex AX.25 link over IQ baseband is operational before proceeding to ION-DTN integration
+    - Confirm half-duplex KISS link over IQ baseband is operational before proceeding to ION-DTN integration
     - _Requirements: 7.7, 8.5_
 
-- [ ] 2. Checkpoint — Half-duplex AX.25 over IQ baseband validated
-  - Ensure AX.25 frames can be sent and received between the STM32U585 EM and a ground station over the B200mini IQ baseband path at 9.6 kbps UHF before proceeding to ION-DTN integration.
+- [ ] 2. Checkpoint — Half-duplex KISS over IQ baseband validated
+  - Ensure KISS frames can be sent and received between the STM32U585 EM and a ground station over the B200mini IQ baseband path at 9.6 kbps UHF before proceeding to ION-DTN integration.
 
 - [ ] 3. Static Memory Pool Allocator (C — STM32U585)
   - [ ] 1.1 Implement pool allocator core (`pool_init`, `pool_alloc`, `pool_free`, `pool_stats`, `pool_total_used_bytes`, `pool_peak_used_bytes`)
@@ -242,8 +242,8 @@ This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C fir
 - [ ] 9. IQ Baseband DSP (C — STM32U585)
   - [ ] 7.1 Implement DSP engine core (`dsp_init`, `dsp_modulate_frame`, `dsp_demodulate`)
     - Define `iq_sample_t`, `dsp_config_t` data types
-    - Implement GFSK/G3RUH modulation: AX.25 frame bytes → IQ baseband samples at 9.6 kbps
-    - Implement GFSK/G3RUH demodulation: IQ baseband samples → AX.25 frame bytes
+    - Implement GFSK/G3RUH modulation: KISS frame bytes → IQ baseband samples at 9.6 kbps
+    - Implement GFSK/G3RUH demodulation: IQ baseband samples → KISS frame bytes
     - Carrier/clock recovery and bit synchronization in demodulator
     - IQ sample buffers allocated from POOL_IQ_BUFFER within 786 KB SRAM budget
     - _Requirements: 7.1, 7.2, 7.5, 7.6_
@@ -256,23 +256,23 @@ This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C fir
     - _Requirements: 7.3, 7.6_
 
   - [ ]* 7.3 Write unit tests for IQ DSP modulation/demodulation
-    - Modulate known AX.25 frames, verify IQ output
+    - Modulate known KISS frames, verify IQ output
     - Demodulate known IQ samples, verify frame output
     - DMA buffer management and memory usage tracking
     - _Requirements: 7.1, 7.2_
 
-- [ ] 10. AX.25 CLA Plugin (C — STM32U585)
+- [ ] 10. KISS CLA Plugin (C — STM32U585)
   - [ ] 8.1 Implement CLA plugin lifecycle and ION-DTN registration (`cla_init`, `cla_activate_link`, `cla_deactivate_link`, `cla_shutdown`)
-    - Define `cla_status_t`, `link_metrics_t`, `callsign_t`, `cla_config_t`
+    - Define `cla_status_t`, `link_metrics_t`, `cla_config_t`
     - Register as native ION-DTN CLA plugin implementing LTP link service adapter
     - Configure DMA channels for IQ streaming on link activation
     - Stop DMA and flush buffers on link deactivation
     - _Requirements: 8.4_
 
-  - [ ] 8.2 Implement CLA send/receive paths (`ax25iq_send_segment`, `ax25iq_recv_process`)
-    - `ax25iq_send_segment`: wrap LTP segment in AX.25 frame with source/destination callsigns → modulate GFSK/G3RUH → stream IQ via DMA
-    - `ax25iq_recv_process`: demodulate IQ from DMA → extract AX.25 frames → deliver LTP segments to ION's LTP engine
-    - AX.25 framing with amateur radio callsigns in every frame
+  - [ ] 8.2 Implement CLA send/receive paths (`kissiq_send_segment`, `kissiq_recv_process`)
+    - `kissiq_send_segment`: wrap LTP segment in KISS frame → modulate GFSK/G3RUH → stream IQ via DMA
+    - `kissiq_recv_process`: demodulate IQ from DMA → extract KISS frames → deliver LTP segments to ION's LTP engine
+    - Station identification via callsign-embedded DTN EIDs (dtn://callsign-ssid) in every bundle
     - LTP segmentation/reassembly handled by ION-DTN's LTP engine natively
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
@@ -280,14 +280,14 @@ This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C fir
     - Track RSSI, SNR, BER, bytes transferred, frames sent/received
     - _Requirements: 10.3, 18.3_
 
-  - [ ]* 8.4 Write property test: AX.25 Callsign Framing (theft)
-    - **Property 14: AX.25 Callsign Framing**
-    - Generate random bundles. Transmit through CLA. Verify output AX.25 frames carry valid source/dest callsigns
+  - [ ]* 8.4 Write property test: DTN EID Callsign Validation (theft)
+    - **Property 14: DTN EID Callsign Validation**
+    - Generate random bundles. Transmit through CLA. Verify output bundles carry valid DTN EIDs (dtn://callsign-ssid) with valid callsigns
     - **Validates: Requirements 8.1**
 
   - [ ]* 8.5 Write property test: End-to-End Radio Path Round-Trip (theft)
     - **Property 13: End-to-End Radio Path Round-Trip**
-    - Generate random valid bundles. Push through full stack: BPv7 → LTP → AX.25 → IQ mod → IQ demod → AX.25 → LTP → BPv7. Assert bundle equality
+    - Generate random valid bundles. Push through full stack: BPv7 → LTP → KISS → IQ mod → IQ demod → KISS → LTP → BPv7. Assert bundle equality
     - **Validates: Requirements 7.7, 8.5**
 
 - [ ] 11. Power Manager (C — STM32U585)

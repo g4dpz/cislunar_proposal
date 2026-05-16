@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design describes the Phase 4 Cislunar Mission system — the final phase extending DTN operations from LEO (Phase 3) to cislunar distances (~384,000 km). The OBC runs the complete flight software stack autonomously: ION-DTN (BPv7/LTP over AX.25), IQ baseband DSP with BPSK modulation, LDPC/Turbo FEC encoding/decoding, NVM bundle store (256 MB–1 GB), CGR contact prediction adapted for cislunar orbits, Doppler compensation at S-band 2.2 GHz, power management (10–20 W), and enhanced radiation tolerance for the cislunar environment.
+This design describes the Phase 4 Cislunar Mission system — the final phase extending DTN operations from LEO (Phase 3) to cislunar distances (~384,000 km). The OBC runs the complete flight software stack autonomously: ION-DTN (BPv7/LTP over KISS), IQ baseband DSP with BPSK modulation, LDPC/Turbo FEC encoding/decoding, NVM bundle store (256 MB–1 GB), CGR contact prediction adapted for cislunar orbits, Doppler compensation at S-band 2.2 GHz, power management (10–20 W), and enhanced radiation tolerance for the cislunar environment.
 
 The baseline OBC is the STM32U585 (same as Phase 3), with the option to upgrade to a more capable processor. All interfaces are designed to work on the STM32U585 while accommodating a higher-capability OBC. The design uses `obc_` prefixes instead of `stm32_` to maintain processor flexibility.
 
@@ -18,7 +18,7 @@ The key architectural changes from Phase 3 are:
 8. **Slower Doppler dynamics**: Doppler at S-band is ±5 kHz (vs. ±10 kHz at UHF in LEO), with slower rate of change. Update rate relaxed to once per 10 seconds.
 9. **Power budget**: 10–20 W (vs. 5–10 W in Phase 3).
 
-Phase 3 components carried forward unchanged: ION-DTN BPA (BPv7 creation/validation/serialization), NVM Bundle Store (atomic writes, priority index, eviction), AX.25 CLA plugin architecture, pool allocator, rate limiting, bundle size limits, priority ordering, watchdog manager, time manager, node health/telemetry framework.
+Phase 3 components carried forward unchanged: ION-DTN BPA (BPv7 creation/validation/serialization), NVM Bundle Store (atomic writes, priority index, eviction), KISS CLA plugin architecture, pool allocator, rate limiting, bundle size limits, priority ordering, watchdog manager, time manager, node health/telemetry framework.
 
 ### Scope Boundaries
 
@@ -35,7 +35,7 @@ graph TD
             NC[Node Controller<br/>Autonomous operation cycle<br/>Wake → Communicate → Sleep<br/>Hours-long contact arcs]
             BPA[Bundle Protocol Agent<br/>ION-DTN BPA — BPv7 bundles]
             LTP_E[LTP Engine<br/>ION-DTN LTP — deferred ACK<br/>Cislunar timers: 10s session timeout]
-            CLA[AX.25 CLA Plugin<br/>ION CLA — S-band adapter<br/>Adapted from Phase 3]
+            CLA[KISS CLA (ltpkisscli/ltpkissclo)<br/>ION CLA — S-band adapter<br/>Adapted from Phase 3]
             FEC[LDPC/Turbo FEC Codec<br/>Encode TX / Decode RX<br/>Rate for BER 1e-5 at Eb/N0 2dB]
             DSP[IQ Baseband DSP<br/>BPSK mod/demod 500 bps<br/>DMA streaming + Doppler comp]
             BS[Bundle Store<br/>NVM-backed — SPI/QSPI flash<br/>256 MB–1 GB external]
@@ -108,7 +108,7 @@ graph TD
         ION_MEM["ION-DTN Runtime<br/>~256 KB<br/>BPA, LTP state, CLA buffers"]
         FEC_MEM["LDPC/Turbo FEC Codec<br/>~96 KB<br/>Encoder/decoder state + buffers"]
         IQ_BUF["IQ Sample Buffers<br/>~96 KB<br/>TX double-buffer + RX double-buffer<br/>DMA ping-pong (lower rate = smaller)"]
-        AX25_BUF["AX.25/LTP Frame Buffers<br/>~48 KB<br/>TX frame + RX frame + reassembly"]
+        KISS_BUF["KISS/LTP Frame Buffers<br/>~48 KB<br/>TX frame + RX frame + reassembly"]
         IDX_MEM["Bundle Metadata Index<br/>~48 KB<br/>Priority-ordered + CRC + redundant + TMR"]
         CGR_MEM["CGR Engine State<br/>~64 KB<br/>Numerical propagation, ephemeris table<br/>Predicted contacts, catalog"]
         POOL["Static Pool Allocator<br/>~146 KB<br/>Fixed-size block pools<br/>No dynamic heap"]
@@ -117,7 +117,7 @@ graph TD
     style ION_MEM fill:#1a3a5c,color:#fff
     style FEC_MEM fill:#5c1a3a,color:#fff
     style IQ_BUF fill:#5c1a3a,color:#fff
-    style AX25_BUF fill:#5c1a3a,color:#fff
+    style KISS_BUF fill:#5c1a3a,color:#fff
     style IDX_MEM fill:#5c3a1a,color:#fff
     style CGR_MEM fill:#1a5c3a,color:#fff
     style POOL fill:#3a5c1a,color:#fff
@@ -133,18 +133,18 @@ sequenceDiagram
     participant XCVR as S-Band Flight Transceiver
     participant DSP as IQ DSP + Doppler
     participant FEC as LDPC/Turbo FEC
-    participant CLA as AX.25 CLA
+    participant CLA as KISS CLA
     participant BPA as BPA (ION-DTN)
     participant BS as Bundle Store (NVM 256MB–1GB)
 
     Note over T3,XCVR: Contact arc begins — payload woke autonomously
-    T3->>XCVR: Uplink AX.25/LTP frames (S-band 2.2 GHz, 500 bps, LDPC encoded)
+    T3->>XCVR: Uplink KISS/LTP frames (S-band 2.2 GHz, 500 bps, LDPC encoded)
     Note over T3,XCVR: 1–2 second propagation delay
     XCVR->>DSP: RX IQ samples (DMA)
     DSP->>DSP: Apply Doppler correction to RX (±5 kHz at 2.2 GHz)
     DSP->>FEC: Demodulated soft symbols
     FEC->>FEC: LDPC/Turbo decode (correct errors)
-    FEC->>CLA: Decoded AX.25 frames
+    FEC->>CLA: Decoded KISS frames
     CLA->>BPA: LTP segments → BPv7 bundle
     BPA->>BS: Store bundle (atomic write + CRC)
     BPA->>CLA: LTP ACK
@@ -160,7 +160,7 @@ sequenceDiagram
 
     Note over BS,T3: Later contact arc with destination station B (hours later)
     BS->>BPA: Retrieve queued bundles (priority order)
-    BPA->>CLA: BPv7 → LTP → AX.25
+    BPA->>CLA: BPv7 → LTP → KISS
     CLA->>FEC: Encode with LDPC/Turbo
     FEC->>DSP: Encoded → IQ
     DSP->>DSP: Apply TX Doppler pre-compensation
@@ -233,7 +233,7 @@ sequenceDiagram
         NC->>RAD: Periodic SRAM validation (every 60s)
         NC->>BS: Get queued bundles for station (priority order)
         BS-->>NC: Bundles [critical, expedited, normal, bulk]
-        NC->>CLA: Transmit bundles via AX.25/LTP/LDPC/IQ
+        NC->>CLA: Transmit bundles via KISS/LTP/LDPC/IQ
         CLA->>DOP: Apply TX Doppler pre-compensation
         DOP->>XCVR: TX IQ samples (DMA)
         Note over XCVR: 1–2s propagation each way
@@ -264,7 +264,7 @@ sequenceDiagram
     participant CAT as Ground Station Catalog
     participant NVM as NVM Storage
 
-    GS->>BPA: Ephemeris update bundle (via AX.25/LTP S-band)
+    GS->>BPA: Ephemeris update bundle (via KISS/LTP S-band)
     BPA->>EPH: Validate ephemeris format and epoch
     alt Ephemeris valid and newer than stored
         EPH->>NVM: Persist new ephemeris data
@@ -918,7 +918,7 @@ The following data models from Phase 3 are carried forward unchanged:
 - `nvm_header_t`, `nvm_bundle_entry_t` — NVM storage layout (extended addressing for 256 MB–1 GB)
 - `rate_limiter_entry_t`, `rate_limiter_config_t` — rate limiting state
 - `iq_sample_t`, `dsp_config_t` — IQ DSP types
-- `callsign_t` — AX.25 callsign
+- `callsign_t` — amateur radio callsign (used in DTN EID: dtn://callsign-ssid)
 - `link_metrics_t` — CLA link metrics
 - `power_state_t`, `power_metrics_t` — power management
 - `pool_stats_t` — pool allocator
@@ -1202,19 +1202,19 @@ def cgrInterpolate (eph : EphemerisTable) (time : Nat) : IO (Except String (Vect
 
 ### Property 14: End-to-End S-Band Radio Path Round-Trip
 
-*For any* valid Bundle, encapsulating it into AX.25/LTP frames, encoding with LDPC/Turbo FEC, modulating to IQ baseband samples (BPSK at 500 bps), demodulating the IQ samples, decoding FEC, and reassembling the frames into a bundle SHALL produce a Bundle equivalent to the original.
+*For any* valid Bundle, encapsulating it into KISS/LTP frames, encoding with LDPC/Turbo FEC, modulating to IQ baseband samples (BPSK at 500 bps), demodulating the IQ samples, decoding FEC, and reassembling the frames into a bundle SHALL produce a Bundle equivalent to the original.
 
 **Validates: Requirements 1.7, 13.5**
 
-### Property 15: AX.25 Callsign Framing
+### Property 15: DTN EID Station Identification
 
-*For any* bundle transmitted through the CLA, the output AX.25 frame SHALL carry a valid source amateur radio callsign and a valid destination amateur radio callsign.
+*For any* bundle transmitted through the CLA, the bundle SHALL contain a valid source DTN EID (dtn://callsign-ssid) and a valid destination DTN EID embedding amateur radio callsigns for station identification.
 
 **Validates: Requirement 13.1**
 
 ### Property 16: LTP Segmentation/Reassembly Round-Trip
 
-*For any* valid bundle whose serialized size exceeds a single AX.25 frame, LTP segmentation into multiple AX.25 frames and subsequent reassembly SHALL produce a bundle equivalent to the original.
+*For any* valid bundle whose serialized size exceeds a single KISS frame, LTP segmentation into multiple KISS frames and subsequent reassembly SHALL produce a bundle equivalent to the original.
 
 **Validates: Requirement 13.3**
 
@@ -1373,7 +1373,7 @@ def cgrInterpolate (eph : EphemerisTable) (time : Nat) : IO (Except String (Vect
 ### Error Scenario 3: FEC Decode Failure
 
 **Condition**: LDPC/Turbo decoder cannot correct errors in a received block (errors exceed correction capability).
-**Response**: Discard the corrupted block. Increment `fec_decode_failures` counter. The AX.25/LTP frame is incomplete — LTP will not ACK the segment.
+**Response**: Discard the corrupted block. Increment `fec_decode_failures` counter. The KISS/LTP frame is incomplete — LTP will not ACK the segment.
 **Recovery**: The sender retains the data (LTP will not receive an ACK) and retransmits during the current arc (if time remains) or the next contact. FEC statistics reported in telemetry.
 
 ### Error Scenario 4: Bundle Corruption (CRC Failure)

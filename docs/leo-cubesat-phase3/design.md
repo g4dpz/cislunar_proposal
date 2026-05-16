@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design describes the Phase 3 LEO CubeSat Flight system — the orbital deployment of the DTN flight unit validated in Phase 2. The STM32U585 OBC runs the complete flight software stack autonomously: ION-DTN (BPv7/LTP over AX.25), IQ baseband DSP, NVM bundle store, CGR contact prediction, Doppler compensation, and power management. There is no companion host — everything runs on the STM32U585 Cortex-M33 at 160 MHz with 786 KB SRAM and 64–256 MB external SPI/QSPI NVM.
+This design describes the Phase 3 LEO CubeSat Flight system — the orbital deployment of the DTN flight unit validated in Phase 2. The STM32U585 OBC runs the complete flight software stack autonomously: ION-DTN (BPv7/LTP over KISS), IQ baseband DSP, NVM bundle store, CGR contact prediction, Doppler compensation, and power management. There is no companion host — everything runs on the STM32U585 Cortex-M33 at 160 MHz with 786 KB SRAM and 64–256 MB external SPI/QSPI NVM.
 
 The key architectural changes from Phase 2 are:
 
@@ -16,7 +16,7 @@ The key architectural changes from Phase 2 are:
 8. **Hardware watchdog**: Configurable watchdog timer for firmware hang detection and automatic reset.
 
 The system operates at UHF 437 MHz / 9.6 kbps (GMSK/BPSK). Contact windows are 5–10 minutes per pass, 4–6 passes per day per ground station. Power budget is 5–10 W active, ~16 µA in Stop 2 mode between passes. The system supports ping and store-and-forward. No relay.
-Phase 2 components carried forward unchanged: ION-DTN BPA (BPv7 creation/validation/serialization), NVM Bundle Store (atomic writes, priority index, eviction), AX.25 CLA plugin architecture, IQ baseband DSP (GFSK/G3RUH modulation/demodulation core), pool allocator, rate limiting, bundle size limits, priority ordering.
+Phase 2 components carried forward unchanged: ION-DTN BPA (BPv7 creation/validation/serialization), NVM Bundle Store (atomic writes, priority index, eviction), KISS CLA plugin architecture, IQ baseband DSP (GFSK/G3RUH modulation/demodulation core), pool allocator, rate limiting, bundle size limits, priority ordering.
 
 ### Scope Boundaries
 
@@ -33,7 +33,7 @@ graph TD
             NC[Node Controller<br/>Autonomous operation cycle<br/>Wake → Communicate → Sleep]
             BPA[Bundle Protocol Agent<br/>ION-DTN BPA — BPv7 bundles]
             LTP_E[LTP Engine<br/>ION-DTN LTP — reliable transfer]
-            CLA[AX.25 CLA Plugin<br/>ION CLA — Flight Transceiver adapter<br/>Adapted from Phase 2]
+            CLA[KISS CLA (ltpkisscli/ltpkissclo)<br/>ION CLA — Flight Transceiver adapter<br/>Adapted from Phase 2]
             DSP[IQ Baseband DSP<br/>GMSK/BPSK mod/demod<br/>DMA streaming + Doppler comp]
             BS[Bundle Store<br/>NVM-backed — SPI/QSPI flash<br/>64–256 MB external]
             IDX[Bundle Index<br/>SRAM — priority-ordered metadata<br/>CRC + redundant copy]
@@ -102,7 +102,7 @@ graph TD
     subgraph "STM32U585 SRAM — 786 KB Total"
         ION_MEM["ION-DTN Runtime<br/>~256 KB<br/>BPA, LTP state, CLA buffers"]
         IQ_BUF["IQ Sample Buffers<br/>~128 KB<br/>TX double-buffer + RX double-buffer<br/>DMA ping-pong"]
-        AX25_BUF["AX.25/LTP Frame Buffers<br/>~48 KB<br/>TX frame + RX frame + reassembly"]
+        KISS_BUF["KISS/LTP Frame Buffers<br/>~48 KB<br/>TX frame + RX frame + reassembly"]
         IDX_MEM["Bundle Metadata Index<br/>~48 KB<br/>Priority-ordered + CRC + redundant copy"]
         CGR_MEM["CGR Engine State<br/>~48 KB<br/>SGP4/SDP4 state, predicted contacts<br/>TLE, ground station catalog"]
         POOL["Static Pool Allocator<br/>~226 KB<br/>Fixed-size block pools<br/>No dynamic heap"]
@@ -110,7 +110,7 @@ graph TD
 
     style ION_MEM fill:#1a3a5c,color:#fff
     style IQ_BUF fill:#5c1a3a,color:#fff
-    style AX25_BUF fill:#5c1a3a,color:#fff
+    style KISS_BUF fill:#5c1a3a,color:#fff
     style IDX_MEM fill:#5c3a1a,color:#fff
     style CGR_MEM fill:#1a5c3a,color:#fff
     style POOL fill:#3a5c1a,color:#fff
@@ -162,7 +162,7 @@ sequenceDiagram
         NC->>WDT: Kick watchdog
         NC->>BS: Get queued bundles for GS-W1AW (priority order)
         BS-->>NC: Bundles [critical, expedited, normal, bulk]
-        NC->>CLA: Transmit bundles via AX.25/LTP/IQ
+        NC->>CLA: Transmit bundles via KISS/LTP/IQ
         CLA->>DOP: Apply TX Doppler pre-compensation
         DOP->>XCVR: TX IQ samples (DMA)
         XCVR-->>DOP: RX IQ samples (DMA)
@@ -188,15 +188,15 @@ sequenceDiagram
     participant GS as Ground Station (Tier 2)
     participant XCVR as Flight Transceiver
     participant DSP as IQ DSP + Doppler
-    participant CLA as AX.25 CLA
+    participant CLA as KISS CLA
     participant BPA as BPA (ION-DTN)
     participant BS as Bundle Store (NVM)
 
     Note over GS,XCVR: Satellite pass begins — CubeSat woke autonomously
-    GS->>XCVR: Uplink AX.25/LTP frames (UHF 437 MHz, 9.6 kbps)
+    GS->>XCVR: Uplink KISS/LTP frames (UHF 437 MHz, 9.6 kbps)
     XCVR->>DSP: RX IQ samples (DMA)
     DSP->>DSP: Apply Doppler correction to RX
-    DSP->>CLA: Demodulated AX.25 frames
+    DSP->>CLA: Demodulated KISS frames
     CLA->>BPA: LTP segments → BPv7 bundle
     BPA->>BS: Store bundle (atomic write + CRC)
     BPA->>CLA: LTP ACK
@@ -209,7 +209,7 @@ sequenceDiagram
 
     Note over GS,XCVR: Later pass over destination GS2
     BS->>BPA: Retrieve queued bundles (priority order)
-    BPA->>CLA: BPv7 → LTP → AX.25
+    BPA->>CLA: BPv7 → LTP → KISS
     CLA->>DSP: Modulate → IQ
     DSP->>DSP: Apply TX Doppler pre-compensation
     DSP->>XCVR: TX IQ (DMA)
@@ -227,7 +227,7 @@ sequenceDiagram
     participant CAT as Ground Station Catalog
     participant NVM as NVM Storage
 
-    GS->>BPA: TLE update bundle (via AX.25/LTP)
+    GS->>BPA: TLE update bundle (via KISS/LTP)
     BPA->>TLE: Validate TLE format and epoch
     alt TLE valid and newer than stored
         TLE->>NVM: Persist new TLE data
@@ -476,7 +476,7 @@ doppler_status_t doppler_get_status(void);
 
 **Adapted from Phase 2.** Same ION-DTN CLA plugin architecture. The key change: the CLA now interfaces directly with the flight IQ transceiver IC via STM32U585 DMA → DAC/ADC or SPI, instead of the Phase 2 path through the companion host IQ bridge to the B200mini.
 
-**Interface**: Same as Phase 2 `cla_*` and `ax25iq_*` functions. The `cla_config_t` gains a Doppler profile field:
+**Interface**: Same as Phase 2 `cla_*` and `kissiq_*` functions. The `cla_config_t` gains a Doppler profile field:
 
 ```c
 /* --- CLA Configuration (Phase 3 additions) --- */
@@ -822,7 +822,7 @@ The following data models from Phase 2 are carried forward unchanged:
 - `nvm_header_t`, `nvm_bundle_entry_t` — NVM storage layout
 - `rate_limiter_entry_t`, `rate_limiter_config_t` — rate limiting state
 - `iq_sample_t`, `dsp_config_t` — IQ DSP types
-- `callsign_t` — AX.25 callsign
+- `callsign_t` — amateur radio callsign (used in DTN EID: dtn://callsign-ssid)
 - `link_metrics_t` — CLA link metrics
 - `power_state_t`, `power_metrics_t` — power management
 - `pool_id_t`, `pool_stats_t` — pool allocator
@@ -1024,19 +1024,19 @@ The following properties cover both Phase 2 carry-forward properties (adapted fo
 
 ### Property 14: End-to-End Radio Path Round-Trip
 
-*For any* valid Bundle, encapsulating it into AX.25/LTP frames, modulating to IQ baseband samples (GMSK/BPSK), demodulating the IQ samples back, and reassembling the frames into a bundle SHALL produce a Bundle equivalent to the original. This validates the complete flight transceiver DSP path.
+*For any* valid Bundle, encapsulating it into KISS/LTP frames, modulating to IQ baseband samples (GMSK/BPSK), demodulating the IQ samples back, and reassembling the frames into a bundle SHALL produce a Bundle equivalent to the original. This validates the complete flight transceiver DSP path.
 
 **Validates: Requirements 1.7, 12.5**
 
-### Property 15: AX.25 Callsign Framing
+### Property 15: DTN EID Station Identification
 
-*For any* bundle transmitted through the CLA, the output AX.25 frame SHALL carry a valid source amateur radio callsign and a valid destination amateur radio callsign.
+*For any* bundle transmitted through the CLA, the bundle SHALL contain a valid source DTN EID (dtn://callsign-ssid) and a valid destination DTN EID embedding amateur radio callsigns for station identification.
 
 **Validates: Requirements 12.1**
 
 ### Property 16: LTP Segmentation/Reassembly Round-Trip
 
-*For any* valid bundle whose serialized size exceeds a single AX.25 frame, LTP segmentation into multiple AX.25 frames and subsequent reassembly SHALL produce a bundle equivalent to the original.
+*For any* valid bundle whose serialized size exceeds a single KISS frame, LTP segmentation into multiple KISS frames and subsequent reassembly SHALL produce a bundle equivalent to the original.
 
 **Validates: Requirements 12.3**
 
@@ -1246,7 +1246,7 @@ Test each component in isolation with example-based tests:
 - **Doppler Compensator (C)**: Doppler profile loading and interpolation. RX correction with known frequency offsets. TX pre-compensation. Boundary values (±10 kHz, 0 Hz). Profile clearing between passes.
 - **TLE Manager (C)**: TLE validation (checksums, field ranges). Epoch comparison for update acceptance/rejection. NVM persistence and reload. Staleness threshold and margin factor computation.
 - **Ground Station Catalog (C)**: Entry validation (lat/lon/alt/elevation ranges). Add/update/find operations. NVM persistence and reload. Capacity limit (32 stations).
-- **IQ Baseband DSP (C)**: Modulation of known AX.25 frames. Demodulation of known IQ samples. DMA buffer management. Signal quality measurement.
+- **IQ Baseband DSP (C)**: Modulation of known KISS frames. Demodulation of known IQ samples. DMA buffer management. Signal quality measurement.
 - **Radiation Monitor (C)**: Region registration. CRC computation and validation. Single-bit flip detection. Recovery from redundant copy. Dual-corruption detection. SEU counter.
 - **Time Manager (C)**: Time sync with corrections above/below threshold. Staleness detection. Time-since-sync computation.
 - **Watchdog Manager (C)**: Initialization with configurable timeout. Reset cause detection.
@@ -1280,9 +1280,9 @@ Key property tests (all C firmware, using theft):
 11. **ACK/no-ACK behavior** (Property 11): Generate random transmission scenarios with random ACK outcomes. Verify ACKed bundles deleted, unACKed retained.
 12. **Bundle retention without contact** (Property 12): Generate bundles with no matching contacts. Verify retention until contact added or lifetime expires.
 13. **No relay** (Property 13): Generate random bundles and contacts. Verify bundles only transmitted to contacts matching their destination.
-14. **End-to-end radio path round-trip** (Property 14): Generate random valid bundles. Push through full stack: BPv7 → LTP → AX.25 → IQ mod (GMSK/BPSK) → IQ demod → AX.25 → LTP → BPv7. Assert bundle equality.
-15. **AX.25 callsign framing** (Property 15): Generate random bundles. Transmit through CLA. Verify output AX.25 frames carry valid source/dest callsigns.
-16. **LTP segmentation/reassembly** (Property 16): Generate random bundles of varying sizes (some exceeding single AX.25 frame). Segment via LTP, reassemble. Assert bundle equality.
+14. **End-to-end radio path round-trip** (Property 14): Generate random valid bundles. Push through full stack: BPv7 → LTP → KISS → IQ mod (GMSK/BPSK) → IQ demod → KISS → LTP → BPv7. Assert bundle equality.
+15. **DTN EID station identification** (Property 15): Generate random bundles. Transmit through CLA. Verify bundles contain valid source/dest DTN EIDs (dtn://callsign-ssid).
+16. **LTP segmentation/reassembly** (Property 16): Generate random bundles of varying sizes (some exceeding single KISS frame). Segment via LTP, reassemble. Assert bundle equality.
 17. **No transmission after window end** (Property 17): Generate random contact windows and time sequences. Verify no transmission after end time.
 18. **Missed contact retains bundles** (Property 18): Generate random failed contacts (mock transceiver failure after 3 retries). Verify bundles retained and missed counter incremented.
 19. **Sleep decision** (Property 19): Generate random system states (contact active/inactive, pending work, next contact time). Verify sleep decision and RTC alarm correctness.

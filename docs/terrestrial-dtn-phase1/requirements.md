@@ -6,7 +6,7 @@ This document specifies the requirements for Phase 1 of the cislunar amateur DTN
 
 The system supports two core operations: ping (DTN reachability test) and store-and-forward (point-to-point bundle delivery). There is no relay functionality — nodes do not forward bundles on behalf of other nodes. All bundle delivery is direct (source → destination).
 
-The protocol stack is BPv7 bundles over LTP sessions over AX.25 frames. AX.25 provides callsign-based source/destination addressing for amateur radio regulatory compliance. LTP provides reliable transfer with deferred acknowledgment. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
+The protocol stack is BPv7 bundles over LTP sessions over KISS frames. Station identification for amateur radio regulatory compliance is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) in the bundle primary block, plus periodic beacon bundles. LTP provides reliable transfer with deferred acknowledgment. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
 
 This spec is scoped exclusively to terrestrial ground nodes. STM32U585 OBC, IQ baseband/SDR, Ettus B200mini, CGR contact prediction, orbital mechanics, space segment (CubeSat, cislunar), S-band/X-band communications, and flight-qualified hardware are out of scope.
 
@@ -16,11 +16,11 @@ This spec is scoped exclusively to terrestrial ground nodes. STM32U585 OBC, IQ b
 - **Bundle**: A BPv7 protocol data unit carrying a payload between DTN endpoints
 - **Bundle_Store**: Persistent storage subsystem on the local filesystem for bundles awaiting delivery
 - **Contact_Plan_Manager**: Subsystem that maintains a manually configured schedule of communication windows between ground nodes
-- **CLA**: Convergence Layer Adapter — interfaces ION-DTN's AX.25/LTP stack with the Mobilinkd TNC4 over USB
+- **CLA**: Convergence Layer Adapter — provides KISS framing as the LTP link service layer, using ION-DTN's native ltpkisscli/ltpkissclo programs, interfacing with the Mobilinkd TNC4 over USB
 - **Node_Controller**: Top-level orchestrator that ties together BPA, Bundle_Store, Contact_Plan_Manager, and CLA on each host node
 - **ION-DTN**: NASA JPL's Interplanetary Overlay Network — the DTN implementation providing BPv7, LTP, and related protocols
-- **LTP**: Licklider Transmission Protocol — runs on top of AX.25 providing reliable transfer with deferred acknowledgment
-- **AX.25**: Link-layer framing protocol providing callsign-based source/destination addressing for amateur radio compliance
+- **LTP**: Licklider Transmission Protocol — runs directly over KISS framing, providing reliable transfer with deferred acknowledgment
+- **KISS**: Minimal serial framing protocol (FEND/CMD/DATA/FEND) wrapping LTP segments for TNC transport
 - **TNC4**: Mobilinkd TNC4 terminal node controller — USB-connected TNC interfacing with the FT-817 radio
 - **FT-817**: Yaesu FT-817 portable transceiver with 9600 baud data port for G3RUH-compatible GFSK modulation
 - **Ping**: DTN reachability test — send a bundle echo request and receive an echo response
@@ -118,23 +118,23 @@ This spec is scoped exclusively to terrestrial ground nodes. STM32U585 OBC, IQ b
 
 #### Acceptance Criteria
 
-1. WHEN a Contact_Window becomes active (current time reaches the window start time), THE CLA SHALL establish the AX.25/LTP link via the TNC4 and THE Node_Controller SHALL begin transmitting queued bundles destined for the contact's remote node
+1. WHEN a Contact_Window becomes active (current time reaches the window start time), THE CLA SHALL establish the LTP-over-KISS link via the TNC4 and THE Node_Controller SHALL begin transmitting queued bundles destined for the contact's remote node
 2. THE Node_Controller SHALL cease all transmission when the Contact_Window end time is reached
 3. WHEN a Contact_Window completes, THE Node_Controller SHALL record link metrics (bytes transferred, duration, bundles sent, bundles received) and update contact statistics
-4. IF the CLA fails to establish a link during a scheduled Contact_Window (TNC4 not responding, radio not keyed, or no AX.25 connection established), THEN THE Node_Controller SHALL mark the contact as missed, retain all queued bundles for the next window, and increment the contacts-missed counter
+4. IF the CLA fails to establish a link during a scheduled Contact_Window (TNC4 not responding, radio not keyed, or no KISS connection established), THEN THE Node_Controller SHALL mark the contact as missed, retain all queued bundles for the next window, and increment the contacts-missed counter
 
-### Requirement 9: AX.25 and LTP Convergence Layer
+### Requirement 9: KISS CLA and LTP Convergence Layer
 
-**User Story:** As an amateur radio operator, I want all DTN transmissions to use AX.25 framing with callsign addressing over LTP, so that every transmission complies with amateur radio regulations and provides reliable transfer.
+**User Story:** As an amateur radio operator, I want all DTN transmissions to use KISS framing with callsign-embedded DTN EIDs (dtn://callsign-ssid) over LTP, so that every transmission complies with amateur radio regulations and provides reliable transfer.
 
 #### Acceptance Criteria
 
-1. THE CLA SHALL encapsulate all bundle transmissions in AX.25 frames carrying the source amateur radio callsign and the destination amateur radio callsign
-2. THE CLA SHALL run LTP sessions on top of AX.25 frames, providing reliable transfer with deferred acknowledgment for all bundle delivery
-3. THE CLA SHALL perform LTP segmentation for bundles that exceed a single AX.25 frame size, and reassemble received LTP segments into complete bundles
-4. THE CLA SHALL interface with the Mobilinkd TNC4 via USB serial connection (not Bluetooth) for all AX.25 packet operations
+1. THE CLA SHALL encapsulate all bundle transmissions in KISS frames carrying LTP segments, with station identification provided by the callsign embedded in the DTN Endpoint Identifier (dtn://callsign-ssid) in every bundle's primary block
+2. THE CLA SHALL run LTP sessions directly over KISS frames, providing reliable transfer with deferred acknowledgment for all bundle delivery
+3. THE CLA SHALL perform LTP segmentation for bundles that exceed a single KISS frame size, and reassemble received LTP segments into complete bundles
+4. THE CLA SHALL interface with the Mobilinkd TNC4 via USB serial connection (not Bluetooth) for all KISS frame operations
 5. THE CLA SHALL drive the FT-817 radio at 9600 baud through its 9600 baud data port using G3RUH-compatible GFSK modulation
-6. FOR ALL valid Bundle objects, encapsulating a bundle into AX.25/LTP frames and then reassembling the frames back into a bundle SHALL produce a bundle equivalent to the original (round-trip property)
+6. FOR ALL valid Bundle objects, encapsulating a bundle into LTP segments over KISS frames and then reassembling the frames back into a bundle SHALL produce a bundle equivalent to the original (round-trip property)
 
 ### Requirement 10: No Cryptography (Amateur Radio Compliance)
 

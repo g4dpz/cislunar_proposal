@@ -2,14 +2,14 @@
 
 ## Overview
 
-Phase 1 validates ION-DTN over amateur radio using the existing ION-DTN KISS CLA (`ltpkisscli`/`ltpkissclo`) with Mobilinkd TNC4 and Yaesu FT-817 at 9600 baud. ION-DTN provides BPv7, LTP, bundle storage, priority handling, and lifetime enforcement out of the box. Our code is limited to: AX.25 frame validation tools (already done), ION-DTN configuration, a thin Go orchestration wrapper for node lifecycle and telemetry, and integration testing.
+Phase 1 validates ION-DTN over amateur radio using the existing ION-DTN KISS CLA (`ltpkisscli`/`ltpkissclo`) with Mobilinkd TNC4 and Yaesu FT-817 at 9600 baud. ION-DTN provides BPv7, LTP, bundle storage, priority handling, and lifetime enforcement out of the box. Our code is limited to: KISS frame validation tools (already done), ION-DTN configuration, a thin Go orchestration wrapper for node lifecycle and telemetry, and integration testing.
 
 The ION-DTN KISS CLA is located at `ION-DTN/ltp/kiss/` and provides `ltpkissclo` (transmit) and `ltpkisscli` (receive) programs that wrap LTP segments in KISS frames for serial TNCs.
 
 ## Tasks
 
-- [x] 1. Half-Duplex AX.25 Transfer Validation (Pre-ION-DTN)
-  - [x] 1.1 Implement basic AX.25 frame construction and parsing
+- [x] 1. Half-Duplex KISS Transfer Validation (Pre-ION-DTN)
+  - [x] 1.1 Implement basic KISS frame construction and parsing
     - Created `ax25/` Go package with `BuildUIFrame`, `ParseFrame`, `ParseCallsign`
     - _Requirements: 9.1, 9.4, 9.5_
 
@@ -17,15 +17,15 @@ The ION-DTN KISS CLA is located at `ION-DTN/ltp/kiss/` and provides `ltpkissclo`
     - Created `kiss/` Go package with KISS encode/decode and TNC serial interface
     - _Requirements: 9.4, 9.5_
 
-  - [x] 1.3 Implement half-duplex AX.25 send/receive test harness
+  - [x] 1.3 Implement half-duplex KISS send/receive test harness
     - Created `cmd/ax25send/` and `cmd/ax25recv/` CLI tools
     - _Requirements: 9.1, 9.5_
 
-  - [x] 1.4 Write AX.25 frame round-trip test (loopback or two-node)
+  - [x] 1.4 Write KISS frame round-trip test (loopback or two-node)
     - Validated G4DPZ-1 ↔ G4DPZ-2 over TNC4 + FT-817 at 9600 baud in both directions
     - _Requirements: 9.1, 9.5, 9.6_
 
-- [x] 2. Checkpoint — Half-duplex AX.25 link validated. AX.25 frames sent and received between two nodes over TNC4 + FT-817 at 9600 baud.
+- [x] 2. Checkpoint — Half-duplex KISS link validated. KISS frames sent and received between two nodes over TNC4 + FT-817 at 9600 baud.
 
 - [x] 3. Build ION-DTN with KISS CLA
   - [x] 3.1 Build ION-DTN from source with KISS CLA enabled
@@ -183,5 +183,5 @@ The ION-DTN KISS CLA is located at `ION-DTN/ltp/kiss/` and provides `ltpkissclo`
 - ION-DTN provides: BPv7, LTP, bundle storage, priority queuing, lifetime enforcement, eviction — we do NOT reimplement these
 - ION-DTN's KISS CLA (`ltpkisscli`/`ltpkissclo`) handles KISS framing and serial I/O — we do NOT reimplement this
 - Our Go code is a thin orchestration layer: node lifecycle, telemetry collection, contact plan management, and CLI
-- The `ax25/` and `kiss/` Go packages from tasks 1.1-1.4 remain useful for standalone AX.25 testing and debugging
+- The `ax25/` and `kiss/` Go packages from tasks 1.1-1.4 remain useful for standalone KISS testing and debugging
 - Mobilinkd TNC4 devices: `/dev/tty.usbmodem2086327235531` (Node A) and `/dev/tty.usbmodem20A5329335531` (Node B)
