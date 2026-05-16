@@ -2,11 +2,11 @@
 
 ## Overview
 
-This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C firmware on the STM32U585 (ION-DTN BPv7/LTP, KISS CLA, IQ baseband DSP, NVM bundle store, power management, static pool allocator) and Go orchestration on the Companion Host (Node Controller, Contact Plan Manager, IQ Bridge, telemetry, test orchestration). Tasks are ordered so each builds on the previous, with property-based tests (theft for C, rapid for Go) placed close to the code they validate.
+This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C firmware on the STM32U585 (HDTN BPv7/LTP, KISS CLA, IQ baseband DSP, NVM bundle store, power management, static pool allocator) and Go orchestration on the Companion Host (Node Controller, Contact Plan Manager, IQ Bridge, telemetry, test orchestration). Tasks are ordered so each builds on the previous, with property-based tests (theft for C, rapid for Go) placed close to the code they validate.
 
 ## Tasks
 
-- [ ] 1. Half-Duplex KISS Transfer Validation via IQ Baseband (Pre-ION-DTN)
+- [ ] 1. Half-Duplex KISS Transfer Validation via IQ Baseband (Pre-HDTN)
   - [ ] 1.1 Implement basic KISS frame construction and parsing (C — STM32U585)
     - Implement KISS frame builder with FEND/CMD/DATA/FEND structure
     - Implement KISS frame parser to extract data field
@@ -37,11 +37,11 @@ This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C fir
   - [ ] 1.5 Write KISS frame round-trip test (EM ↔ ground station)
     - Send a frame from ground station → B200mini → STM32U585 (receive and verify)
     - Send a frame from STM32U585 → B200mini → ground station (receive and verify)
-    - Confirm half-duplex KISS link over IQ baseband is operational before proceeding to ION-DTN integration
+    - Confirm half-duplex KISS link over IQ baseband is operational before proceeding to HDTN integration
     - _Requirements: 7.7, 8.5_
 
 - [ ] 2. Checkpoint — Half-duplex KISS over IQ baseband validated
-  - Ensure KISS frames can be sent and received between the STM32U585 EM and a ground station over the B200mini IQ baseband path at 9.6 kbps UHF before proceeding to ION-DTN integration.
+  - Ensure KISS frames can be sent and received between the STM32U585 EM and a ground station over the B200mini IQ baseband path at 9.6 kbps UHF before proceeding to HDTN integration.
 
 - [ ] 3. Static Memory Pool Allocator (C — STM32U585)
   - [ ] 1.1 Implement pool allocator core (`pool_init`, `pool_alloc`, `pool_free`, `pool_stats`, `pool_total_used_bytes`, `pool_peak_used_bytes`)
@@ -262,18 +262,18 @@ This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C fir
     - _Requirements: 7.1, 7.2_
 
 - [ ] 10. KISS CLA Plugin (C — STM32U585)
-  - [ ] 8.1 Implement CLA plugin lifecycle and ION-DTN registration (`cla_init`, `cla_activate_link`, `cla_deactivate_link`, `cla_shutdown`)
+  - [ ] 8.1 Implement CLA plugin lifecycle and HDTN registration (`cla_init`, `cla_activate_link`, `cla_deactivate_link`, `cla_shutdown`)
     - Define `cla_status_t`, `link_metrics_t`, `cla_config_t`
-    - Register as native ION-DTN CLA plugin implementing LTP link service adapter
+    - Register as native HDTN CLA plugin implementing LTP link service adapter
     - Configure DMA channels for IQ streaming on link activation
     - Stop DMA and flush buffers on link deactivation
     - _Requirements: 8.4_
 
   - [ ] 8.2 Implement CLA send/receive paths (`kissiq_send_segment`, `kissiq_recv_process`)
     - `kissiq_send_segment`: wrap LTP segment in KISS frame → modulate GFSK/G3RUH → stream IQ via DMA
-    - `kissiq_recv_process`: demodulate IQ from DMA → extract KISS frames → deliver LTP segments to ION's LTP engine
+    - `kissiq_recv_process`: demodulate IQ from DMA → extract KISS frames → deliver LTP segments to HDTN's LTP engine
     - Station identification via callsign-embedded DTN EIDs (dtn://callsign-ssid) in every bundle
-    - LTP segmentation/reassembly handled by ION-DTN's LTP engine natively
+    - LTP segmentation/reassembly handled by HDTN's LTP engine natively
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
   - [ ] 8.3 Implement link metrics collection (`cla_status`, `cla_get_metrics`)
@@ -313,7 +313,7 @@ This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C fir
     - Dispatch commands to BPA, CLA, power manager, store subsystems
     - Send telemetry and status responses back to Node Controller
     - Respond to telemetry requests within 500 ms
-    - Non-blocking: integrates into firmware main loop without stalling ION-DTN
+    - Non-blocking: integrates into firmware main loop without stalling HDTN
     - _Requirements: 15.1, 15.4, 18.3_
 
   - [ ]* 10.2 Write unit tests for UART command handler
@@ -516,6 +516,6 @@ This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C fir
 - C firmware tests use [theft](https://github.com/silentbicycle/theft) for property-based testing
 - Go Companion Host tests use [rapid](https://github.com/flyingmutant/rapid) for property-based testing
 - Each property test references a specific correctness property from the design document
-- ION-DTN is cross-compiled for Cortex-M33 via cgo — the CLA is a native ION-DTN plugin, not a wrapper
+- HDTN is cross-compiled for Cortex-M33 via cgo — the CLA is a native HDTN plugin, not a wrapper
 - All C firmware memory allocation uses the static pool allocator (task 1) — no malloc/free anywhere
 - Checkpoints at tasks 4, 6, 12, 16, 20, and 22 ensure incremental validation

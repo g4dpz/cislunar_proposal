@@ -131,7 +131,7 @@
 - [ ] 11.8 Catalog update flow test: send catalog bundle (with antenna gain), verify station added, CGR re-prediction
 - [ ] 11.9 Time sync flow test: send time sync bundle, verify RTC update based on threshold
 - [ ] 11.10 Radiation simulation test (enhanced): inject bit flips into CRC-protected SRAM and TMR variables, verify detection, recovery, SEU counting, TMR majority vote
-- [ ] 11.11 SRAM budget validation test: run all subsystems concurrently (ION-DTN, IQ DSP, FEC codec, CGR, radiation monitor), verify total ≤ OBC SRAM budget
+- [ ] 11.11 SRAM budget validation test: run all subsystems concurrently (HDTN, IQ DSP, FEC codec, CGR, radiation monitor), verify total ≤ OBC SRAM budget
 - [ ] 11.12 Doppler tracking test: simulated cislunar arc with realistic S-band Doppler profile (±5 kHz, hours-long), verify demodulator lock
 - [ ] 11.13 Stale ephemeris operation test: operate with ephemeris > 7 days old, verify warning and widened margins
 - [ ] 11.14 FEC performance test: inject channel errors at Eb/N0 ≈ 2 dB, verify BER ≤ 1e-5 after decoding

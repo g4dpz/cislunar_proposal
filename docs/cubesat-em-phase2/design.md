@@ -2,21 +2,21 @@
 
 ## Overview
 
-This design describes the Phase 2 CubeSat Engineering Model (EM) system — a ground-based flatsat that validates the flight DTN software stack on representative hardware before orbital deployment. The EM runs ION-DTN (BPv7/LTP over KISS) on an STM32U585 ultra-low-power ARM Cortex-M33 MCU (160 MHz, 2 MB flash, 786 KB SRAM), with C firmware implementing the DTN/radio stack and Go orchestration on a companion Raspberry Pi or PC.
+This design describes the Phase 2 CubeSat Engineering Model (EM) system — a ground-based flatsat that validates the flight DTN software stack on representative hardware before orbital deployment. The EM runs HDTN (BPv7/LTP over KISS) on an STM32U585 ultra-low-power ARM Cortex-M33 MCU (160 MHz, 2 MB flash, 786 KB SRAM), with C firmware implementing the DTN/radio stack and Go orchestration on a companion Raspberry Pi or PC.
 
-The system uses a split architecture: the STM32U585 runs the complete flight software stack in C (ION-DTN BPA, LTP, KISS CLA, IQ baseband DSP, NVM bundle store, power management), while a Go Node Controller on the Companion Host manages contact scheduling, telemetry collection, test orchestration, and bridges IQ samples between the STM32U585 and the Ettus B200mini SDR via UHD. The UART command interface between Go and C firmware carries control messages (contact activate/deactivate, telemetry requests, status queries) — not bundle data. Bundle data flows entirely through the ION-DTN stack on the STM32U585.
+The system uses a split architecture: the STM32U585 runs the complete flight software stack in C (HDTN BPA, LTP, KISS CLA, IQ baseband DSP, NVM bundle store, power management), while a Go Node Controller on the Companion Host manages contact scheduling, telemetry collection, test orchestration, and bridges IQ samples between the STM32U585 and the Ettus B200mini SDR via UHD. The UART command interface between Go and C firmware carries control messages (contact activate/deactivate, telemetry requests, status queries) — not bundle data. Bundle data flows entirely through the HDTN stack on the STM32U585.
 
 The RF path is: STM32U585 (IQ baseband via DMA) → SPI/UART bridge → Companion Host (UHD) → USB 3.0 → B200mini SDR → UHF 437 MHz over-the-air. The B200mini is EM-only; the flight unit replaces it with a dedicated IQ transceiver IC connected directly to the STM32U585.
 
-The CLA is a native ION-DTN CLA plugin adapted from Phase 1's KISS CLA architecture. Phase 1's CLA interfaced with a TNC4 over USB serial; Phase 2's CLA interfaces with the IQ baseband radio path (STM32U585 DMA → IQ Bridge → Companion Host → B200mini). The plugin architecture is identical — it registers with ION-DTN's convergence layer framework as an LTP link service adapter — but the underlying transport is IQ samples instead of TNC4 serial bytes.
+The CLA is a native HDTN CLA plugin adapted from Phase 1's KISS CLA architecture. Phase 1's CLA interfaced with a TNC4 over USB serial; Phase 2's CLA interfaces with the IQ baseband radio path (STM32U585 DMA → IQ Bridge → Companion Host → B200mini). The plugin architecture is identical — it registers with HDTN's convergence layer framework as an LTP link service adapter — but the underlying transport is IQ samples instead of TNC4 serial bytes.
 
-Key constraints: 786 KB SRAM shared across ION-DTN runtime, IQ sample buffers, KISS/LTP frame buffers, and bundle metadata index. Static/pool-based memory allocation only (no dynamic heap). External SPI/QSPI NVM (64–256 MB) for persistent bundle storage. Stop 2 ultra-low-power mode (~16 µA) between simulated passes. No cryptographic operations (amateur radio regulatory compliance).
+Key constraints: 786 KB SRAM shared across HDTN runtime, IQ sample buffers, KISS/LTP frame buffers, and bundle metadata index. Static/pool-based memory allocation only (no dynamic heap). External SPI/QSPI NVM (64–256 MB) for persistent bundle storage. Stop 2 ultra-low-power mode (~16 µA) between simulated passes. No cryptographic operations (amateur radio regulatory compliance).
 
 The system supports ping (DTN reachability test) and store-and-forward (point-to-point bundle delivery). No relay functionality. All bundle delivery is direct (source → destination). Simulated orbital passes (5–10 min windows, 60–90 min gaps, 4–6 passes/day) validate the complete store-and-forward cycle under flight-representative conditions.
 
 ### Scope Boundaries
 
-**In scope**: STM32U585 C firmware (ION-DTN BPv7/LTP, KISS CLA for IQ baseband, GFSK/G3RUH modulation/demodulation, DMA IQ streaming, NVM bundle store, Stop 2 power management, static/pool memory allocation), Go Node Controller on Companion Host (UART command interface, contact scheduling, telemetry, test orchestration, UHD/B200mini IQ bridge), simulated orbital pass testing at UHF 437 MHz / 9.6 kbps. No cryptographic operations (amateur radio regulatory compliance).
+**In scope**: STM32U585 C firmware (HDTN BPv7/LTP, KISS CLA for IQ baseband, GFSK/G3RUH modulation/demodulation, DMA IQ streaming, NVM bundle store, Stop 2 power management, static/pool memory allocation), Go Node Controller on Companion Host (UART command interface, contact scheduling, telemetry, test orchestration, UHD/B200mini IQ bridge), simulated orbital pass testing at UHF 437 MHz / 9.6 kbps. No cryptographic operations (amateur radio regulatory compliance).
 
 **Out of scope**: Flight-qualified IQ transceiver IC (Phase 3), orbital deployment (Phase 3), CGR contact prediction / orbital mechanics (Phase 3), S-band / X-band / cislunar communications (Phase 4), relay functionality, Mobilinkd TNC4 (Phase 1 only).
 
@@ -36,9 +36,9 @@ graph TD
 
     subgraph "STM32U585 OBC — C Firmware"
         subgraph "Non-Secure World"
-            BPA[Bundle Protocol Agent<br/>ION-DTN BPA — BPv7 bundles]
-            LTP_E[LTP Engine<br/>ION-DTN LTP — reliable transfer]
-            CLA[KISS CLA (ltpkisscli/ltpkissclo)<br/>ION CLA — IQ baseband adapter<br/>Adapted from Phase 1 TNC4 CLA]
+            BPA[Bundle Protocol Agent<br/>HDTN BPA — BPv7 bundles]
+            LTP_E[LTP Engine<br/>HDTN LTP — reliable transfer]
+            CLA[HDTN KISS CLA plugin<br/>HDTN CLA — IQ baseband adapter<br/>Adapted from Phase 1 TNC4 CLA]
             DSP[IQ Baseband DSP<br/>GFSK/G3RUH mod/demod<br/>DMA streaming]
             BS[Bundle Store<br/>NVM-backed — SPI/QSPI flash<br/>64–256 MB external]
             IDX[Bundle Index<br/>SRAM — priority-ordered metadata]
@@ -91,17 +91,17 @@ graph LR
 
     subgraph "STM32U585 (C Firmware)"
         UART_C[UART Command Handler]
-        ION[ION-DTN Stack<br/>BPA → LTP → CLA → DSP]
+        HDTN_STACK[HDTN Stack<br/>BPA → LTP → CLA → DSP]
         NVM[NVM Bundle Store]
     end
 
     NC_GO <-->|"UART 115200 baud<br/>Command/Response frames<br/>(contact ctrl, telemetry, status)"| UART_C
-    IQ_GO <-->|"SPI/UART DMA<br/>IQ sample stream<br/>(TX and RX baseband)"| ION
+    IQ_GO <-->|"SPI/UART DMA<br/>IQ sample stream<br/>(TX and RX baseband)"| HDTN_STACK
 
     style NC_GO fill:#2d5016,color:#fff
     style IQ_GO fill:#2d5016,color:#fff
     style UART_C fill:#1a3a5c,color:#fff
-    style ION fill:#1a3a5c,color:#fff
+    style HDTN_STACK fill:#1a3a5c,color:#fff
     style NVM fill:#5c3a1a,color:#fff
 ```
 
@@ -110,7 +110,7 @@ graph LR
 ```mermaid
 graph TD
     subgraph "STM32U585 SRAM — 786 KB Total"
-        ION_MEM["ION-DTN Runtime<br/>~256 KB<br/>BPA, LTP state, CLA buffers"]
+        ION_MEM["HDTN Runtime<br/>~256 KB<br/>BPA, LTP state, CLA buffers"]
         IQ_BUF["IQ Sample Buffers<br/>~128 KB<br/>TX double-buffer + RX double-buffer<br/>DMA ping-pong"]
         KISS_BUF["KISS/LTP Frame Buffers<br/>~64 KB<br/>TX frame + RX frame + reassembly"]
         IDX_MEM["Bundle Metadata Index<br/>~64 KB<br/>Priority-ordered in-SRAM index<br/>Points to NVM bundle locations"]
@@ -149,7 +149,7 @@ sequenceDiagram
     B200->>IQB: RX IQ samples (USB 3.0 / UHD)
     IQB->>FW: RX IQ samples (SPI/UART DMA)
     FW->>FW: Demodulate GFSK/G3RUH → KISS frames
-    FW->>FW: ION-DTN: KISS → LTP → BPv7 bundle
+    FW->>FW: HDTN: KISS → LTP → BPv7 bundle
     FW->>NVM: Store bundle (atomic write + CRC)
     FW-->>IQB: TX IQ: LTP ACK (modulated)
     IQB-->>B200: TX IQ (USB 3.0 / UHD)
@@ -166,7 +166,7 @@ sequenceDiagram
     NC->>FW: UART: CONTACT_ACTIVATE(dest_node, duration)
     FW->>FW: Wake from Stop 2
     FW->>NVM: Retrieve queued bundles (priority order)
-    FW->>FW: ION-DTN: BPv7 → LTP → KISS frames
+    FW->>FW: HDTN: BPv7 → LTP → KISS frames
     FW->>FW: Modulate GFSK/G3RUH → TX IQ
     FW->>IQB: TX IQ samples (SPI/UART DMA)
     IQB->>B200: TX IQ (USB 3.0 / UHD)
@@ -226,7 +226,7 @@ sequenceDiagram
 
 ### Component 1: Bundle Protocol Agent (BPA) — STM32U585 C Firmware
 
-**Purpose**: Core DTN engine running on the STM32U585, responsible for creating, receiving, validating, storing, and delivering BPv7 bundles. Wraps ION-DTN cross-compiled for Cortex-M33. Supports data bundles (store-and-forward), ping request, and ping response. No relay. Uses static/pool memory allocation.
+**Purpose**: Core DTN engine running on the STM32U585, responsible for creating, receiving, validating, storing, and delivering BPv7 bundles. Wraps HDTN cross-compiled for Cortex-M33. Supports data bundles (store-and-forward), ping request, and ping response. No relay. Uses static/pool memory allocation.
 
 **Interface** (C — STM32U585 firmware):
 ```c
@@ -443,7 +443,7 @@ type ContactPlanManager interface {
     // Validates: all contacts within valid-from/valid-to, no overlaps on same link.
     LoadPlan(plan ContactPlan) error
 
-    // LoadFromFile loads a contact plan from a JSON or ION-DTN format config file.
+    // LoadFromFile loads a contact plan from a JSON or HDTN JSON config file.
     LoadFromFile(path string) error
 
     // GetActiveContacts returns contacts active at the given time
@@ -483,7 +483,7 @@ type ContactPlanManager interface {
 
 ### Component 4: Convergence Layer Adapter (CLA) — STM32U585 C Firmware
 
-**Purpose**: Native ION-DTN CLA plugin running on the STM32U585, adapted from Phase 1's KISS CLA architecture. Phase 1's CLA interfaced with a TNC4 over USB serial; this CLA interfaces with the IQ baseband radio path. The plugin registers with ION-DTN's convergence layer framework as an LTP link service adapter — the same plugin architecture as Phase 1. ION-DTN's LTP engine calls the CLA's `sendSegment` callback to transmit LTP segments; the CLA modulates them into IQ samples and streams them via DMA to the IQ Bridge. The receive path demodulates incoming IQ samples into KISS frames and delivers LTP segments back to ION's LTP engine.
+**Purpose**: Native HDTN CLA plugin running on the STM32U585, adapted from Phase 1's KISS CLA architecture. Phase 1's CLA interfaced with a TNC4 over USB serial; this CLA interfaces with the IQ baseband radio path. The plugin registers with HDTN's convergence layer framework as an LTP link service adapter — the same plugin architecture as Phase 1. HDTN's LTP engine calls the CLA's `sendSegment` callback to transmit LTP segments; the CLA modulates them into IQ samples and streams them via DMA to the IQ Bridge. The receive path demodulates incoming IQ samples into KISS frames and delivers LTP segments back to HDTN's LTP engine.
 
 **Interface** (C — STM32U585 firmware):
 ```c
@@ -519,20 +519,20 @@ typedef struct {
     uint32_t   data_rate_bps;      /* 9600 */
 } cla_config_t;
 
-/* --- ION-DTN CLA Plugin Callbacks (called by ION's LTP engine) --- */
+/* --- HDTN CLA Plugin Callbacks (called by HDTN's LTP engine) --- */
 
-/* Called by ION's LTP engine to transmit an LTP segment.
+/* Called by HDTN's LTP engine to transmit an LTP segment.
  * The CLA wraps the segment in a KISS frame, modulates to IQ,
  * and streams via DMA to the IQ Bridge. */
 int kissiq_send_segment(unsigned char *segment, int segment_len, void *context);
 
 /* Receive loop: demodulates IQ samples from DMA, extracts KISS frames,
- * delivers LTP segments to ION's LTP engine via ltpei receive interface. */
+ * delivers LTP segments to HDTN's LTP engine via ltpei receive interface. */
 void kissiq_recv_process(void *context);
 
 /* --- CLA Lifecycle (called by firmware main / UART command handler) --- */
 
-/* Initialize the CLA plugin and register with ION-DTN's CLA framework.
+/* Initialize the CLA plugin and register with HDTN's CLA framework.
  * Configures DMA channels for IQ streaming. */
 bpa_error_t cla_init(const cla_config_t *config);
 
@@ -543,7 +543,7 @@ bpa_error_t cla_activate_link(const callsign_t *remote_callsign);
 /* Deactivate the link. Stops DMA, flushes buffers. */
 bpa_error_t cla_deactivate_link(void);
 
-/* Shutdown the CLA plugin, unregister from ION-DTN. */
+/* Shutdown the CLA plugin, unregister from HDTN. */
 bpa_error_t cla_shutdown(void);
 
 /* Get current CLA status. */
@@ -554,14 +554,14 @@ link_metrics_t cla_get_metrics(void);
 ```
 
 **Responsibilities**:
-- Register as native ION-DTN CLA plugin implementing LTP link service adapter (same architecture as Phase 1)
+- Register as native HDTN CLA plugin implementing LTP link service adapter (same architecture as Phase 1)
 - `sendSegment` callback: wrap LTP segments in KISS frames, modulate GFSK/G3RUH to IQ samples, stream via DMA
-- Receive path: demodulate IQ samples from DMA, extract KISS frames, deliver LTP segments to ION's LTP engine
+- Receive path: demodulate IQ samples from DMA, extract KISS frames, deliver LTP segments to HDTN's LTP engine
 - KISS framing with station identification via callsign-embedded DTN EIDs (dtn://callsign-ssid) in every bundle (regulatory compliance)
 - GFSK/G3RUH modulation/demodulation at 9.6 kbps on UHF 437 MHz
 - DMA-based IQ sample streaming (double-buffered ping-pong) — no CPU-bound sample transfers
 - Link quality monitoring (RSSI, SNR, BER, frame counts)
-- No LTP segmentation/reassembly logic — ION-DTN's LTP engine handles that natively
+- No LTP segmentation/reassembly logic — HDTN's LTP engine handles that natively
 
 
 ### Component 5: IQ Baseband DSP — STM32U585 C Firmware
@@ -675,7 +675,7 @@ void power_log_transition(power_state_t from, power_state_t to);
 
 ### Component 8: UART Command Interface — STM32U585 C Firmware
 
-**Purpose**: Serial command handler on the STM32U585 that receives control messages from the Go Node Controller on the Companion Host. Carries contact activation/deactivation commands, telemetry requests, and status queries. Not used for bundle data — bundles flow through the ION-DTN stack.
+**Purpose**: Serial command handler on the STM32U585 that receives control messages from the Go Node Controller on the Companion Host. Carries contact activation/deactivation commands, telemetry requests, and status queries. Not used for bundle data — bundles flow through the HDTN stack.
 
 **Interface** (C — STM32U585 firmware):
 ```c
@@ -731,7 +731,7 @@ bpa_error_t uart_cmd_send_status(uint8_t status_code,
 - Send telemetry and status responses back to the Node Controller
 - CRC-16 integrity check on all command/response frames
 - Respond to telemetry requests within 500 ms
-- Non-blocking: integrates into the firmware main loop without stalling ION-DTN
+- Non-blocking: integrates into the firmware main loop without stalling HDTN
 
 ### Component 9: Node Controller — Go on Companion Host
 

@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document specifies the requirements for Phase 1 of the cislunar amateur DTN project: terrestrial DTN validation. Phase 1 deploys ION-DTN (NASA JPL's Interplanetary Overlay Network) on Linux or macOS hosts connected via USB to Mobilinkd TNC4 terminal node controllers, which drive Yaesu FT-817 radios at 9600 baud through the 9600 baud data port using G3RUH-compatible GFSK modulation on VHF/UHF amateur bands.
+This document specifies the requirements for Phase 1 of the cislunar amateur DTN project: terrestrial DTN validation. Phase 1 deploys HDTN (NASA Glenn's High-rate Delay Tolerant Networking) on Linux or macOS hosts connected via USB to Mobilinkd TNC4 terminal node controllers, which drive Yaesu FT-817 radios at 9600 baud through the 9600 baud data port using G3RUH-compatible GFSK modulation on VHF/UHF amateur bands.
 
 The system supports two core operations: ping (DTN reachability test) and store-and-forward (point-to-point bundle delivery). There is no relay functionality — nodes do not forward bundles on behalf of other nodes. All bundle delivery is direct (source → destination).
 
@@ -12,13 +12,13 @@ This spec is scoped exclusively to terrestrial ground nodes. STM32U585 OBC, IQ b
 
 ## Glossary
 
-- **BPA**: Bundle Protocol Agent — the core ION-DTN engine that creates, receives, validates, stores, and delivers BPv7 bundles
+- **BPA**: Bundle Protocol Agent — the core HDTN engine that creates, receives, validates, stores, and delivers BPv7 bundles
 - **Bundle**: A BPv7 protocol data unit carrying a payload between DTN endpoints
 - **Bundle_Store**: Persistent storage subsystem on the local filesystem for bundles awaiting delivery
 - **Contact_Plan_Manager**: Subsystem that maintains a manually configured schedule of communication windows between ground nodes
-- **CLA**: Convergence Layer Adapter — provides KISS framing as the LTP link service layer, using ION-DTN's native ltpkisscli/ltpkissclo programs, interfacing with the Mobilinkd TNC4 over USB
+- **CLA**: Convergence Layer Adapter — provides KISS framing as the LTP link service layer, using HDTN's KISS CLA plugin, interfacing with the Mobilinkd TNC4 over USB
 - **Node_Controller**: Top-level orchestrator that ties together BPA, Bundle_Store, Contact_Plan_Manager, and CLA on each host node
-- **ION-DTN**: NASA JPL's Interplanetary Overlay Network — the DTN implementation providing BPv7, LTP, and related protocols
+- **HDTN**: NASA Glenn's High-rate Delay Tolerant Networking — the DTN implementation providing BPv7, LTP, CGR, and related protocols (C++17, modular CLA plugin architecture)
 - **LTP**: Licklider Transmission Protocol — runs directly over KISS framing, providing reliable transfer with deferred acknowledgment
 - **KISS**: Minimal serial framing protocol (FEND/CMD/DATA/FEND) wrapping LTP segments for TNC transport
 - **TNC4**: Mobilinkd TNC4 terminal node controller — USB-connected TNC interfacing with the FT-817 radio
@@ -110,7 +110,7 @@ This spec is scoped exclusively to terrestrial ground nodes. STM32U585 OBC, IQ b
 4. THE Contact_Plan_Manager SHALL reject any contact plan update that would create overlapping Contact_Windows on the same link for a given node
 5. THE Contact_Plan_Manager SHALL validate that all Contact_Windows fall within the plan's valid-from and valid-to time range
 6. WHEN a contact plan is loaded or updated, THE Contact_Plan_Manager SHALL persist the plan to the local filesystem so it survives process restarts
-7. THE Contact_Plan_Manager SHALL support loading contact plans from a human-readable configuration file (ION-DTN contact plan format)
+7. THE Contact_Plan_Manager SHALL support loading contact plans from a human-readable configuration file (HDTN JSON contact plan format)
 
 ### Requirement 8: Contact Window Execution
 

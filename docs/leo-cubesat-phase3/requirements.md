@@ -2,15 +2,15 @@
 
 ## Introduction
 
-This document specifies the requirements for Phase 3 of the cislunar amateur DTN project: LEO CubeSat Flight. Phase 3 takes the validated Phase 2 Engineering Model (EM) software and deploys it on the actual LEO CubeSat in orbit. The STM32U585 OBC is identical to Phase 2, running the same ION-DTN (BPv7/LTP over KISS) firmware — C for the DTN/radio/DSP stack, with no companion host.
+This document specifies the requirements for Phase 3 of the cislunar amateur DTN project: LEO CubeSat Flight. Phase 3 takes the validated Phase 2 Engineering Model (EM) software and deploys it on the actual LEO CubeSat in orbit. The STM32U585 OBC is identical to Phase 2, running the same HDTN (BPv7/LTP over KISS) firmware — C for the DTN/radio/DSP stack, with no companion host.
 
-The key architectural change from Phase 2 is the elimination of the companion host and B200mini SDR. A flight-qualified IQ transceiver IC interfaces directly with the STM32U585 via DAC/ADC or SPI, replacing the B200mini + companion RPi/PC IQ bridge. The STM32U585 runs everything autonomously: ION-DTN BPA, LTP, KISS CLA, IQ baseband DSP, NVM bundle store, power management, and CGR contact prediction. There is no ground operator controlling pass timing — the CubeSat predicts its own contact windows using ION-DTN's CGR module with SGP4/SDP4 orbit propagation from onboard TLE/ephemeris data.
+The key architectural change from Phase 2 is the elimination of the companion host and B200mini SDR. A flight-qualified IQ transceiver IC interfaces directly with the STM32U585 via DAC/ADC or SPI, replacing the B200mini + companion RPi/PC IQ bridge. The STM32U585 runs everything autonomously: HDTN BPA, LTP, KISS CLA, IQ baseband DSP, NVM bundle store, power management, and CGR contact prediction. There is no ground operator controlling pass timing — the CubeSat predicts its own contact windows using HDTN's CGR module with SGP4/SDP4 orbit propagation from onboard TLE/ephemeris data.
 
 The system operates at UHF 437 MHz at 9.6 kbps (GMSK/BPSK via IQ baseband). External SPI/QSPI NVM (64–256 MB) provides persistent bundle storage. Contact windows are 5–10 minutes per pass, 4–6 passes per day per ground station. Power budget is 5–10 W average active, with STM32U585 Stop 2 mode (~16 µA) between passes. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
 
 The system supports two core operations: ping (DTN reachability test) and store-and-forward (point-to-point bundle delivery). There is no relay functionality. All bundle delivery is direct (source → destination).
 
-Phase 2 (EM) is complete and provides the validated STM32U585 firmware: ION-DTN BPA, LTP, KISS CLA plugin architecture, IQ baseband DSP, NVM bundle store with atomic writes, Stop 2 power management, static/pool memory allocation, ping and store-and-forward operations, and the no-relay constraint. Phase 3 adapts the CLA from the B200mini IQ bridge to the flight IQ transceiver IC direct interface, adds CGR-based contact prediction, and operates autonomously in orbit under real orbital dynamics (Doppler, varying elevation, radiation environment).
+Phase 2 (EM) is complete and provides the validated STM32U585 firmware: HDTN BPA, LTP, KISS CLA plugin architecture, IQ baseband DSP, NVM bundle store with atomic writes, Stop 2 power management, static/pool memory allocation, ping and store-and-forward operations, and the no-relay constraint. Phase 3 adapts the CLA from the B200mini IQ bridge to the flight IQ transceiver IC direct interface, adds CGR-based contact prediction, and operates autonomously in orbit under real orbital dynamics (Doppler, varying elevation, radiation environment).
 
 Out of scope: S-band / X-band (Phase 4), cislunar distances (Phase 4), LDPC/Turbo FEC (Phase 4), relay functionality.
 
@@ -19,14 +19,14 @@ Out of scope: S-band / X-band (Phase 4), cislunar distances (Phase 4), LDPC/Turb
 - **STM32U585**: Ultra-low-power ARM Cortex-M33 MCU — 160 MHz, 2 MB flash, 786 KB SRAM — the OBC for the LEO CubeSat (identical to Phase 2 EM)
 - **Flight_Transceiver**: Flight-qualified IQ transceiver IC interfacing directly with the STM32U585 via DAC/ADC or SPI — replaces the Phase 2 B200mini + companion host IQ bridge
 - **NVM**: External SPI/QSPI non-volatile memory (64–256 MB flash) connected to the STM32U585 for persistent bundle storage
-- **BPA**: Bundle Protocol Agent — the core ION-DTN engine running on the STM32U585 that creates, receives, validates, stores, and delivers BPv7 bundles
+- **BPA**: Bundle Protocol Agent — the core HDTN engine running on the STM32U585 that creates, receives, validates, stores, and delivers BPv7 bundles
 - **Bundle_Store**: Persistent storage subsystem backed by external NVM for bundles awaiting delivery
-- **CGR_Engine**: ION-DTN's Contact Graph Routing module running on the STM32U585, used exclusively for contact prediction (pass scheduling via SGP4/SDP4 orbit propagation) — not for multi-hop relay routing
+- **CGR_Engine**: HDTN's Contact Graph Routing module running on the STM32U585, used exclusively for contact prediction (pass scheduling via SGP4/SDP4 orbit propagation) — not for multi-hop relay routing
 - **Contact_Plan_Manager**: Subsystem that maintains CGR-predicted communication windows and manages contact scheduling autonomously onboard the CubeSat
-- **CLA**: Convergence Layer Adapter — native ION-DTN CLA plugin running on the STM32U585 that provides KISS framing as the LTP link service layer, adapted from Phase 2 for the Flight_Transceiver direct interface (no companion host)
+- **CLA**: Convergence Layer Adapter — native HDTN CLA plugin running on the STM32U585 that provides KISS framing as the LTP link service layer, adapted from Phase 2 for the Flight_Transceiver direct interface (no companion host)
 - **Node_Controller**: Top-level autonomous orchestrator running on the STM32U585 — manages the operation cycle (wake, transmit, receive, sleep) without external control
-- **Firmware**: C code running on the STM32U585 (bare metal or lightweight RTOS) implementing ION-DTN BPv7/LTP, KISS CLA, IQ baseband DSP, NVM bundle store, CGR contact prediction, and power management
-- **ION-DTN**: NASA JPL's Interplanetary Overlay Network — the DTN implementation providing BPv7, LTP, CGR, and related protocols, cross-compiled for STM32U585
+- **Firmware**: C code running on the STM32U585 (bare metal or lightweight RTOS) implementing HDTN BPv7/LTP, KISS CLA, IQ baseband DSP, NVM bundle store, CGR contact prediction, and power management
+- **HDTN**: NASA Glenn's High-rate Delay Tolerant Networking — the DTN implementation providing BPv7, LTP, CGR, and related protocols (C++17, modular CLA plugin architecture), cross-compiled for STM32U585
 - **LTP**: Licklider Transmission Protocol — runs directly over KISS framing, providing reliable transfer with deferred acknowledgment
 - **KISS**: Minimal serial framing protocol (FEND/CMD/DATA/FEND) wrapping LTP segments for IQ baseband transport
 - **Stop_2_Mode**: STM32U585 ultra-low-power sleep mode (~16 µA) with SRAM retention, used between orbital passes
@@ -54,7 +54,7 @@ Out of scope: S-band / X-band (Phase 4), cislunar distances (Phase 4), LDPC/Turb
 3. THE Firmware SHALL use the STM32U585 DMA engine for IQ sample streaming between memory and the Flight_Transceiver peripheral interface, avoiding CPU-bound sample transfers
 4. THE CLA SHALL interface with the Flight_Transceiver IQ path (STM32U585 DMA → DAC/ADC or SPI → Flight_Transceiver) instead of the Phase 2 IQ_Bridge path (STM32U585 → SPI/UART → Companion_Host → USB 3.0 → B200mini)
 5. THE Firmware SHALL configure the Flight_Transceiver for UHF 437 MHz center frequency with sufficient bandwidth to support 9.6 kbps GMSK/BPSK modulation
-6. THE Firmware SHALL manage IQ sample buffers within the STM32U585 786 KB SRAM budget, sharing memory with the ION-DTN runtime, Bundle_Store index, and CGR_Engine state
+6. THE Firmware SHALL manage IQ sample buffers within the STM32U585 786 KB SRAM budget, sharing memory with the HDTN runtime, Bundle_Store index, and CGR_Engine state
 7. FOR ALL valid KISS frames, modulating a frame into IQ samples via the Flight_Transceiver path and then demodulating the IQ samples back SHALL produce a frame equivalent to the original (round-trip property for the flight baseband DSP path)
 
 ### Requirement 2: Autonomous CGR Contact Prediction
@@ -69,7 +69,7 @@ Out of scope: S-band / X-band (Phase 4), cislunar distances (Phase 4), LDPC/Turb
 4. THE CGR_Engine SHALL re-compute predicted Contact_Windows when fresh TLE or ephemeris data is received during a ground pass
 5. THE CGR_Engine SHALL maintain a prediction horizon of at least 24 hours of future Contact_Windows
 6. THE CGR_Engine SHALL filter predicted passes by a configurable minimum elevation angle (default 5 degrees) to exclude low-elevation passes with poor link quality
-7. THE CGR_Engine SHALL execute contact prediction computations within the STM32U585 786 KB SRAM budget using the Pool_Allocator, sharing memory with the ION-DTN runtime and IQ buffers
+7. THE CGR_Engine SHALL execute contact prediction computations within the STM32U585 786 KB SRAM budget using the Pool_Allocator, sharing memory with the HDTN runtime and IQ buffers
 8. THE CGR_Engine SHALL use CGR exclusively for contact prediction and pass scheduling — the CGR_Engine SHALL NOT compute multi-hop relay routes
 
 ### Requirement 3: Orbital Parameter Management
@@ -119,7 +119,7 @@ Out of scope: S-band / X-band (Phase 4), cislunar distances (Phase 4), LDPC/Turb
 3. IF a received bundle fails any validation check, THEN THE BPA SHALL discard the bundle and log the specific validation failure reason along with the source Endpoint_ID
 4. THE BPA SHALL support three bundle types: data bundles for store-and-forward payload delivery, ping request bundles for echo requests, and ping response bundles for echo responses
 5. FOR ALL valid Bundle objects, serializing a Bundle to its BPv7 wire format (CBOR) and then parsing the wire format back SHALL produce a Bundle equivalent to the original (round-trip property)
-6. THE BPA SHALL complete bundle creation and validation using a working memory allocation that fits within the STM32U585 786 KB SRAM budget shared with IQ buffers, CGR_Engine state, and the ION-DTN runtime
+6. THE BPA SHALL complete bundle creation and validation using a working memory allocation that fits within the STM32U585 786 KB SRAM budget shared with IQ buffers, CGR_Engine state, and the HDTN runtime
 
 ### Requirement 7: NVM Bundle Storage and Persistence
 
@@ -227,13 +227,13 @@ Out of scope: S-band / X-band (Phase 4), cislunar distances (Phase 4), LDPC/Turb
 
 ### Requirement 17: SRAM Memory Management
 
-**User Story:** As an embedded systems engineer, I want the STM32U585 firmware to operate within the 786 KB SRAM constraint while concurrently running ION-DTN, IQ baseband DSP, CGR contact prediction, and bundle index management, so that the flight memory budget is validated.
+**User Story:** As an embedded systems engineer, I want the STM32U585 firmware to operate within the 786 KB SRAM constraint while concurrently running HDTN, IQ baseband DSP, CGR contact prediction, and bundle index management, so that the flight memory budget is validated.
 
 #### Acceptance Criteria
 
-1. THE Firmware SHALL operate within the STM32U585 786 KB SRAM for all concurrent operations: ION-DTN runtime, IQ sample buffers (TX and RX), KISS/LTP frame buffers, bundle metadata index, and CGR_Engine state and computation buffers
+1. THE Firmware SHALL operate within the STM32U585 786 KB SRAM for all concurrent operations: HDTN runtime, IQ sample buffers (TX and RX), KISS/LTP frame buffers, bundle metadata index, and CGR_Engine state and computation buffers
 2. THE Firmware SHALL use static or pool-based memory allocation (Pool_Allocator) for all runtime data structures, avoiding dynamic heap allocation that could cause fragmentation on the constrained MCU
-3. THE Firmware SHALL report peak and current SRAM utilization as part of telemetry, broken down by subsystem (ION-DTN, IQ buffers, bundle index, CGR_Engine)
+3. THE Firmware SHALL report peak and current SRAM utilization as part of telemetry, broken down by subsystem (HDTN, IQ buffers, bundle index, CGR_Engine)
 4. IF an operation would exceed the SRAM budget, THEN THE Firmware SHALL reject the operation and log the memory exhaustion event rather than corrupting adjacent memory regions
 
 ### Requirement 18: Priority-Based Message Handling

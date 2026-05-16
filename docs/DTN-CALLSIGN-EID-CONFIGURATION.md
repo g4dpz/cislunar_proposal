@@ -1,6 +1,6 @@
-# DTN Callsign EID Configuration for ION-DTN
+# DTN Callsign EID Configuration for HDTN
 
-**Version:** 1.0  
+**Version:** 2.0  
 **Date:** May 16, 2026  
 **Status:** Reference Documentation
 
@@ -8,7 +8,7 @@
 
 ## Overview
 
-ION-DTN supports two Endpoint Identifier (EID) schemes:
+HDTN (NASA Glenn's High-rate Delay Tolerant Networking) supports two Endpoint Identifier (EID) schemes:
 
 | Scheme | Format | Routing | Wire Size | Use Case |
 |--------|--------|---------|-----------|----------|
@@ -42,111 +42,203 @@ dtn://m0xer-1              Another station
 
 ---
 
-## ION-DTN Configuration
+## HDTN JSON Configuration
 
-ION uses separate configuration files for each protocol layer. To add `dtn://` callsign EIDs, you need to configure three files:
+HDTN uses a single JSON configuration file per node. EID configuration, routing, induct/outduct definitions, and contact plans are all specified in this JSON file. The main configuration sections are:
 
-### 1. Bundle Protocol (`node.bprc`)
+- `hdtnConfigName` — node identity and EID configuration
+- `inductsConfig` — convergence layer inbound adapters
+- `outductsConfig` — convergence layer outbound adapters
+- `storageConfig` — bundle storage parameters
+- `contactPlanJson` — contact schedule for CGR
 
-Register the `dtn` scheme and declare local endpoints.
+### Node Configuration (`hdtn-config.json`)
 
+A single JSON file configures the node identity, local endpoints, routing, and convergence layer adapters.
+
+**Node A (G4DPZ, node 1) — `configs/node-a/hdtn-config.json`:**
+```json
+{
+  "hdtnConfigName": "node-a-g4dpz",
+  "userRecycledFilePath": "/tmp/hdtn-node-a/",
+  "myNodeId": 1,
+  "myBpEchoServiceId": 2047,
+  "mySchemeStr": "dtn",
+  "myDtnEidStr": "dtn://g4dpz-1",
+  "myDtnDemuxServices": ["mail", "file", "telemetry", "beacon"],
+  "isAcsAware": false,
+  "inductsConfig": {
+    "inductVector": [
+      {
+        "convergenceLayer": "kiss_ltp",
+        "name": "kissInduct",
+        "boundPort": 0,
+        "kissTncDevice": "/dev/tty.usbmodem2086327235531",
+        "kissBaudRate": 9600,
+        "thisLtpEngineId": 1,
+        "remoteLtpEngineId": 2
+      }
+    ]
+  },
+  "outductsConfig": {
+    "outductVector": [
+      {
+        "convergenceLayer": "kiss_ltp",
+        "name": "kissOutduct",
+        "nextHopNodeId": 2,
+        "kissTncDevice": "/dev/tty.usbmodem2086327235531",
+        "kissBaudRate": 9600,
+        "thisLtpEngineId": 1,
+        "remoteLtpEngineId": 2,
+        "ltpMtu": 512,
+        "ltpDataSegmentRate": 960
+      }
+    ]
+  },
+  "storageConfig": {
+    "storageImplementation": "stdio_multi_threaded",
+    "storageDiskConfigVector": [
+      {
+        "name": "bundleStore",
+        "storeFilePath": "/tmp/hdtn-node-a/bundles/"
+      }
+    ]
+  },
+  "contactPlanJson": {
+    "contacts": [
+      {
+        "source": 1,
+        "dest": 2,
+        "startTime": 0,
+        "endTime": 86400,
+        "rateBitsPerSec": 9600
+      },
+      {
+        "source": 2,
+        "dest": 1,
+        "startTime": 0,
+        "endTime": 86400,
+        "rateBitsPerSec": 9600
+      }
+    ]
+  }
+}
 ```
-## ─── IPN Scheme (numeric, for CGR routing) ───
-a scheme ipn 'ipnfw' 'ipnadminep'
-a endpoint ipn:1.0 q
-a endpoint ipn:1.1 q
-a endpoint ipn:1.2 q
 
-## ─── DTN Scheme (callsign EIDs) ───
-a scheme dtn 'dtn2fw' 'dtn2adminep'
-
-## Local endpoints for this station
-a endpoint dtn://g4dpz-1 q
-a endpoint dtn://g4dpz-1/mail q
-a endpoint dtn://g4dpz-1/file q
-a endpoint dtn://g4dpz-1/telemetry q
-a endpoint dtn://g4dpz-1/beacon q
+**Node B (M0XER, node 2) — `configs/node-b/hdtn-config.json`:**
+```json
+{
+  "hdtnConfigName": "node-b-m0xer",
+  "userRecycledFilePath": "/tmp/hdtn-node-b/",
+  "myNodeId": 2,
+  "myBpEchoServiceId": 2047,
+  "mySchemeStr": "dtn",
+  "myDtnEidStr": "dtn://m0xer-1",
+  "myDtnDemuxServices": ["mail", "file", "telemetry", "beacon"],
+  "isAcsAware": false,
+  "inductsConfig": {
+    "inductVector": [
+      {
+        "convergenceLayer": "kiss_ltp",
+        "name": "kissInduct",
+        "boundPort": 0,
+        "kissTncDevice": "/dev/tty.usbmodem20A5329335531",
+        "kissBaudRate": 9600,
+        "thisLtpEngineId": 2,
+        "remoteLtpEngineId": 1
+      }
+    ]
+  },
+  "outductsConfig": {
+    "outductVector": [
+      {
+        "convergenceLayer": "kiss_ltp",
+        "name": "kissOutduct",
+        "nextHopNodeId": 1,
+        "kissTncDevice": "/dev/tty.usbmodem20A5329335531",
+        "kissBaudRate": 9600,
+        "thisLtpEngineId": 2,
+        "remoteLtpEngineId": 1,
+        "ltpMtu": 512,
+        "ltpDataSegmentRate": 960
+      }
+    ]
+  },
+  "storageConfig": {
+    "storageImplementation": "stdio_multi_threaded",
+    "storageDiskConfigVector": [
+      {
+        "name": "bundleStore",
+        "storeFilePath": "/tmp/hdtn-node-b/bundles/"
+      }
+    ]
+  },
+  "contactPlanJson": {
+    "contacts": [
+      {
+        "source": 1,
+        "dest": 2,
+        "startTime": 0,
+        "endTime": 86400,
+        "rateBitsPerSec": 9600
+      },
+      {
+        "source": 2,
+        "dest": 1,
+        "startTime": 0,
+        "endTime": 86400,
+        "rateBitsPerSec": 9600
+      }
+    ]
+  }
+}
 ```
 
 **Key points:**
-- `dtn2fw` is the forwarder daemon for the dtn scheme
-- `dtn2adminep` handles administrative bundles for the dtn scheme
-- `q` means queue bundles for this endpoint (don't discard if no app is listening)
-- Both `ipn` and `dtn` schemes can coexist on the same node
+- `myDtnEidStr` sets the node's primary dtn:// EID with the callsign
+- `myDtnDemuxServices` registers local service endpoints (mail, file, telemetry, beacon)
+- Both `ipn` and `dtn` schemes can coexist — set `mySchemeStr` to `dtn` for callsign-based addressing
+- HDTN's modular CLA plugin architecture handles KISS/LTP convergence layer via `inductsConfig` and `outductsConfig`
+- Contact plans are embedded in the JSON or loaded from a separate contact plan JSON file
 
-### 2. DTN Scheme Routing (`node.dtn2rc`)
+### HDTN Startup
 
-This file maps remote callsign node names to transport directives (how to reach them).
-
-**Node A (G4DPZ, engine 1) — `configs/node-a/node.dtn2rc`:**
-```
-## DTN scheme routing for Node A (G4DPZ)
-## Maps remote callsign EIDs to LTP transport
-
-## Route bundles for dtn://m0xer-1/* via LTP to engine 2
-a plan m0xer-1 ltp/2
-
-## Optional: per-service routing rules
-## Format: a rule <node_name> <demux_name> <directive>
-## a rule m0xer-1 telemetry ltp/2
-```
-
-**Node B (M0XER, engine 2) — `configs/node-b/node.dtn2rc`:**
-```
-## DTN scheme routing for Node B (M0XER)
-## Maps remote callsign EIDs to LTP transport
-
-## Route bundles for dtn://g4dpz-1/* via LTP to engine 1
-a plan g4dpz-1 ltp/1
-```
-
-**Directive format:**
-```
-a plan <node_name> <protocol>/<endpoint_id>
-```
-
-Where:
-- `node_name` = the callsign-ssid portion of the remote EID (e.g., `m0xer-1`)
-- `protocol` = transport protocol (`ltp`, `tcp`, `udp`, `stcp`)
-- `endpoint_id` = the remote engine/node number for that protocol
-
-### 3. ION Startup
-
-Load the dtn2rc file during node initialization:
+Start the HDTN node with the JSON configuration:
 
 ```bash
 #!/bin/bash
-# Start ION node with both ipn and dtn schemes
+# Start HDTN node with callsign EID configuration
 
-ionadmin node.ionrc
-ltpadmin node.ltprc
-bpadmin node.bprc
-ipnadmin node.ipnrc
-dtn2admin node.dtn2rc    # ← Load callsign routing
+hdtn-one-process --hdtn-config-file=hdtn-config.json
 ```
 
-Or using `ionstart`:
+Or using separate HDTN modules:
+
 ```bash
-ionstart -i node.ionrc -l node.ltprc -b node.bprc -p node.ipnrc -d node.dtn2rc
+# Start HDTN ingress/egress/storage/scheduler modules
+hdtn-ingress --hdtn-config-file=hdtn-config.json &
+hdtn-egress --hdtn-config-file=hdtn-config.json &
+hdtn-storage --hdtn-config-file=hdtn-config.json &
+hdtn-scheduler --contact-plan-file=contact-plan.json &
 ```
 
 ---
 
-## How the Alias Works
+## How the Routing Works
 
-The `dtn://` scheme acts as an overlay on top of the numeric transport layer:
+The `dtn://` scheme routing in HDTN:
 
 ```
 Application sends bundle to: dtn://m0xer-1/mail
                                     │
                                     ▼
-              dtn2fw looks up plan for "m0xer-1"
+              HDTN looks up outduct for node "m0xer-1"
                                     │
                                     ▼
-              Plan says: ltp/2 (use LTP engine 2)
+              Outduct config says: kiss_ltp to node 2
                                     │
                                     ▼
-              LTP transmits to engine 2 (Node B)
+              LTP transmits to node 2 (Node B) via KISS CLA
                                     │
                                     ▼
               Node B receives, checks destination EID
@@ -156,7 +248,7 @@ Application sends bundle to: dtn://m0xer-1/mail
               Bundle delivered to "mail" application
 ```
 
-The numeric engine IDs (`ionrc`) handle routing and transport. The `dtn://` EIDs provide the human-readable addressing layer on top.
+The numeric node IDs in the contact plan handle routing and scheduling. The `dtn://` EIDs provide the human-readable addressing layer on top.
 
 ---
 
@@ -168,110 +260,20 @@ The numeric engine IDs (`ionrc`) handle routing and transport. The `dtn://` EIDs
 ┌─────────────────────┐         ┌─────────────────────┐
 │  Node A             │   LTP   │  Node B             │
 │  Callsign: G4DPZ   │◄───────►│  Callsign: M0XER   │
-│  Engine: 1          │  KISS   │  Engine: 2          │
+│  Node ID: 1        │  KISS   │  Node ID: 2        │
 │  EID: dtn://g4dpz-1 │         │  EID: dtn://m0xer-1 │
 └─────────────────────┘         └─────────────────────┘
 ```
 
-### Node A Configuration Files
+### Configuration
 
-**`node.ionrc`** (unchanged — numeric engine ID):
-```
-1 1 ''
-s
-a contact +0 +86400 1 2 120
-a contact +0 +86400 2 1 120
-a range +0 +86400 1 2 1
-a range +0 +86400 2 1 1
-m production 1000000
-m consumption 1000000
-```
-
-**`node.bprc`** (add dtn scheme):
-```
-1
-
-## IPN scheme (numeric routing)
-a scheme ipn 'ipnfw' 'ipnadminep'
-a endpoint ipn:1.0 q
-a endpoint ipn:1.1 q
-a endpoint ipn:1.2 q
-
-## DTN scheme (callsign EIDs)
-a scheme dtn 'dtn2fw' 'dtn2adminep'
-a endpoint dtn://g4dpz-1 q
-a endpoint dtn://g4dpz-1/mail q
-a endpoint dtn://g4dpz-1/file q
-a endpoint dtn://g4dpz-1/beacon q
-
-## LTP transport
-a protocol ltp 1400 100
-a induct ltp 1 ltpcli
-a outduct ltp 2 ltpclo
-
-s
-```
-
-**`node.ipnrc`** (unchanged):
-```
-a plan 2 ltp/2
-```
-
-**`node.dtn2rc`** (new file):
-```
-## Route to Node B (M0XER) via LTP engine 2
-a plan m0xer-1 ltp/2
-```
-
-### Node B Configuration Files
-
-**`node.ionrc`**:
-```
-1 2 ''
-s
-a contact +0 +86400 1 2 120
-a contact +0 +86400 2 1 120
-a range +0 +86400 1 2 1
-a range +0 +86400 2 1 1
-m production 1000000
-m consumption 1000000
-```
-
-**`node.bprc`**:
-```
-1
-
-## IPN scheme
-a scheme ipn 'ipnfw' 'ipnadminep'
-a endpoint ipn:2.0 q
-a endpoint ipn:2.1 q
-a endpoint ipn:2.2 q
-
-## DTN scheme (callsign EIDs)
-a scheme dtn 'dtn2fw' 'dtn2adminep'
-a endpoint dtn://m0xer-1 q
-a endpoint dtn://m0xer-1/mail q
-a endpoint dtn://m0xer-1/file q
-a endpoint dtn://m0xer-1/beacon q
-
-## LTP transport
-a protocol ltp 1400 100
-a induct ltp 2 ltpcli
-a outduct ltp 1 ltpclo
-
-s
-```
-
-**`node.ipnrc`**:
-```
-a plan 1 ltp/1
-```
-
-**`node.dtn2rc`** (new file):
-```
-## Route to Node A (G4DPZ) via LTP engine 1
-a plan g4dpz-1 ltp/1
-```
+Each node uses a single `hdtn-config.json` file (shown above) that contains:
+- Node identity (`myNodeId`, `myDtnEidStr`)
+- Local service endpoints (`myDtnDemuxServices`)
+- Induct configuration (KISS CLA receive)
+- Outduct configuration (KISS CLA transmit with next-hop node ID)
+- Contact plan (time-tagged communication windows)
+- Storage configuration (bundle persistence)
 
 ---
 
@@ -281,74 +283,64 @@ a plan g4dpz-1 ltp/1
 
 ```bash
 # Ping using callsign EIDs
-bping dtn://g4dpz-1 dtn://m0xer-1
+bping --my-uri-eid=dtn://g4dpz-1 --dest-uri-eid=dtn://m0xer-1
 
 # Send a file
-bpsendfile dtn://g4dpz-1 dtn://m0xer-1/file message.txt
+bpsendfile --my-uri-eid=dtn://g4dpz-1 --dest-uri-eid=dtn://m0xer-1/file --file-or-folder-path=message.txt
 
 # Send to a specific service
-bpsource dtn://g4dpz-1/beacon "G4DPZ amateur radio DTN station"
+bpsendfile --my-uri-eid=dtn://g4dpz-1/beacon --dest-uri-eid=dtn://m0xer-1 --file-or-folder-path=beacon.txt
 ```
 
 ### Receiving Bundles
 
 ```bash
 # Listen on the mail endpoint
-bpsink dtn://m0xer-1/mail
+bpreceivefile --my-uri-eid=dtn://m0xer-1/mail --save-directory=./received/
 
 # Receive files
-bprecvfile dtn://m0xer-1/file
+bpreceivefile --my-uri-eid=dtn://m0xer-1/file --save-directory=./received/
 ```
-
----
-
-## dtn2admin Commands Reference
-
-| Command | Description |
-|---------|-------------|
-| `a plan <node> <directive>` | Add routing plan for a remote node |
-| `d plan <node>` | Delete a plan |
-| `i plan <node>` | Show plan info |
-| `l plan` | List all plans |
-| `a rule <node> <demux> <directive>` | Add per-service routing rule |
-| `d rule <node> <demux>` | Delete a rule |
-| `i rule <node> <demux>` | Show rule info |
-| `l rule` | List all rules |
-
-**Directive format:** `<protocol>/<endpoint>`
-- `ltp/2` — send via LTP to engine 2
-- `tcp/192.168.1.100:4556` — send via TCP
-- `udp/192.168.1.100:4556` — send via UDP
 
 ---
 
 ## Multi-Node Network Example
 
-For a larger network with multiple stations:
+For a larger network with multiple stations, each node's `hdtn-config.json` includes outducts for each reachable peer:
 
 ```
 ┌──────────┐     ┌──────────┐     ┌──────────┐
 │ G4DPZ    │     │ M0XER    │     │ W5DJT    │
-│ Engine 1 │◄───►│ Engine 2 │◄───►│ Engine 3 │
+│ Node 1   │◄───►│ Node 2   │◄───►│ Node 3   │
 └──────────┘     └──────────┘     └──────────┘
 ```
 
-**G4DPZ `node.dtn2rc`:**
-```
-a plan m0xer-1 ltp/2
-a plan w5djt-1 ltp/2    # Route via M0XER (next hop)
-```
-
-**M0XER `node.dtn2rc`:**
-```
-a plan g4dpz-1 ltp/1
-a plan w5djt-1 ltp/3
+**G4DPZ outducts:**
+```json
+{
+  "outductVector": [
+    { "convergenceLayer": "kiss_ltp", "nextHopNodeId": 2, "..." : "..." }
+  ]
+}
 ```
 
-**W5DJT `node.dtn2rc`:**
+**M0XER outducts:**
+```json
+{
+  "outductVector": [
+    { "convergenceLayer": "kiss_ltp", "nextHopNodeId": 1, "..." : "..." },
+    { "convergenceLayer": "kiss_ltp", "nextHopNodeId": 3, "..." : "..." }
+  ]
+}
 ```
-a plan g4dpz-1 ltp/2    # Route via M0XER (next hop)
-a plan m0xer-1 ltp/2
+
+**W5DJT outducts:**
+```json
+{
+  "outductVector": [
+    { "convergenceLayer": "kiss_ltp", "nextHopNodeId": 2, "..." : "..." }
+  ]
+}
 ```
 
 ---
@@ -357,7 +349,7 @@ a plan m0xer-1 ltp/2
 
 ### Case Sensitivity
 
-ION treats node names as case-sensitive. Convention: use **lowercase** for callsigns in EIDs to avoid mismatches.
+HDTN treats node names as case-sensitive. Convention: use **lowercase** for callsigns in EIDs to avoid mismatches.
 
 ```
 dtn://g4dpz-1    ✅ Preferred
@@ -366,7 +358,7 @@ dtn://G4DPZ-1    ⚠️  Works but must be consistent everywhere
 
 ### CGR Compatibility
 
-ION's Contact Graph Routing (CGR) operates on numeric node IDs from `ionrc`. The `dtn://` scheme uses static routing via `dtn2rc` plans. For scheduled contacts (e.g., LEO passes), you can:
+HDTN's Contact Graph Routing (CGR) operates on numeric node IDs from the contact plan JSON. The `dtn://` scheme provides human-readable addressing that maps to these numeric IDs. For scheduled contacts (e.g., LEO passes), you can:
 
 1. Use `ipn://` for CGR-routed traffic (space links)
 2. Use `dtn://` for statically-routed traffic (terrestrial, GEO)
@@ -390,8 +382,8 @@ For 9600 baud terrestrial links this is negligible. For deep-space links, prefer
 
 1. **RFC 9171** — Bundle Protocol Version 7 (BPv7)
 2. **RFC 5326** — Licklider Transmission Protocol (LTP)
-3. **ION-DTN dtn2admin** — `man dtn2admin` or ION documentation
-4. **ION-DTN dtn2rc** — `man dtn2rc` or ION documentation
+3. **HDTN** — https://github.com/nasa/HDTN
+4. **HDTN Configuration Guide** — HDTN documentation
 5. **LTP-KISS Architecture** — `docs/LTP-KISS-ARCHITECTURE.md`
 
 ---

@@ -2,17 +2,17 @@
 
 ## Overview
 
-This design describes the Phase 1 terrestrial DTN validation system for amateur radio. The system deploys ION-DTN (NASA JPL's Interplanetary Overlay Network) on Linux or macOS hosts connected via USB to Mobilinkd TNC4 terminal node controllers, which drive Yaesu FT-817 radios at 9600 baud through the 9600 baud data port using G3RUH-compatible GFSK modulation on VHF/UHF amateur bands.
+This design describes the Phase 1 terrestrial DTN validation system for amateur radio. The system deploys HDTN (NASA Glenn's High-rate Delay Tolerant Networking) on Linux or macOS hosts connected via USB to Mobilinkd TNC4 terminal node controllers, which drive Yaesu FT-817 radios at 9600 baud through the 9600 baud data port using G3RUH-compatible GFSK modulation on VHF/UHF amateur bands.
 
 The system supports two core operations: **ping** (DTN reachability test — send a bundle echo request and receive an echo response) and **store-and-forward** (point-to-point bundle delivery during scheduled contact windows). There is **no relay functionality** — nodes do not forward bundles on behalf of other nodes. All bundle delivery is direct (source → destination).
 
 The protocol stack is: BPv7 bundles over LTP sessions over KISS frames. Station identification for amateur radio regulatory compliance is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) in the bundle primary block, plus periodic beacon bundles. LTP provides reliable transfer with deferred acknowledgment. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
 
-All code is implemented in Go, targeting Linux and macOS (amd64/arm64). The system wraps ION-DTN's C libraries via cgo for BPv7/LTP protocol operations, with Go managing the application-level orchestration, bundle store, contact plan, and node lifecycle. The KISS Convergence Layer Adapter (CLA) is ION-DTN's native KISS CLA — the `ltpkisscli` (receive) and `ltpkissclo` (transmit) programs that wrap LTP segments in KISS frames for serial TNCs. This means ION-DTN directly handles bundle transmission and reception over KISS with no UDP intermediary. The CLA provides KISS framing as the link service layer below ION's LTP engine, sending and receiving LTP segments over KISS frames via the TNC4 USB serial connection. Station identification is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) in every bundle's primary block. The bundle data path is: ION-DTN BPA → ION-DTN LTP → KISS CLA (ltpkisscli/ltpkissclo) → TNC4 USB → FT-817 radio. No UDP sockets are involved anywhere in the data path.
+All code is implemented in Go, targeting Linux and macOS (amd64/arm64). The system wraps HDTN's C++17 libraries via cgo for BPv7/LTP protocol operations, with Go managing the application-level orchestration, bundle store, contact plan, and node lifecycle. The KISS Convergence Layer Adapter (CLA) is HDTN's native KISS CLA — the HDTN KISS CLA plugin that wraps LTP segments in KISS frames for serial TNCs. This means HDTN directly handles bundle transmission and reception over KISS with no UDP intermediary. The CLA provides KISS framing as the link service layer below HDTN's LTP engine, sending and receiving LTP segments over KISS frames via the TNC4 USB serial connection. Station identification is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) in every bundle's primary block. The bundle data path is: HDTN BPA → HDTN LTP → HDTN KISS CLA plugin → TNC4 USB → FT-817 radio. No UDP sockets are involved anywhere in the data path.
 
 ### Scope Boundaries
 
-**In scope**: Linux/macOS ground nodes, Mobilinkd TNC4 (USB), Yaesu FT-817 (9600 baud), ION-DTN BPv7/LTP/KISS, ION-DTN's native KISS CLA (ltpkisscli/ltpkissclo) for LTP-over-KISS framing, callsign-embedded DTN EIDs (dtn://callsign-ssid) for station identification, ping, store-and-forward, priority handling, bundle persistence, contact plan management, rate limiting, telemetry.
+**In scope**: Linux/macOS ground nodes, Mobilinkd TNC4 (USB), Yaesu FT-817 (9600 baud), HDTN BPv7/LTP/KISS, HDTN's KISS CLA plugin for LTP-over-KISS framing, callsign-embedded DTN EIDs (dtn://callsign-ssid) for station identification, ping, store-and-forward, priority handling, bundle persistence, contact plan management, rate limiting, telemetry.
 
 **Out of scope**: STM32U585 OBC, IQ baseband, SDR, Ettus B200mini, CGR orbital prediction, orbital mechanics, space segment (CubeSat, cislunar), S-band/X-band, flight hardware, relay functionality, UDP-based external CLA interfaces, cryptography (prohibited by amateur radio regulations).
 
@@ -26,10 +26,10 @@ graph TD
         CPM[Contact Plan Manager<br/>Manual scheduling]
         TEL[Telemetry Collector<br/>Health & statistics]
 
-        subgraph "ION-DTN Stack (C libraries via cgo)"
-            BPA[Bundle Protocol Agent<br/>ION-DTN BPA]
-            LTP[LTP Engine<br/>ION-DTN LTP]
-            CLA[KISS CLA<br/>ltpkisscli/ltpkissclo<br/>LTP link service adapter]
+        subgraph "HDTN Stack (C++17 libraries via cgo)"
+            BPA[Bundle Protocol Agent<br/>HDTN BPA]
+            LTP[LTP Engine<br/>HDTN LTP]
+            CLA[KISS CLA<br/>HDTN KISS CLA plugin<br/>LTP link service adapter]
         end
     end
 
@@ -61,8 +61,8 @@ graph TD
 ```mermaid
 graph LR
     subgraph "Node A"
-        A_NC[Node Controller] --> A_BPA[ION-DTN BPA]
-        A_BPA --> A_LTP[ION-DTN LTP]
+        A_NC[Node Controller] --> A_BPA[HDTN BPA]
+        A_BPA --> A_LTP[HDTN LTP]
         A_LTP --> A_CLA[KISS CLA]
         A_CLA --> A_TNC[TNC4 USB]
         A_TNC --> A_FT[FT-817]
@@ -73,8 +73,8 @@ graph LR
     subgraph "Node B"
         B_FT[FT-817] --> B_TNC[TNC4 USB]
         B_TNC --> B_CLA[KISS CLA]
-        B_CLA --> B_LTP[ION-DTN LTP]
-        B_LTP --> B_BPA[ION-DTN BPA]
+        B_CLA --> B_LTP[HDTN LTP]
+        B_LTP --> B_BPA[HDTN BPA]
         B_BPA --> B_NC[Node Controller]
     end
 ```
@@ -89,8 +89,8 @@ sequenceDiagram
     participant NC as Node Controller
     participant BPA as Bundle Protocol Agent
     participant BS as Bundle Store
-    participant LTP as ION-DTN LTP Engine
-    participant CLA as KISS CLA (ltpkisscli/ltpkissclo)
+    participant LTP as HDTN LTP Engine
+    participant CLA as HDTN KISS CLA plugin
     participant TNC as TNC4 USB
     participant Remote as Remote Node
 
@@ -124,8 +124,8 @@ sequenceDiagram
     participant BPA as Bundle Protocol Agent
     participant BS as Bundle Store
     participant CPM as Contact Plan Manager
-    participant LTP as ION-DTN LTP Engine
-    participant CLA as KISS CLA (ltpkisscli/ltpkissclo)
+    participant LTP as HDTN LTP Engine
+    participant CLA as HDTN KISS CLA plugin
     participant TNC as TNC4 USB
     participant Remote as Remote Node
 
@@ -163,7 +163,7 @@ sequenceDiagram
 
 ### Component 1: Bundle Protocol Agent (BPA)
 
-**Purpose**: Core DTN engine responsible for creating, receiving, validating, storing, and delivering BPv7 bundles. Wraps ION-DTN's C implementation via cgo. Supports three bundle types: data (store-and-forward), ping request, and ping response. Does not perform relay — bundles are not forwarded on behalf of other nodes.
+**Purpose**: Core DTN engine responsible for creating, receiving, validating, storing, and delivering BPv7 bundles. Wraps HDTN's C implementation via cgo. Supports three bundle types: data (store-and-forward), ping request, and ping response. Does not perform relay — bundles are not forwarded on behalf of other nodes.
 
 **Interface**:
 ```go
@@ -300,7 +300,7 @@ type BundleStore interface {
 
 ### Component 3: Contact Plan Manager
 
-**Purpose**: Manages manually scheduled communication windows between terrestrial ground nodes. No CGR or orbital prediction — contact windows are configured by the operator in ION-DTN contact plan format. Provides direct contact lookup for bundle delivery scheduling.
+**Purpose**: Manages manually scheduled communication windows between terrestrial ground nodes. No CGR or orbital prediction — contact windows are configured by the operator in HDTN JSON contact plan format. Provides direct contact lookup for bundle delivery scheduling.
 
 **Interface**:
 ```go
@@ -336,7 +336,7 @@ type ContactPlanManager interface {
     // Validates: all contacts within valid-from/valid-to, no overlaps on same link.
     LoadPlan(plan ContactPlan) error
 
-    // LoadFromFile loads a contact plan from an ION-DTN format config file.
+    // LoadFromFile loads a contact plan from an HDTN JSON config file.
     LoadFromFile(path string) error
 
     // GetActiveContacts returns contacts active at the given time
@@ -367,16 +367,16 @@ type ContactPlanManager interface {
 - Validate contact plan: all windows within valid-from/valid-to, no overlapping contacts on same link
 - Direct contact lookup for destination nodes (no multi-hop routing)
 - Persist plan to filesystem, reload on restart
-- Support ION-DTN contact plan file format
+- Support HDTN JSON contact plan file format
 
-### Component 4: Convergence Layer Adapter (CLA) — ION-DTN Native KISS CLA
+### Component 4: Convergence Layer Adapter (CLA) — HDTN Native KISS CLA
 
-**Purpose**: ION-DTN's native KISS CLA programs (`ltpkisscli` for receive, `ltpkissclo` for transmit) that wrap LTP segments in KISS frames for serial TNCs. The CLA provides KISS framing as the link service layer below ION's LTP engine — it sends and receives LTP segments over KISS frames via the Mobilinkd TNC4 USB serial connection. Station identification is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) in every bundle's primary block, not in the link-layer framing. ION-DTN directly handles bundle transmission and reception through the KISS CLA; there is no UDP intermediary anywhere in the data path. The Go Node Controller manages the CLA lifecycle (initialization, contact scheduling, telemetry, error recovery).
+**Purpose**: HDTN's native KISS CLA plugin that wraps LTP segments in KISS frames for serial TNCs. The CLA provides KISS framing as the link service layer below HDTN's LTP engine — it sends and receives LTP segments over KISS frames via the Mobilinkd TNC4 USB serial connection. Station identification is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) in every bundle's primary block, not in the link-layer framing. HDTN directly handles bundle transmission and reception through the KISS CLA; there is no UDP intermediary anywhere in the data path. The Go Node Controller manages the CLA lifecycle (initialization, contact scheduling, telemetry, error recovery).
 
-**ION-DTN Integration**:
-- The CLA uses ION-DTN's `ltpkissclo` program to transmit LTP segments as KISS frames over serial
-- The CLA uses ION-DTN's `ltpkisscli` program to receive KISS frames (containing LTP segments) from serial and deliver them to ION's LTP engine
-- ION's LTP engine handles segmentation, reassembly, retransmission, and acknowledgment natively — the KISS CLA only handles KISS framing and TNC4 serial I/O
+**HDTN Integration**:
+- The CLA uses HDTN's KISS CLA to to transmit LTP segments as KISS frames over serial
+- The CLA uses HDTN's KISS CLA to receive KISS frames (containing LTP segments) from serial and deliver them to HDTN's LTP engine
+- HDTN's LTP engine handles segmentation, reassembly, retransmission, and acknowledgment natively — the KISS CLA only handles KISS framing and TNC4 serial I/O
 - Station identification is in the DTN EID (dtn://callsign-ssid) in the bundle primary block, not in link-layer headers
 
 **Interface**:
@@ -400,21 +400,21 @@ type LinkMetrics struct {
     FramesReceived   uint64
 }
 
-// KISSCLAPlugin defines the Go-side management interface for ION-DTN's native KISS CLA.
-// The actual CLA protocol logic is handled by ION-DTN's ltpkisscli/ltpkissclo programs.
+// KISSCLAPlugin defines the Go-side management interface for HDTN's native KISS CLA.
+// The actual CLA protocol logic is handled by HDTN's KISS CLA plugin.
 // This interface manages the CLA lifecycle from the Go Node Controller.
 type KISSCLAPlugin interface {
-    // Init initializes the KISS CLA by configuring ION-DTN's ltpkisscli/ltpkissclo
+    // Init initializes the KISS CLA by configuring HDTN's KISS CLA plugin
     // with the TNC4 serial device path and baud rate.
     // Called once at node startup.
     Init(config CLAConfig) error
 
-    // ActivateLink opens the TNC4 USB serial connection and signals ION-DTN
+    // ActivateLink opens the TNC4 USB serial connection and signals HDTN
     // that the link service is available for the given contact window.
-    // ION's LTP engine will begin sending segments through the KISS CLA.
+    // HDTN's LTP engine will begin sending segments through the KISS CLA.
     ActivateLink(contact ContactWindow) error
 
-    // DeactivateLink signals ION-DTN that the link service is no longer available
+    // DeactivateLink signals HDTN that the link service is no longer available
     // and closes the TNC4 USB serial connection.
     DeactivateLink() error
 
@@ -431,7 +431,7 @@ type KISSCLAPlugin interface {
     IsConnected() bool
 }
 
-// CLAConfig holds configuration for the ION-DTN KISS CLA.
+// CLAConfig holds configuration for the HDTN KISS CLA.
 type CLAConfig struct {
     LocalEID        EndpointID    // DTN EID with callsign, e.g. dtn://g4dpz-1
     TNCDevice       string        // USB serial device path, e.g. "/dev/ttyACM0"
@@ -441,29 +441,29 @@ type CLAConfig struct {
 }
 ```
 
-**ION-DTN KISS CLA Programs** (provided by ION-DTN at `ION-DTN/ltp/kiss/`):
+**HDTN KISS CLA Plugin* (modular CLA architecture):
 ```
-ltpkissclo — Transmit: wraps LTP segments in KISS frames and writes to TNC4 via USB serial.
-ltpkisscli — Receive: reads KISS frames from TNC4 USB serial, extracts LTP segments,
-             and delivers them to ION's LTP engine.
+HDTN KISS CLA plugin (transmit path): wraps LTP segments in KISS frames and writes to TNC4 via USB serial.
+HDTN KISS CLA plugin (receive path): reads KISS frames from TNC4 USB serial, extracts LTP segments,
+             and delivers them to HDTN's LTP engine.
 ```
 
-These are configured via ION-DTN's `ltprc` configuration file with the TNC4 serial device path and baud rate. No custom C code is required — ION-DTN provides this functionality natively.
+These are configured via HDTN's JSON configuration file with the TNC4 serial device path and baud rate. No custom C code is required — HDTN provides this functionality natively.
 
 **Responsibilities**:
-- Use ION-DTN's native KISS CLA programs (ltpkisscli/ltpkissclo) for LTP-over-KISS framing
+- Use HDTN's KISS CLA plugin for LTP-over-KISS framing
 - KISS framing (FEND/CMD/DATA/FEND) wrapping LTP segments for TNC transport
 - Station identification via callsign-embedded DTN EIDs (dtn://callsign-ssid) in every bundle's primary block
 - USB serial interface to Mobilinkd TNC4 (not Bluetooth)
 - Drive FT-817 at 9600 baud via TNC4 (G3RUH GFSK)
 - Link quality monitoring (RSSI, SNR, BER, frame counts)
 - Detect USB disconnection within 5 seconds, attempt reconnection at configurable interval
-- No LTP segmentation/reassembly logic — ION-DTN's LTP engine handles that natively
-- No UDP sockets — all data flows through ION-DTN's KISS CLA programs
+- No LTP segmentation/reassembly logic — HDTN's LTP engine handles that natively
+- No UDP sockets — all data flows through HDTN's KISS CLA plugin
 
 ### Component 5: Node Controller
 
-**Purpose**: Top-level orchestrator tying together BPA, Bundle Store, Contact Plan Manager, and CLA. Manages the autonomous operation cycle: check contacts, transmit queued bundles, receive incoming bundles, handle pings, expire old bundles, collect telemetry. Interfaces with ION-DTN's KISS CLA for link lifecycle management (activation/deactivation), while ION-DTN's internal stack handles the actual bundle transmission through the KISS CLA programs.
+**Purpose**: Top-level orchestrator tying together BPA, Bundle Store, Contact Plan Manager, and CLA. Manages the autonomous operation cycle: check contacts, transmit queued bundles, receive incoming bundles, handle pings, expire old bundles, collect telemetry. Interfaces with HDTN's KISS CLA for link lifecycle management (activation/deactivation), while HDTN's internal stack handles the actual bundle transmission through the KISS CLA programs.
 
 **Interface**:
 ```go
@@ -480,7 +480,7 @@ type NodeConfig struct {
     MaxBundleRate    float64  // max bundles/sec per source EID
     TNCDevice        string   // USB serial device path, e.g. "/dev/ttyACM0"
     TNCBaudRate      int      // 9600
-    ContactPlanFile  string   // path to ION-DTN contact plan file
+    ContactPlanFile  string   // path to HDTN JSON contact plan file
     TelemetryPath    string   // path for telemetry output (file/socket)
     RetryInterval    time.Duration // USB reconnection retry interval
 }
@@ -531,8 +531,8 @@ type NodeController interface {
 **Responsibilities**:
 - Orchestrate the check-contacts → activate-CLA-link → transmit → receive → cleanup cycle (target: 100ms)
 - Manage CLA lifecycle: initialization, link activation/deactivation per contact window, shutdown
-- Submit queued bundles to ION-DTN BPA in priority order during active contact windows
-- Process incoming bundles delivered by ION-DTN: validate, store data bundles, handle ping requests
+- Submit queued bundles to HDTN BPA in priority order during active contact windows
+- Process incoming bundles delivered by HDTN: validate, store data bundles, handle ping requests
 - Generate ping echo responses and queue for delivery
 - Enforce rate limiting per source EID
 - Enforce maximum bundle size
@@ -629,9 +629,9 @@ type RateLimiter struct {
 func (nc *nodeController) RunCycle(currentTime uint64) error {
     // Step 1: Check for active contact windows
     // Step 2: For each active contact, activate CLA link and submit queued bundles
-    //         to ION-DTN BPA in priority order (direct delivery only — no relay).
-    //         ION-DTN's LTP engine transmits segments through the KISS CLA.
-    // Step 3: Process incoming bundles delivered by ION-DTN (received via KISS CLA)
+    //         to HDTN BPA in priority order (direct delivery only — no relay).
+    //         HDTN's LTP engine transmits segments through the KISS CLA.
+    // Step 3: Process incoming bundles delivered by HDTN (received via KISS CLA)
     //         - Data bundles: validate, store, deliver if local
     //         - Ping requests: generate echo response, queue for delivery
     // Step 4: Expire old bundles (lifetime enforcement)
@@ -644,7 +644,7 @@ func (nc *nodeController) RunCycle(currentTime uint64) error {
 **Preconditions**:
 - Node is initialized with valid config
 - Contact plan is loaded
-- CLA plugin is registered with ION-DTN's convergence layer framework
+- CLA plugin is registered with HDTN's convergence layer framework
 - TNC4/FT-817 hardware is operational or gracefully degraded
 
 **Postconditions**:
@@ -659,7 +659,7 @@ func (nc *nodeController) RunCycle(currentTime uint64) error {
 ```go
 func (nc *nodeController) ProcessIncomingBundle(b *Bundle, currentTime uint64) error {
     // 1. Validate bundle (version, EID, lifetime, timestamp, CRC)
-    //    (bundle received from ION-DTN BPA, which received it via LTP → KISS CLA)
+    //    (bundle received from HDTN BPA, which received it via LTP → KISS CLA)
     // 2. Check rate limit for source EID
     // 3. Check bundle size limit
     // 4. Check if expired (createdAt + lifetime <= currentTime)
@@ -671,7 +671,7 @@ func (nc *nodeController) ProcessIncomingBundle(b *Bundle, currentTime uint64) e
 ```
 
 **Preconditions**:
-- `b` is a received bundle delivered by ION-DTN (received via LTP → KISS CLA → TNC4)
+- `b` is a received bundle delivered by HDTN (received via LTP → KISS CLA → TNC4)
 - `currentTime` is the current epoch time
 
 **Postconditions**:
@@ -685,20 +685,20 @@ func (nc *nodeController) ProcessIncomingBundle(b *Bundle, currentTime uint64) e
 
 ```go
 func (nc *nodeController) ExecuteContactWindow(contact ContactWindow, currentTime uint64) (sent int, bytesSent uint64, err error) {
-    // 1. Activate CLA link for the contact (signals ION-DTN link service is available)
+    // 1. Activate CLA link for the contact (signals HDTN link service is available)
     // 2. Retrieve bundles destined for contact.RemoteNode, sorted by priority
-    // 3. Submit each bundle to ION-DTN BPA for transmission while currentTime < contact.EndTime
-    //    (ION-DTN's LTP engine sends segments through the KISS CLA)
-    // 4. On ACK (reported by ION-DTN LTP): delete bundle from store
+    // 3. Submit each bundle to HDTN BPA for transmission while currentTime < contact.EndTime
+    //    (HDTN's LTP engine sends segments through the KISS CLA)
+    // 4. On ACK (reported by HDTN LTP): delete bundle from store
     // 5. On failure: stop sending, retain remaining bundles
-    // 6. Deactivate CLA link (signals ION-DTN link service is no longer available)
+    // 6. Deactivate CLA link (signals HDTN link service is no longer available)
     // 7. Record link metrics from KISS CLA
 }
 ```
 
 **Preconditions**:
 - `contact.StartTime <= currentTime < contact.EndTime`
-- CLA is initialized and registered with ION-DTN
+- CLA is initialized and registered with HDTN
 - TNC4 USB connection is available (or gracefully degraded)
 
 **Postconditions**:
@@ -707,7 +707,7 @@ func (nc *nodeController) ExecuteContactWindow(contact ContactWindow, currentTim
 - `sent <= initial bundle count for destination`
 - `bytesSent <= contact.DataRate * (contact.EndTime - contact.StartTime) / 8`
 - Link metrics recorded from KISS CLA
-- CLA link deactivated (ION-DTN notified link service is unavailable)
+- CLA link deactivated (HDTN notified link service is unavailable)
 
 ### Function 4: EvictBundles
 
@@ -910,8 +910,8 @@ func (cpm *contactPlanManager) FindDirectContact(dest EndpointID, afterTime uint
 ### Error Scenario 4: USB Disconnection (TNC4)
 
 **Condition**: USB connection to the Mobilinkd TNC4 is lost during operation.
-**Response**: KISS CLA detects disconnection within 5 seconds. Mark the current contact as interrupted. Retain all queued bundles. ION-DTN's LTP engine is notified that the link service is unavailable.
-**Recovery**: KISS CLA attempts to re-establish the USB connection at the configured retry interval. Once reconnected, the CLA re-registers the link service with ION-DTN and normal operation resumes. Bundles queued during disconnection are delivered during the next available contact window.
+**Response**: KISS CLA detects disconnection within 5 seconds. Mark the current contact as interrupted. Retain all queued bundles. HDTN's LTP engine is notified that the link service is unavailable.
+**Recovery**: KISS CLA attempts to re-establish the USB connection at the configured retry interval. Once reconnected, the CLA re-registers the link service with HDTN and normal operation resumes. Bundles queued during disconnection are delivered during the next available contact window.
 
 ### Error Scenario 6: Process Crash and Restart
 
@@ -945,8 +945,8 @@ Test each component in isolation with example-based tests:
 
 - **BPA**: Bundle creation with all three types (data, ping request, ping response). Validation with valid and invalid bundles (wrong version, empty EID, zero lifetime, future timestamp, bad CRC). Default priority assignment.
 - **Bundle Store**: Store/retrieve/delete operations. Priority-ordered listing. Capacity enforcement. Eviction with mixed priorities. Reload after simulated restart.
-- **Contact Plan Manager**: Load plan with valid/invalid contacts. Active contact queries at boundary times. Next contact lookup. Overlap rejection. ION-DTN format file parsing.
-- **CLA**: KISS frame construction via ION-DTN's KISS CLA programs. ION-DTN KISS CLA configuration and operation. LTP link service adapter interface compliance. TNC4 USB serial I/O. Link metrics collection. No UDP socket tests — all data flows through ION-DTN's KISS CLA programs.
+- **Contact Plan Manager**: Load plan with valid/invalid contacts. Active contact queries at boundary times. Next contact lookup. Overlap rejection. HDTN format file parsing.
+- **CLA**: KISS frame construction via HDTN's KISS CLA plugin. HDTN KISS CLA configuration and operation. LTP link service adapter interface compliance. TNC4 USB serial I/O. Link metrics collection. No UDP socket tests — all data flows through HDTN's KISS CLA plugin.
 - **Node Controller**: Single cycle execution. Ping request/response flow. Rate limiting. Bundle size rejection.
 - **Rate Limiter**: Acceptance within limit. Rejection beyond limit. Sliding window reset.
 
@@ -965,7 +965,7 @@ Key property tests:
 
 1. **Bundle serialization round-trip** (Property 1): Generate random valid Bundles, serialize to CBOR, deserialize, assert equality.
 2. **Bundle store/retrieve round-trip** (Property 2): Generate random Bundles, store, retrieve by ID, assert equality.
-3. **LTP-over-KISS encapsulation round-trip** (Property 3): Generate random Bundles of varying sizes, pass through ION-DTN's LTP engine and the KISS CLA (using the ION KISS CLA programs), reassemble via ION-DTN's LTP, assert equality.
+3. **LTP-over-KISS encapsulation round-trip** (Property 3): Generate random Bundles of varying sizes, pass through HDTN's LTP engine and the HDTN KISS CLA plugin, reassemble via HDTN's LTP, assert equality.
 4. **Validation correctness** (Property 4): Generate random Bundles with random field mutations, verify validator accepts iff all fields are valid.
 5. **Priority ordering** (Property 5): Generate random bundle sets with random priorities, store, list by priority, verify non-increasing priority sequence.
 6. **Eviction ordering** (Property 6): Generate random stores at capacity with mixed priorities, trigger eviction, verify expired first then ascending priority order, critical last.
@@ -980,7 +980,7 @@ Key property tests:
 15. **Contact plan validity** (Property 15): Generate random contact plans, verify all contacts within valid range and no overlaps on same link.
 16. **No transmission after window end** (Property 16): Generate random contact windows and time sequences, verify no transmission after end time.
 17. **Missed contact retains bundles** (Property 17): Generate random failed contacts, verify bundles retained and missed counter incremented.
-18. **DTN EID callsign validation** (Property 18): Generate random bundles, transmit through the ION KISS CLA, verify output bundles carry valid DTN EIDs (dtn://callsign-ssid) with valid source callsigns.
+18. **DTN EID callsign validation** (Property 18): Generate random bundles, transmit through the HDTN KISS CLA, verify output bundles carry valid DTN EIDs (dtn://callsign-ssid) with valid source callsigns.
 19. **Rate limiting** (Property 19): Generate random submission sequences at various rates, verify correct acceptance/rejection.
 22. **Bundle size limit** (Property 22): Generate random bundles of varying sizes, verify oversized rejected.
 23. **Statistics monotonicity** (Property 23): Generate random operation sequences, verify cumulative stats are non-decreasing.
@@ -988,13 +988,13 @@ Key property tests:
 
 ### Integration Testing
 
-- **End-to-end store-and-forward**: Two nodes exchange data bundles over the ION-DTN stack (BPA → LTP → KISS CLA) using simulated TNC4 serial I/O during a contact window.
-- **End-to-end ping**: Node A pings Node B through the full ION-DTN stack, receives echo response, measures RTT.
-- **Contact window lifecycle**: Schedule a contact, verify KISS CLA link activation, ION-DTN LTP session establishment, bundle transmission through KISS CLA, link deactivation, and metrics recording.
-- **ION-DTN KISS CLA operation**: Verify the KISS CLA programs correctly interface with ION-DTN's convergence layer framework and handle LTP segment transmission/reception.
+- **End-to-end store-and-forward**: Two nodes exchange data bundles over the HDTN stack (BPA → LTP → KISS CLA) using simulated TNC4 serial I/O during a contact window.
+- **End-to-end ping**: Node A pings Node B through the full HDTN stack, receives echo response, measures RTT.
+- **Contact window lifecycle**: Schedule a contact, verify KISS CLA link activation, HDTN LTP session establishment, bundle transmission through KISS CLA, link deactivation, and metrics recording.
+- **HDTN KISS CLA operation: Verify the KISS CLA plugin correctly interfaces with HDTN's convergence layer framework and handle LTP segment transmission/reception.
 - **Crash recovery**: Populate store and contact plan, kill process, restart, verify state recovered and operation resumes.
 - **USB disconnection**: Simulate TNC4 USB disconnect, verify KISS CLA detection within 5 seconds, bundle retention, and reconnection.
-- **ION-DTN format parsing**: Load a real ION-DTN contact plan file, verify correct interpretation.
+- **HDTN format parsing**: Load a real HDTN JSON contact plan file, verify correct interpretation.
 
 ### Performance Benchmarks
 

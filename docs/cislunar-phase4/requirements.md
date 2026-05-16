@@ -4,7 +4,7 @@
 
 This document specifies the requirements for Phase 4 of the cislunar amateur DTN project: Cislunar Mission. Phase 4 extends DTN operations from LEO (Phase 3) to cislunar distances (~384,000 km Earth–Moon), enabling amateur participation in deep-space delay-tolerant networking.
 
-The system uses the same ION-DTN (BPv7/LTP over KISS) protocol stack validated in Phases 1–3. The key changes from Phase 3 are: S-band 2.2 GHz replaces UHF 437 MHz, 500 bps replaces 9.6 kbps, BPSK + LDPC/Turbo FEC replaces GMSK/BPSK, 1–2 second one-way light-time delay (vs. milliseconds in LEO), hours-long contact arcs replace 5–10 minute LEO passes, Tier 3/4 ground stations (3–5m dishes) replace Tier 1/2 stations, external NVM is expanded to 256 MB–1 GB for long-duration storage, power budget increases to 10–20 W, and enhanced radiation tolerance is required for the cislunar environment beyond the Van Allen belts.
+The system uses the same HDTN (BPv7/LTP over KISS) protocol stack validated in Phases 1–3. The key changes from Phase 3 are: S-band 2.2 GHz replaces UHF 437 MHz, 500 bps replaces 9.6 kbps, BPSK + LDPC/Turbo FEC replaces GMSK/BPSK, 1–2 second one-way light-time delay (vs. milliseconds in LEO), hours-long contact arcs replace 5–10 minute LEO passes, Tier 3/4 ground stations (3–5m dishes) replace Tier 1/2 stations, external NVM is expanded to 256 MB–1 GB for long-duration storage, power budget increases to 10–20 W, and enhanced radiation tolerance is required for the cislunar environment beyond the Van Allen belts.
 
 The OBC baseline is the STM32U585 (same as Phase 3), with the option to upgrade to a more capable processor if mission requirements demand it. The design is processor-flexible — all interfaces are defined to work on the STM32U585 baseline while accommodating a higher-capability OBC.
 
@@ -12,7 +12,7 @@ The system supports two core operations: ping (DTN reachability test) and store-
 
 CGR contact prediction is adapted for cislunar orbital mechanics — using numerical orbit propagation or pre-computed ephemeris tables instead of SGP4/SDP4 (which is designed for near-Earth orbits). Contact windows are hours-long arcs with slower Doppler dynamics but longer duration than LEO passes.
 
-Phase 3 (LEO CubeSat Flight) is complete and provides the validated firmware: ION-DTN BPA, LTP, KISS CLA architecture, IQ baseband DSP, NVM bundle store with atomic writes, pool allocator, CGR framework, Doppler compensation, radiation monitor, autonomous operation cycle, and all supporting subsystems.
+Phase 3 (LEO CubeSat Flight) is complete and provides the validated firmware: HDTN BPA, LTP, KISS CLA architecture, IQ baseband DSP, NVM bundle store with atomic writes, pool allocator, CGR framework, Doppler compensation, radiation monitor, autonomous operation cycle, and all supporting subsystems.
 
 Out of scope: relay functionality, X-band (future enhancement), optical communication, Mars-relay simulations.
 
@@ -21,14 +21,14 @@ Out of scope: relay functionality, X-band (future enhancement), optical communic
 - **OBC**: Onboard Computer — STM32U585 as baseline (160 MHz Cortex-M33, 2 MB flash, 786 KB SRAM) or a more capable processor if mission requirements demand it
 - **Flight_Transceiver**: Flight-qualified S-band IQ transceiver IC interfacing with the OBC via DAC/ADC or SPI — operates at 2.2 GHz with BPSK modulation
 - **NVM**: External non-volatile memory (256 MB–1 GB) connected to the OBC via SPI/QSPI for persistent bundle storage — expanded from Phase 3's 64–256 MB to support long-duration cislunar storage
-- **BPA**: Bundle Protocol Agent — the core ION-DTN engine running on the OBC that creates, receives, validates, stores, and delivers BPv7 bundles
+- **BPA**: Bundle Protocol Agent — the core HDTN engine running on the OBC that creates, receives, validates, stores, and delivers BPv7 bundles
 - **Bundle_Store**: Persistent storage subsystem backed by external NVM for bundles awaiting delivery
-- **CGR_Engine**: ION-DTN's Contact Graph Routing module running on the OBC, adapted for cislunar orbital mechanics — used exclusively for contact prediction (pass scheduling) using numerical propagation or pre-computed ephemeris, not for multi-hop relay routing
+- **CGR_Engine**: HDTN's Contact Graph Routing module running on the OBC, adapted for cislunar orbital mechanics — used exclusively for contact prediction (pass scheduling) using numerical propagation or pre-computed ephemeris, not for multi-hop relay routing
 - **Contact_Plan_Manager**: Subsystem that maintains CGR-predicted communication windows and manages contact scheduling autonomously onboard the cislunar payload
-- **CLA**: Convergence Layer Adapter — native ION-DTN CLA plugin running on the OBC that provides KISS framing as the LTP link service layer, adapted for S-band 2.2 GHz at 500 bps with BPSK + LDPC/Turbo FEC
+- **CLA**: Convergence Layer Adapter — native HDTN CLA plugin running on the OBC that provides KISS framing as the LTP link service layer, adapted for S-band 2.2 GHz at 500 bps with BPSK + LDPC/Turbo FEC
 - **Node_Controller**: Top-level autonomous orchestrator running on the OBC — manages the operation cycle (wake, transmit, receive, sleep) without external control
-- **Firmware**: C code running on the OBC implementing ION-DTN BPv7/LTP, KISS CLA, IQ baseband DSP, NVM bundle store, CGR contact prediction, and power management
-- **ION-DTN**: NASA JPL's Interplanetary Overlay Network — the DTN implementation providing BPv7, LTP, CGR, and related protocols
+- **Firmware**: C code running on the OBC implementing HDTN BPv7/LTP, KISS CLA, IQ baseband DSP, NVM bundle store, CGR contact prediction, and power management
+- **HDTN**: NASA Glenn's High-rate Delay Tolerant Networking — the DTN implementation providing BPv7, LTP, CGR, and related protocols (C++17, modular CLA plugin architecture)
 - **LTP**: Licklider Transmission Protocol — runs directly over KISS framing, providing reliable transfer with deferred acknowledgment; deferred ACK is critical at cislunar distances (2–4 second RTT)
 - **KISS**: Minimal serial framing protocol (FEND/CMD/DATA/FEND) wrapping LTP segments for IQ baseband transport
 - **DMA**: Direct Memory Access — OBC peripheral for streaming IQ samples between memory and the Flight_Transceiver interface without CPU intervention
@@ -63,7 +63,7 @@ Out of scope: relay functionality, X-band (future enhancement), optical communic
 3. THE Firmware SHALL use the OBC DMA engine for IQ sample streaming between memory and the Flight_Transceiver peripheral interface, avoiding CPU-bound sample transfers
 4. THE CLA SHALL interface with the Flight_Transceiver IQ path (OBC DMA → DAC/ADC or SPI → Flight_Transceiver) for S-band 2.2 GHz operation
 5. THE Firmware SHALL configure the Flight_Transceiver for S-band 2.2 GHz center frequency with sufficient bandwidth to support 500 bps BPSK modulation
-6. THE Firmware SHALL manage IQ sample buffers within the OBC SRAM budget, sharing memory with the ION-DTN runtime, Bundle_Store index, and CGR_Engine state
+6. THE Firmware SHALL manage IQ sample buffers within the OBC SRAM budget, sharing memory with the HDTN runtime, Bundle_Store index, and CGR_Engine state
 7. FOR ALL valid KISS frames, modulating a frame into IQ samples via the S-band Flight_Transceiver path and then demodulating the IQ samples back SHALL produce a frame equivalent to the original (round-trip property for the S-band baseband DSP path)
 
 ### Requirement 2: LDPC/Turbo Forward Error Correction
@@ -75,7 +75,7 @@ Out of scope: relay functionality, X-band (future enhancement), optical communic
 1. THE Firmware SHALL apply LDPC or Turbo FEC encoding to all transmitted data before BPSK modulation on the S-band link
 2. THE Firmware SHALL apply LDPC or Turbo FEC decoding to all received data after BPSK demodulation on the S-band link
 3. THE Firmware SHALL support a coding rate that achieves a bit error rate of 1e-5 or better at an Eb/N0 of 2 dB or less (consistent with the 7 dB link margin budget at 500 bps)
-4. THE Firmware SHALL perform FEC encoding and decoding within the OBC SRAM budget, sharing memory with the ION-DTN runtime and IQ buffers
+4. THE Firmware SHALL perform FEC encoding and decoding within the OBC SRAM budget, sharing memory with the HDTN runtime and IQ buffers
 5. FOR ALL valid data blocks, encoding a block with LDPC or Turbo FEC and then decoding the encoded block (without channel errors) SHALL produce a block identical to the original (round-trip property for the FEC codec)
 
 ### Requirement 3: LTP Deferred Acknowledgment for Cislunar Delay
@@ -140,7 +140,7 @@ Out of scope: relay functionality, X-band (future enhancement), optical communic
 3. IF a received bundle fails any validation check, THEN THE BPA SHALL discard the bundle and log the specific validation failure reason along with the source Endpoint_ID
 4. THE BPA SHALL support three bundle types: data bundles for store-and-forward payload delivery, ping request bundles for echo requests, and ping response bundles for echo responses
 5. FOR ALL valid Bundle objects, serializing a Bundle to its BPv7 wire format (CBOR) and then parsing the wire format back SHALL produce a Bundle equivalent to the original (round-trip property)
-6. THE BPA SHALL complete bundle creation and validation using a working memory allocation that fits within the OBC SRAM budget shared with IQ buffers, FEC codec state, CGR_Engine state, and the ION-DTN runtime
+6. THE BPA SHALL complete bundle creation and validation using a working memory allocation that fits within the OBC SRAM budget shared with IQ buffers, FEC codec state, CGR_Engine state, and the HDTN runtime
 
 ### Requirement 8: NVM Bundle Storage and Persistence (256 MB–1 GB)
 
@@ -249,13 +249,13 @@ Out of scope: relay functionality, X-band (future enhancement), optical communic
 
 ### Requirement 18: SRAM Memory Management
 
-**User Story:** As an embedded systems engineer, I want the OBC firmware to operate within the SRAM constraint while concurrently running ION-DTN, IQ baseband DSP, LDPC/Turbo FEC codec, CGR contact prediction, and bundle index management, so that the flight memory budget is validated.
+**User Story:** As an embedded systems engineer, I want the OBC firmware to operate within the SRAM constraint while concurrently running HDTN, IQ baseband DSP, LDPC/Turbo FEC codec, CGR contact prediction, and bundle index management, so that the flight memory budget is validated.
 
 #### Acceptance Criteria
 
-1. THE Firmware SHALL operate within the OBC SRAM for all concurrent operations: ION-DTN runtime, IQ sample buffers (TX and RX), LDPC/Turbo FEC codec state, KISS/LTP frame buffers, bundle metadata index, and CGR_Engine state and computation buffers
+1. THE Firmware SHALL operate within the OBC SRAM for all concurrent operations: HDTN runtime, IQ sample buffers (TX and RX), LDPC/Turbo FEC codec state, KISS/LTP frame buffers, bundle metadata index, and CGR_Engine state and computation buffers
 2. THE Firmware SHALL use static or pool-based memory allocation (Pool_Allocator) for all runtime data structures, avoiding dynamic heap allocation that could cause fragmentation on the constrained MCU
-3. THE Firmware SHALL report peak and current SRAM utilization as part of telemetry, broken down by subsystem (ION-DTN, IQ buffers, FEC codec, bundle index, CGR_Engine)
+3. THE Firmware SHALL report peak and current SRAM utilization as part of telemetry, broken down by subsystem (HDTN, IQ buffers, FEC codec, bundle index, CGR_Engine)
 4. IF an operation would exceed the SRAM budget, THEN THE Firmware SHALL reject the operation and log the memory exhaustion event rather than corrupting adjacent memory regions
 
 ### Requirement 19: Priority-Based Message Handling

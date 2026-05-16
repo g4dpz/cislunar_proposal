@@ -2,12 +2,12 @@
 
 ## Overview
 
-This design describes the Phase 3 LEO CubeSat Flight system — the orbital deployment of the DTN flight unit validated in Phase 2. The STM32U585 OBC runs the complete flight software stack autonomously: ION-DTN (BPv7/LTP over KISS), IQ baseband DSP, NVM bundle store, CGR contact prediction, Doppler compensation, and power management. There is no companion host — everything runs on the STM32U585 Cortex-M33 at 160 MHz with 786 KB SRAM and 64–256 MB external SPI/QSPI NVM.
+This design describes the Phase 3 LEO CubeSat Flight system — the orbital deployment of the DTN flight unit validated in Phase 2. The STM32U585 OBC runs the complete flight software stack autonomously: HDTN (BPv7/LTP over KISS), IQ baseband DSP, NVM bundle store, CGR contact prediction, Doppler compensation, and power management. There is no companion host — everything runs on the STM32U585 Cortex-M33 at 160 MHz with 786 KB SRAM and 64–256 MB external SPI/QSPI NVM.
 
 The key architectural changes from Phase 2 are:
 
 1. **No companion host**: The Go Node Controller, IQ Bridge, and B200mini SDR are eliminated. The STM32U585 runs the Node Controller in C firmware, and the CLA interfaces directly with the flight-qualified IQ transceiver IC via DAC/ADC or SPI.
-2. **CGR contact prediction**: The CubeSat autonomously predicts ground station passes using ION-DTN's CGR module with SGP4/SDP4 orbit propagation from onboard TLE data. Phase 2 used manually configured simulated passes from the Go Node Controller.
+2. **CGR contact prediction**: The CubeSat autonomously predicts ground station passes using HDTN's CGR module with SGP4/SDP4 orbit propagation from onboard TLE data. Phase 2 used manually configured simulated passes from the Go Node Controller.
 3. **Doppler compensation**: The firmware computes and applies Doppler frequency correction based on predicted pass geometry. Phase 2 operated at fixed frequency in a lab environment.
 4. **Ground station catalog**: An onboard NVM-persisted catalog of ground station locations (lat/lon/alt/min-elevation) feeds the CGR engine for pass prediction.
 5. **TLE management**: Onboard TLE persistence, validation, staleness tracking, and ground-uploadable updates.
@@ -16,7 +16,7 @@ The key architectural changes from Phase 2 are:
 8. **Hardware watchdog**: Configurable watchdog timer for firmware hang detection and automatic reset.
 
 The system operates at UHF 437 MHz / 9.6 kbps (GMSK/BPSK). Contact windows are 5–10 minutes per pass, 4–6 passes per day per ground station. Power budget is 5–10 W active, ~16 µA in Stop 2 mode between passes. The system supports ping and store-and-forward. No relay.
-Phase 2 components carried forward unchanged: ION-DTN BPA (BPv7 creation/validation/serialization), NVM Bundle Store (atomic writes, priority index, eviction), KISS CLA plugin architecture, IQ baseband DSP (GFSK/G3RUH modulation/demodulation core), pool allocator, rate limiting, bundle size limits, priority ordering.
+Phase 2 components carried forward unchanged: HDTN BPA (BPv7 creation/validation/serialization), NVM Bundle Store (atomic writes, priority index, eviction), KISS CLA plugin architecture, IQ baseband DSP (GFSK/G3RUH modulation/demodulation core), pool allocator, rate limiting, bundle size limits, priority ordering.
 
 ### Scope Boundaries
 
@@ -31,9 +31,9 @@ graph TD
     subgraph "STM32U585 OBC — C Firmware (Autonomous)"
         subgraph "Non-Secure World"
             NC[Node Controller<br/>Autonomous operation cycle<br/>Wake → Communicate → Sleep]
-            BPA[Bundle Protocol Agent<br/>ION-DTN BPA — BPv7 bundles]
-            LTP_E[LTP Engine<br/>ION-DTN LTP — reliable transfer]
-            CLA[KISS CLA (ltpkisscli/ltpkissclo)<br/>ION CLA — Flight Transceiver adapter<br/>Adapted from Phase 2]
+            BPA[Bundle Protocol Agent<br/>HDTN BPA — BPv7 bundles]
+            LTP_E[LTP Engine<br/>HDTN LTP — reliable transfer]
+            CLA[HDTN KISS CLA plugin<br/>HDTN CLA — Flight Transceiver adapter<br/>Adapted from Phase 2]
             DSP[IQ Baseband DSP<br/>GMSK/BPSK mod/demod<br/>DMA streaming + Doppler comp]
             BS[Bundle Store<br/>NVM-backed — SPI/QSPI flash<br/>64–256 MB external]
             IDX[Bundle Index<br/>SRAM — priority-ordered metadata<br/>CRC + redundant copy]
@@ -100,7 +100,7 @@ graph TD
 ```mermaid
 graph TD
     subgraph "STM32U585 SRAM — 786 KB Total"
-        ION_MEM["ION-DTN Runtime<br/>~256 KB<br/>BPA, LTP state, CLA buffers"]
+        HDTN_MEM["HDTN Runtime<br/>~256 KB<br/>BPA, LTP state, CLA buffers"]
         IQ_BUF["IQ Sample Buffers<br/>~128 KB<br/>TX double-buffer + RX double-buffer<br/>DMA ping-pong"]
         KISS_BUF["KISS/LTP Frame Buffers<br/>~48 KB<br/>TX frame + RX frame + reassembly"]
         IDX_MEM["Bundle Metadata Index<br/>~48 KB<br/>Priority-ordered + CRC + redundant copy"]
@@ -108,7 +108,7 @@ graph TD
         POOL["Static Pool Allocator<br/>~226 KB<br/>Fixed-size block pools<br/>No dynamic heap"]
     end
 
-    style ION_MEM fill:#1a3a5c,color:#fff
+    style HDTN_MEM fill:#1a3a5c,color:#fff
     style IQ_BUF fill:#5c1a3a,color:#fff
     style KISS_BUF fill:#5c1a3a,color:#fff
     style IDX_MEM fill:#5c3a1a,color:#fff
@@ -189,7 +189,7 @@ sequenceDiagram
     participant XCVR as Flight Transceiver
     participant DSP as IQ DSP + Doppler
     participant CLA as KISS CLA
-    participant BPA as BPA (ION-DTN)
+    participant BPA as BPA (HDTN)
     participant BS as Bundle Store (NVM)
 
     Note over GS,XCVR: Satellite pass begins — CubeSat woke autonomously
@@ -474,7 +474,7 @@ doppler_status_t doppler_get_status(void);
 
 ### Component 5: Convergence Layer Adapter (CLA) — STM32U585 C Firmware
 
-**Adapted from Phase 2.** Same ION-DTN CLA plugin architecture. The key change: the CLA now interfaces directly with the flight IQ transceiver IC via STM32U585 DMA → DAC/ADC or SPI, instead of the Phase 2 path through the companion host IQ bridge to the B200mini.
+**Adapted from Phase 2.** Same HDTN CLA plugin architecture. The key change: the CLA now interfaces directly with the flight IQ transceiver IC via STM32U585 DMA → DAC/ADC or SPI, instead of the Phase 2 path through the companion host IQ bridge to the B200mini.
 
 **Interface**: Same as Phase 2 `cla_*` and `kissiq_*` functions. The `cla_config_t` gains a Doppler profile field:
 
@@ -1315,7 +1315,7 @@ Key property tests (all C firmware, using theft):
 - **Catalog update flow**: Send catalog update bundle. Verify station added, CGR re-predicted for new station.
 - **Time sync flow**: Send time sync bundle. Verify RTC updated (or not, based on threshold).
 - **Radiation simulation**: Inject bit flips into protected SRAM regions during operation. Verify detection, recovery, SEU counting.
-- **SRAM budget validation**: Run all subsystems concurrently (ION-DTN + IQ DSP + CGR + bundle index). Verify total SRAM ≤ 786 KB via pool stats.
+- **SRAM budget validation**: Run all subsystems concurrently (HDTN + IQ DSP + CGR + bundle index). Verify total SRAM ≤ 786 KB via pool stats.
 - **Doppler tracking**: Run simulated pass with realistic Doppler profile. Verify demodulator maintains lock throughout pass.
 - **Stale TLE operation**: Operate with TLE aged > 14 days. Verify stale warning, widened margins, continued operation.
 

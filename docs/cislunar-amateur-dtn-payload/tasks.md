@@ -2,21 +2,21 @@
 
 ## Overview
 
-This implementation plan covers the complete four-phase DTN system for amateur radio: terrestrial validation (RPi + Mobilinkd TNC4 + FT-817), CubeSat Engineering Model (STM32U585 + Ettus B200mini), LEO CubeSat flight (STM32U585 + flight IQ transceiver), and cislunar deep-space communication. The system uses ION-DTN (BPv7/LTP) over KISS framing with callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) for station identification, supporting ping and store-and-forward operations with no relay functionality.
+This implementation plan covers the complete four-phase DTN system for amateur radio: terrestrial validation (RPi + Mobilinkd TNC4 + FT-817), CubeSat Engineering Model (STM32U585 + Ettus B200mini), LEO CubeSat flight (STM32U585 + flight IQ transceiver), and cislunar deep-space communication. The system uses HDTN (BPv7/LTP) over KISS framing with callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) for station identification, supporting ping and store-and-forward operations with no relay functionality.
 
-Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LTP, bundle storage, priority handling, lifetime enforcement). Our code provides: KISS frame validation, ION-DTN configuration management, node orchestration, telemetry collection, contact plan management (CGR-based pass prediction), and integration testing.
+Implementation is in Go, leveraging HDTN for core DTN functionality (BPv7, LTP, bundle storage, priority handling, lifetime enforcement). Our code provides: KISS frame validation, HDTN configuration management, node orchestration, telemetry collection, contact plan management (CGR-based pass prediction), and integration testing.
 
 ## Tasks
 
 - [x] 1. Core DTN Infrastructure (Shared Across All Phases)
   - [x] 1.1 Implement Bundle Protocol Agent (BPA) Go wrapper
-    - Create `pkg/bpa/` package wrapping ION-DTN bundle operations
+    - Create `pkg/bpa/` package wrapping HDTN bundle operations
     - Implement bundle creation, validation, and type handling (data, ping request, ping response)
     - Implement ping echo request/response handling
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 4.1, 4.2_
 
   - [x] 1.2 Implement Bundle Store Go wrapper
-    - Create `pkg/store/` package wrapping ION-DTN bundle storage
+    - Create `pkg/store/` package wrapping HDTN bundle storage
     - Implement priority-ordered retrieval and capacity management
     - Implement eviction policy (expired first, then lowest priority)
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
@@ -24,7 +24,7 @@ Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LT
   - [x] 1.3 Implement Contact Plan Manager with CGR integration
     - Create `pkg/contact/` package for contact plan management
     - Implement contact window scheduling and active contact queries
-    - Integrate ION-DTN's CGR for orbital pass prediction (LEO/cislunar)
+    - Integrate HDTN's CGR for orbital pass prediction (LEO/cislunar)
     - Implement direct contact lookup (no multi-hop routing)
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
 
@@ -76,8 +76,8 @@ Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LT
     - Support 9600 baud G3RUH-compatible GFSK on VHF/UHF
     - _Requirements: 11.1, 11.2, 11.3, 11.4_
 
-  - [x] 3.2 Create ION-DTN configuration generator for terrestrial nodes
-    - Generate ionrc, ltprc, bprc, ipnrc config files
+  - [x] 3.2 Create HDTN configuration generator for terrestrial nodes
+    - Generate HDTN JSON configuration files
     - Configure KISS CLA with TNC4 device paths
     - Support two-node terrestrial setup
     - _Requirements: 7.1, 11.1, 11.2_
@@ -85,7 +85,7 @@ Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LT
   - [x] 3.3 Implement terrestrial node CLI
     - Create `cmd/terrestrial-node/` CLI for starting terrestrial DTN nodes
     - Parse config file (node ID, callsign, TNC device, contact plan)
-    - Start ION-DTN, monitor health, expose telemetry
+    - Start HDTN, monitor health, expose telemetry
     - _Requirements: 11.1, 11.2, 11.3, 11.4_
 
   - [x]* 3.4 Write integration test for terrestrial ping
@@ -141,7 +141,7 @@ Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LT
     - Support wake-on-contact for scheduled passes
     - _Requirements: 12.7_
 
-  - [x] 5.6 Create ION-DTN configuration generator for EM node
+  - [x] 5.6 Create HDTN configuration generator for EM node
     - Generate config files for STM32U585 + B200mini setup
     - Configure contact windows for simulated orbital passes (8 min, 9.6 kbps)
     - _Requirements: 12.1, 12.4_
@@ -185,11 +185,11 @@ Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LT
 
   - [x] 7.3 Implement CGR-based pass prediction for LEO
     - Extend `pkg/contact/` with LEO orbital parameter support
-    - Implement SGP4/SDP4 orbit propagation via ION-DTN CGR
+    - Implement SGP4/SDP4 orbit propagation via HDTN CGR
     - Generate contact windows for ground station passes (5-10 min, 4-6/day)
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
 
-  - [x] 7.4 Create ION-DTN configuration generator for LEO node
+  - [x] 7.4 Create HDTN configuration generator for LEO node
     - Generate config files for STM32U585 + flight IQ transceiver
     - Configure CGR-predicted contact windows
     - Support TLE/ephemeris updates for re-prediction
@@ -239,11 +239,11 @@ Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LT
 
   - [x] 9.3 Implement CGR-based pass prediction for cislunar
     - Extend `pkg/contact/` with cislunar orbital parameter support
-    - Implement lunar orbit propagation via ION-DTN CGR
+    - Implement lunar orbit propagation via HDTN CGR
     - Generate contact windows with 1-2 second delay and confidence degradation
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
 
-  - [x] 9.4 Create ION-DTN configuration generator for cislunar node
+  - [x] 9.4 Create HDTN configuration generator for cislunar node
     - Generate config files for cislunar payload
     - Configure CGR-predicted contact windows with light-time delay
     - Support long-duration message storage
@@ -411,7 +411,7 @@ Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LT
 
   - [ ]* 15.4 Create developer documentation
     - Document Go package architecture
-    - Document ION-DTN integration points
+    - Document HDTN integration points
     - Document CGR contact prediction workflow
     - _Requirements: all_
 
@@ -424,7 +424,7 @@ Implementation is in Go, leveraging ION-DTN for core DTN functionality (BPv7, LT
 - Checkpoints ensure incremental validation at phase boundaries
 - Property tests validate universal correctness properties from the design document
 - Unit tests and integration tests validate specific examples and end-to-end flows
-- ION-DTN provides core DTN functionality; our Go code provides orchestration, telemetry, and phase-specific interfaces
+- HDTN provides core DTN functionality; our Go code provides orchestration, telemetry, and phase-specific interfaces
 - The four phases build progressively: terrestrial → EM → LEO → cislunar
 - CGR is used exclusively for contact prediction / pass scheduling, NOT for multi-hop relay routing
 - All bundle delivery is direct (source → destination); no relay functionality

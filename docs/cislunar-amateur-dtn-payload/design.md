@@ -2,18 +2,18 @@
 
 ## Overview
 
-This design describes a phased Delay/Disruption Tolerant Networking (DTN) system for amateur radio, progressing through four phases: terrestrial validation, CubeSat Engineering Model (EM) ground testing, LEO CubeSat flight demonstration, and cislunar deep-space communication. The system uses NASA JPL's ION (Interplanetary Overlay Network) as the DTN implementation, which provides BPv7, LTP, and related protocols out of the box. ION runs on top of KISS link-layer framing across all phases. The system supports two core operations: **ping** (DTN reachability test — send a bundle and receive an echo/response to validate end-to-end connectivity) and **store-and-forward** (a source node sends a bundle to a destination node, which stores it and delivers it when the destination becomes reachable during a contact window). There is **no relay functionality** — nodes do not forward bundles on behalf of other nodes. All bundle delivery is point-to-point (source → destination), possibly via a single store-and-forward hop through a space node, but the space node does not relay to other intermediate nodes.
+This design describes a phased Delay/Disruption Tolerant Networking (DTN) system for amateur radio, progressing through four phases: terrestrial validation, CubeSat Engineering Model (EM) ground testing, LEO CubeSat flight demonstration, and cislunar deep-space communication. The system uses NASA Glenn's HDTN (High-rate Delay Tolerant Networking) as the DTN implementation, which provides BPv7, LTP, and related protocols out of the box. HDTN runs on top of KISS link-layer framing across all phases. The system supports two core operations: **ping** (DTN reachability test — send a bundle and receive an echo/response to validate end-to-end connectivity) and **store-and-forward** (a source node sends a bundle to a destination node, which stores it and delivers it when the destination becomes reachable during a contact window). There is **no relay functionality** — nodes do not forward bundles on behalf of other nodes. All bundle delivery is point-to-point (source → destination), possibly via a single store-and-forward hop through a space node, but the space node does not relay to other intermediate nodes.
 
-The system uses ION-DTN's Contact Graph Routing (CGR) module for contact prediction — computing when space nodes (CubeSat, cislunar payload) will have line-of-sight communication windows with ground stations based on orbital parameters and ephemeris data. CGR is used exclusively for pass scheduling and contact window prediction, **not** for multi-hop relay routing. All bundle delivery remains direct (source → destination); CGR simply predicts *when* those direct contacts will occur.
+The system uses HDTN's Contact Graph Routing (CGR) module for contact prediction — computing when space nodes (CubeSat, cislunar payload) will have line-of-sight communication windows with ground stations based on orbital parameters and ephemeris data. CGR is used exclusively for pass scheduling and contact window prediction, **not** for multi-hop relay routing. All bundle delivery remains direct (source → destination); CGR simply predicts *when* those direct contacts will occur.
 
-The architecture is built around four node classes — ground stations (tiered by capability), a CubeSat Engineering Model (ground-based, flight-representative hardware), a LEO CubeSat, and a cislunar payload — connected through contact-plan-driven scheduling with direct communication windows. Each node autonomously stores, prioritizes, and delivers DTN bundles during available contact opportunities, tolerating delays from milliseconds (terrestrial) to minutes (cislunar). Terrestrial nodes use Raspberry Pi hosts connected via USB to Mobilinkd TNC4 terminal node controllers, which interface with Yaesu FT-817 radios over the 9600 baud data port for 9600 baud G3RUH-compatible packet operation on VHF/UHF. The Engineering Model and LEO CubeSat flight unit use an STM32U585 ultra-low-power ARM Cortex-M33 MCU (160 MHz, 2 MB flash, 786 KB SRAM) as the onboard computer (OBC), running ION-DTN on top of KISS on bare metal or a lightweight RTOS. The same STM32U585 board is used for both EM and flight unit, ensuring full software/hardware parity. External NVM (64–256 MB SPI/QSPI flash) provides persistent bundle storage. Rather than interfacing with a TNC or pre-built radio modem, the STM32U585 generates and processes IQ (In-phase/Quadrature) baseband samples directly, feeding them to/from the RF transmitter and receiver front-end. For the EM phase, the RF front-end is an Ettus Research USRP B200mini — a compact USB 3.0 software-defined radio providing full-duplex IQ streaming with a 12-bit ADC/DAC, 70 MHz – 6 GHz frequency range (covering both UHF 437 MHz and S-band 2.2 GHz), and up to 56 MHz instantaneous bandwidth. Since the STM32U585 lacks USB 3.0 host capability, the EM uses a companion Raspberry Pi (or PC) as a USB host running the UHD (USRP Hardware Driver) library to control the B200mini and bridge IQ samples to/from the STM32U585 via SPI or UART/DMA. This architecture allows the STM32U585 to run the identical baseband DSP, KISS/LTP framing, and ION-DTN stack that will fly, while the B200mini provides a lab-grade RF front-end for real over-the-air testing. For the flight unit, the B200mini is replaced by a dedicated flight-qualified IQ transceiver IC interfacing directly with the STM32U585 via DAC/ADC or SPI — no companion host required. This gives full software control over modulation/demodulation — GFSK/G3RUH for UHF, GMSK/BPSK for LEO, BPSK+LDPC for cislunar — with the STM32U585's DMA and DSP capabilities handling IQ sample streaming. The cislunar payload may also use an STM32U585 or a more capable processor depending on mission requirements; this remains flexible.
+The architecture is built around four node classes — ground stations (tiered by capability), a CubeSat Engineering Model (ground-based, flight-representative hardware), a LEO CubeSat, and a cislunar payload — connected through contact-plan-driven scheduling with direct communication windows. Each node autonomously stores, prioritizes, and delivers DTN bundles during available contact opportunities, tolerating delays from milliseconds (terrestrial) to minutes (cislunar). Terrestrial nodes use Raspberry Pi hosts connected via USB to Mobilinkd TNC4 terminal node controllers, which interface with Yaesu FT-817 radios over the 9600 baud data port for 9600 baud G3RUH-compatible packet operation on VHF/UHF. The Engineering Model and LEO CubeSat flight unit use an STM32U585 ultra-low-power ARM Cortex-M33 MCU (160 MHz, 2 MB flash, 786 KB SRAM) as the onboard computer (OBC), running HDTN on top of KISS on bare metal or a lightweight RTOS. The same STM32U585 board is used for both EM and flight unit, ensuring full software/hardware parity. External NVM (64–256 MB SPI/QSPI flash) provides persistent bundle storage. Rather than interfacing with a TNC or pre-built radio modem, the STM32U585 generates and processes IQ (In-phase/Quadrature) baseband samples directly, feeding them to/from the RF transmitter and receiver front-end. For the EM phase, the RF front-end is an Ettus Research USRP B200mini — a compact USB 3.0 software-defined radio providing full-duplex IQ streaming with a 12-bit ADC/DAC, 70 MHz – 6 GHz frequency range (covering both UHF 437 MHz and S-band 2.2 GHz), and up to 56 MHz instantaneous bandwidth. Since the STM32U585 lacks USB 3.0 host capability, the EM uses a companion Raspberry Pi (or PC) as a USB host running the UHD (USRP Hardware Driver) library to control the B200mini and bridge IQ samples to/from the STM32U585 via SPI or UART/DMA. This architecture allows the STM32U585 to run the identical baseband DSP, KISS/LTP framing, and HDTN stack that will fly, while the B200mini provides a lab-grade RF front-end for real over-the-air testing. For the flight unit, the B200mini is replaced by a dedicated flight-qualified IQ transceiver IC interfacing directly with the STM32U585 via DAC/ADC or SPI — no companion host required. This gives full software control over modulation/demodulation — GFSK/G3RUH for UHF, GMSK/BPSK for LEO, BPSK+LDPC for cislunar — with the STM32U585's DMA and DSP capabilities handling IQ sample streaming. The cislunar payload may also use an STM32U585 or a more capable processor depending on mission requirements; this remains flexible.
 
-All links across every phase use ION-DTN's unified protocol stack: BPv7 bundles carried over LTP sessions, carried over KISS frames. KISS provides link-layer framing with callsign-embedded DTN EIDs (dtn://callsign-ssid), satisfying regulatory requirements for station identification on all amateur transmissions. LTP (Licklider Transmission Protocol) runs directly inside KISS frames, providing reliable transfer with deferred acknowledgment as the DTN convergence layer. ION provides all of these protocols as an integrated implementation. The phases differ in radio band, frequency, data rate, and modulation/coding — not in protocol stack.
+All links across every phase use HDTN's unified protocol stack: BPv7 bundles carried over LTP sessions, carried over KISS frames. KISS provides link-layer framing with callsign-embedded DTN EIDs (dtn://callsign-ssid), satisfying regulatory requirements for station identification on all amateur transmissions. LTP (Licklider Transmission Protocol) runs directly inside KISS frames, providing reliable transfer with deferred acknowledgment as the DTN convergence layer. HDTN provides all of these protocols as an integrated implementation. The phases differ in radio band, frequency, data rate, and modulation/coding — not in protocol stack.
 
 The system emphasizes open-source software and hardware, broad community accessibility at the entry level (handheld radios for LEO reception), and progressively more capable infrastructure for deep-space links (3–5m dishes for cislunar S-band at 500 bps with LDPC/Turbo coding).
 
 The four-phase progression is:
-1. **Phase 1 — Terrestrial DTN Validation**: RPi + Mobilinkd TNC4 + FT-817 ground nodes validate ION-DTN (BPv7/LTP) over KISS-framed amateur radio links. Core operations: ping (DTN reachability) and store-and-forward messaging.
+1. **Phase 1 — Terrestrial DTN Validation**: RPi + Mobilinkd TNC4 + FT-817 ground nodes validate HDTN (BPv7/LTP) over KISS-framed amateur radio links. Core operations: ping (DTN reachability) and store-and-forward messaging.
 2. **Phase 2 — CubeSat Engineering Model (EM)**: Ground-based flatsat with STM32U585 OBC, Ettus B200mini SDR as the IQ RF front-end (via companion RPi/PC USB host running UHD), external NVM, and identical flight software stack. Validates ping, store-and-forward, power budget, and thermal/vacuum readiness under constrained resources (786 KB SRAM, 64–256 MB external NVM) before flight commitment. The B200mini is EM-only — the flight unit replaces it with a dedicated flight-qualified IQ transceiver IC.
 3. **Phase 3 — LEO CubeSat Flight**: Orbital deployment of the flight unit (STM32U585 OBC + IQ radio), demonstrating ground-to-space DTN ping and store-and-forward operations. No relay — the CubeSat delivers bundles directly to the destination ground station.
 4. **Phase 4 — Cislunar Mission**: Deep-space DTN node (STM32U585 or more capable processor) enabling amateur participation in Earth–Moon delay-tolerant networking via ping and store-and-forward.
@@ -36,7 +36,7 @@ graph TD
     end
 
     subgraph Engineering Model - Ground Lab
-        EM[CubeSat Engineering Model<br/>STM32U585 OBC - 160MHz Cortex-M33<br/>786KB SRAM + 64-256MB Ext NVM<br/>ION-DTN over KISS]
+        EM[CubeSat Engineering Model<br/>STM32U585 OBC - 160MHz Cortex-M33<br/>786KB SRAM + 64-256MB Ext NVM<br/>HDTN over KISS]
         B200[Ettus B200mini SDR<br/>USB 3.0 Full-Duplex IQ<br/>12-bit ADC/DAC, 70MHz-6GHz<br/>EM RF Front-End Only]
         BRIDGE[Companion RPi/PC<br/>UHD Driver - USB Host<br/>SPI/UART Bridge to STM32]
         EM <-->|SPI/UART/DMA<br/>IQ Samples| BRIDGE
@@ -44,7 +44,7 @@ graph TD
     end
 
     subgraph LEO Segment
-        SAT[LEO CubeSat Flight Unit<br/>STM32U585 OBC - 160MHz Cortex-M33<br/>IQ Baseband UHF 437MHz / 9.6kbps<br/>ION-DTN Ping + Store-and-Forward]
+        SAT[LEO CubeSat Flight Unit<br/>STM32U585 OBC - 160MHz Cortex-M33<br/>IQ Baseband UHF 437MHz / 9.6kbps<br/>HDTN Ping + Store-and-Forward]
     end
 
     subgraph Cislunar Segment
@@ -147,7 +147,7 @@ sequenceDiagram
     GS->>B200: Transmit KISS/LTP frames over UHF 437 MHz
     B200->>Bridge: IQ samples via USB 3.0 (UHD driver)
     Bridge->>EM: Baseband IQ via SPI/UART/DMA
-    EM->>EM: Demodulate IQ, decode KISS/LTP, process BPv7 bundles (ION-DTN)
+    EM->>EM: Demodulate IQ, decode KISS/LTP, process BPv7 bundles (HDTN)
     EM->>EM: Store bundles in external NVM (64-256MB SPI/QSPI)
     EM-->>Bridge: ACK IQ samples (TX path)
     Bridge-->>B200: TX IQ via USB 3.0
@@ -173,7 +173,7 @@ sequenceDiagram
 
 ### Component 1: Bundle Protocol Agent (BPA)
 
-**Purpose**: Core DTN engine responsible for creating, receiving, storing, and delivering BPv7 bundles across all node types. Operates on top of ION-DTN. Supports two operations: ping (echo request/response for DTN reachability testing) and store-and-forward (point-to-point bundle delivery). Does not perform relay — bundles are not forwarded on behalf of other nodes.
+**Purpose**: Core DTN engine responsible for creating, receiving, storing, and delivering BPv7 bundles across all node types. Operates on top of HDTN. Supports two operations: ping (echo request/response for DTN reachability testing) and store-and-forward (point-to-point bundle delivery). Does not perform relay — bundles are not forwarded on behalf of other nodes.
 
 **Interface**:
 ```lean
@@ -254,7 +254,7 @@ class BundleStore (σ : Type) where
 
 ### Component 3: Contact Plan Manager
 
-**Purpose**: Manages scheduled communication windows between nodes. Uses ION-DTN's Contact Graph Routing (CGR) module to predict when space nodes will be over ground stations based on orbital parameters and ephemeris data. CGR is used **exclusively for contact prediction / pass scheduling** — computing line-of-sight windows between space nodes and ground stations. It is **not** used for multi-hop relay routing; all bundle delivery remains direct (source → destination). The predicted contact windows drive delivery decisions by determining when direct contacts with destination nodes are available.
+**Purpose**: Manages scheduled communication windows between nodes. Uses HDTN's Contact Graph Routing (CGR) module to predict when space nodes will be over ground stations based on orbital parameters and ephemeris data. CGR is used **exclusively for contact prediction / pass scheduling** — computing line-of-sight windows between space nodes and ground stations. It is **not** used for multi-hop relay routing; all bundle delivery remains direct (source → destination). The predicted contact windows drive delivery decisions by determining when direct contacts with destination nodes are available.
 
 **Interface**:
 ```lean
@@ -319,7 +319,7 @@ class ContactPlanManager (γ : Type) where
   predictContacts : γ → OrbitalParameters → List GroundStationLocation → Nat → Nat → IO (List PredictedContact)
     -- Compute predicted contact windows between a space node (described by orbital parameters)
     -- and a set of ground stations over a time horizon [fromTime, toTime].
-    -- Uses ION-DTN's CGR engine for orbit propagation and line-of-sight computation.
+    -- Uses HDTN's CGR engine for orbit propagation and line-of-sight computation.
     -- Output is used to populate the contact plan for scheduling store-and-forward delivery.
     -- This is contact PREDICTION, not multi-hop route computation.
   updateOrbitalParameters : γ → NodeId → OrbitalParameters → IO Unit
@@ -341,15 +341,15 @@ class ContactPlanManager (γ : Type) where
 
 ### Component 4: Convergence Layer Adapter (CLA)
 
-**Purpose**: Abstracts the physical/link layer, providing a uniform interface for bundle transmission across all radio links. The CLA implements ION-DTN's unified KISS/LTP protocol stack used across all phases (terrestrial, EM, LEO, and cislunar):
+**Purpose**: Abstracts the physical/link layer, providing a uniform interface for bundle transmission across all radio links. The CLA implements HDTN's unified KISS/LTP protocol stack used across all phases (terrestrial, EM, LEO, and cislunar):
 - **KISS layer**: Provides link-layer framing with amateur radio callsign-embedded DTN EIDs. Every bundle carries source and destination callsign-embedded DTN EIDs (dtn://callsign-ssid), satisfying amateur radio regulatory requirements for station identification on all transmissions. Used across all bands (VHF, UHF, S-band, X-band).
 - **LTP layer (Licklider Transmission Protocol)**: Runs on top of KISS, providing reliable transfer with deferred acknowledgment as the DTN convergence layer. LTP sessions carry BPv7 bundles, with segmentation/reassembly for large bundles. The deferred-ACK model is beneficial across all link types — from short terrestrial links to long-delay cislunar links.
 
-For terrestrial nodes, the KISS/LTP stack (provided by ION-DTN) interfaces with the Mobilinkd TNC4 (connected to the host Raspberry Pi via USB), which drives the Yaesu FT-817 radio at 9600 baud through its 9600 baud data port using G3RUH-compatible GFSK modulation. For the EM node, the CLA interfaces with an Ettus Research USRP B200mini SDR as the RF front-end. The B200mini connects via USB 3.0 to a companion Raspberry Pi or PC running the UHD (USRP Hardware Driver) library, which bridges IQ samples to/from the STM32U585 OBC over SPI or UART/DMA. This architecture allows the STM32U585 to run the identical baseband DSP, KISS/LTP framing, and ION-DTN stack that will fly, providing a lab-grade, wideband (70 MHz – 6 GHz), full-duplex RF front-end with 12-bit ADC/DAC resolution. This allows real over-the-air testing on UHF 437 MHz (and optionally S-band 2.2 GHz) without requiring flight-qualified RF hardware. For the LEO CubeSat and cislunar flight nodes, the CLA interfaces directly with a dedicated flight-qualified IQ transceiver IC connected to the STM32U585 via DAC/ADC or SPI — no companion host or B200mini required. The STM32U585 provides full software-defined control over modulation/demodulation across all space nodes: GFSK/G3RUH for UHF ground testing (EM), GMSK/BPSK for LEO UHF, and BPSK+LDPC/Turbo for cislunar S-band/X-band. The IQ baseband approach eliminates the need for external SDR hardware on flight nodes — the STM32U585 itself performs all baseband DSP.
+For terrestrial nodes, the KISS/LTP stack (provided by HDTN) interfaces with the Mobilinkd TNC4 (connected to the host Raspberry Pi via USB), which drives the Yaesu FT-817 radio at 9600 baud through its 9600 baud data port using G3RUH-compatible GFSK modulation. For the EM node, the CLA interfaces with an Ettus Research USRP B200mini SDR as the RF front-end. The B200mini connects via USB 3.0 to a companion Raspberry Pi or PC running the UHD (USRP Hardware Driver) library, which bridges IQ samples to/from the STM32U585 OBC over SPI or UART/DMA. This architecture allows the STM32U585 to run the identical baseband DSP, KISS/LTP framing, and HDTN stack that will fly, providing a lab-grade, wideband (70 MHz – 6 GHz), full-duplex RF front-end with 12-bit ADC/DAC resolution. This allows real over-the-air testing on UHF 437 MHz (and optionally S-band 2.2 GHz) without requiring flight-qualified RF hardware. For the LEO CubeSat and cislunar flight nodes, the CLA interfaces directly with a dedicated flight-qualified IQ transceiver IC connected to the STM32U585 via DAC/ADC or SPI — no companion host or B200mini required. The STM32U585 provides full software-defined control over modulation/demodulation across all space nodes: GFSK/G3RUH for UHF ground testing (EM), GMSK/BPSK for LEO UHF, and BPSK+LDPC/Turbo for cislunar S-band/X-band. The IQ baseband approach eliminates the need for external SDR hardware on flight nodes — the STM32U585 itself performs all baseband DSP.
 
 **Interface**:
 ```lean
--- All links use ION-DTN's unified KISS/LTP stack; CLAType differentiates by band/frequency and radio interface
+-- All links use HDTN's unified KISS/LTP stack; CLAType differentiates by band/frequency and radio interface
 inductive CLAType where
   | kissltp_vhf_tnc : CLAType    -- LTP over KISS over VHF (terrestrial, via Mobilinkd TNC4 + FT-817 at 9600 baud)
   | kissltp_uhf_tnc : CLAType    -- LTP over KISS over UHF (terrestrial, via Mobilinkd TNC4 + FT-817 at 9600 baud)
@@ -614,7 +614,7 @@ def findDirectContact (plan : ContactPlan) (destination : EndpointId)
 def predictContacts (orbitalParams : OrbitalParameters)
     (groundStations : List GroundStationLocation)
     (fromTime : Nat) (toTime : Nat) : IO (List PredictedContact) := do
-  -- Use ION-DTN's CGR engine to compute predicted contact windows between
+  -- Use HDTN's CGR engine to compute predicted contact windows between
   -- a space node and ground stations over the given time horizon.
   -- Propagates the orbit forward from the orbital parameters, computes
   -- line-of-sight geometry with each ground station, and returns windows
@@ -780,7 +780,7 @@ def findDirectContactAlgorithm (contacts : List ContactWindow) (destination : No
 /-- CGR-based contact prediction: compute future communication windows between
     a space node and ground stations using orbital mechanics.
     This is PASS SCHEDULING, not multi-hop relay routing.
-    Uses ION-DTN's CGR engine for orbit propagation. -/
+    Uses HDTN's CGR engine for orbit propagation. -/
 def predictContactsAlgorithm (orbitalParams : OrbitalParameters)
     (stations : List GroundStationLocation)
     (fromTime : Nat) (toTime : Nat) (timeStep : Nat := 30) : List PredictedContact :=
@@ -969,7 +969,7 @@ def cislunarExample : IO Unit := do
 
 ```lean
 def engineeringModelExample (currentTime : Nat) : IO Unit := do
-  -- Initialize the Engineering Model node (STM32U585 OBC + Ettus B200mini SDR via companion RPi/PC UHD bridge, running ION-DTN)
+  -- Initialize the Engineering Model node (STM32U585 OBC + Ettus B200mini SDR via companion RPi/PC UHD bridge, running HDTN)
   let config : NodeConfig := {
     nodeId := ⟨"cubesat-em-01"⟩,
     nodeType := .engineeringModel,
@@ -995,7 +995,7 @@ def engineeringModelExample (currentTime : Nat) : IO Unit := do
   IO.println s!"EM simulated pass: {simulatedPass.dataRate} bps for 480s (STM32U585 IQ baseband via B200mini SDR)"
 
   -- Receive bundles from ground station during simulated pass window
-  -- B200mini down-converts UHF 437 MHz to baseband IQ, streams to STM32U585 for demodulation (ION-DTN processes bundles)
+  -- B200mini down-converts UHF 437 MHz to baseband IQ, streams to STM32U585 for demodulation (HDTN processes bundles)
   let mut received := 0
   while (← IO.getTime) < simulatedPass.endTime do
     match ← cla.recvBundle with
@@ -1262,13 +1262,13 @@ Key properties to test with random generation:
 
 The EM phase is a major integration and validation milestone bridging terrestrial testing and flight commitment. EM testing includes:
 
-- **Flight software validation**: Run ION-DTN (BPv7/LTP) over KISS on the STM32U585 OBC (160 MHz Cortex-M33, 786 KB SRAM, 2 MB flash), verifying correct operation under constrained CPU, SRAM, and power. External NVM (64–256 MB SPI/QSPI flash) provides bundle store persistence.
+- **Flight software validation**: Run HDTN (BPv7/LTP) over KISS on the STM32U585 OBC (160 MHz Cortex-M33, 786 KB SRAM, 2 MB flash), verifying correct operation under constrained CPU, SRAM, and power. External NVM (64–256 MB SPI/QSPI flash) provides bundle store persistence.
 - **End-to-end DTN store-and-forward through EM**: Ground stations send bundles to the EM over UHF (via STM32U585 IQ baseband + Ettus B200mini SDR RF front-end, bridged through companion RPi/PC running UHD), the EM stores and delivers them to the destination ground station during simulated contact windows, validating the complete store-and-forward pipeline on flight hardware (no relay)
 - **DTN ping validation**: Ground station sends ping echo request to EM, EM generates and returns echo response, validating end-to-end DTN reachability on flight hardware
 - **Simulated orbital pass testing**: Schedule contact windows matching realistic LEO pass profiles (5–10 min duration, 4–6 passes/day) to exercise contact plan-driven delivery and time-bounded transmission on the EM
 - **Power budget validation**: Profile STM32U585 power consumption across idle (Stop 2 mode, ~16 µA), receive (IQ RX processing), transmit (IQ TX generation), and store-and-forward cycles to confirm the flight power budget (5–10 W average) is achievable
 - **Store-and-forward under constrained resources**: Fill the EM bundle store to capacity (64–256 MB external NVM), verify eviction policy, priority ordering, and persistence across power cycles. Validate that 786 KB SRAM is sufficient for concurrent bundle processing and IQ buffer management.
-- **IQ baseband radio integration**: Validate the STM32U585 IQ baseband interface with the Ettus B200mini SDR RF front-end (EM phase), confirming GFSK/G3RUH modulation/demodulation at 9.6 kbps UHF 437 MHz, DMA-driven IQ sample streaming through the companion RPi/PC UHD bridge, and end-to-end KISS/LTP link operation (ION-DTN) over real RF. The B200mini's 12-bit ADC/DAC and 56 MHz bandwidth provide high-fidelity IQ capture for validating the STM32U585 baseband DSP before transitioning to the flight IQ transceiver IC. Optionally test S-band 2.2 GHz operation using the B200mini's wideband tuning range (70 MHz – 6 GHz) to validate cislunar modulation/coding paths.
+- **IQ baseband radio integration**: Validate the STM32U585 IQ baseband interface with the Ettus B200mini SDR RF front-end (EM phase), confirming GFSK/G3RUH modulation/demodulation at 9.6 kbps UHF 437 MHz, DMA-driven IQ sample streaming through the companion RPi/PC UHD bridge, and end-to-end KISS/LTP link operation (HDTN) over real RF. The B200mini's 12-bit ADC/DAC and 56 MHz bandwidth provide high-fidelity IQ capture for validating the STM32U585 baseband DSP before transitioning to the flight IQ transceiver IC. Optionally test S-band 2.2 GHz operation using the B200mini's wideband tuning range (70 MHz – 6 GHz) to validate cislunar modulation/coding paths.
 - **B200mini-to-flight-transceiver transition plan**: Characterize the IQ sample interface (sample rate, bit depth, timing) between the STM32U585 and the B200mini bridge to ensure the flight IQ transceiver IC provides an equivalent interface. Document any adapter or level-shifting requirements for the flight configuration.
 - **Thermal/vacuum preparation**: If applicable, run EM through thermal cycling and/or vacuum chamber tests to validate STM32U585 and RF front-end behavior under environmental stress. Note: the Ettus B200mini is a COTS lab instrument and is not expected to survive thermal/vacuum — these tests focus on the STM32U585 OBC and external NVM; the B200mini may be replaced by a cabled IQ signal generator/analyzer for environmental chamber testing
 - **Fault injection on flight hardware**: Simulate power loss, watchdog resets, and memory corruption on the STM32U585 EM to verify store recovery and graceful degradation
@@ -1296,12 +1296,12 @@ The EM phase is a major integration and validation milestone bridging terrestria
 
 ## Dependencies
 
-- **ION-DTN (NASA JPL)**: Interplanetary Overlay Network — the primary DTN implementation used across all phases. ION provides BPv7, LTP, and related protocols as an integrated, flight-proven software package. Replaces the need for a custom BPv7 stack. ION runs on top of KISS link-layer framing in this system. ION's **Contact Graph Routing (CGR) module** is used for contact prediction / pass scheduling — computing when space nodes will have line-of-sight communication windows with ground stations based on orbital parameters. CGR is used **only for contact prediction**, not for multi-hop relay routing.
-- **Bundle Protocol v7 (RFC 9171)**: Core DTN protocol specification (implemented by ION-DTN)
+- **HDTN (NASA Glenn)**: High-rate Delay Tolerant Networking — the primary DTN implementation used across all phases. HDTN provides BPv7, LTP, and related protocols as an integrated, flight-proven software package. Replaces the need for a custom BPv7 stack. HDTN runs on top of KISS link-layer framing in this system. HDTN's **Contact Graph Routing (CGR) module** is used for contact prediction / pass scheduling — computing when space nodes will have line-of-sight communication windows with ground stations based on orbital parameters. CGR is used **only for contact prediction**, not for multi-hop relay routing.
+- **Bundle Protocol v7 (RFC 9171)**: Core DTN protocol specification (implemented by HDTN)
 - **CBOR (RFC 8949)**: Serialization format for BPv7 bundles
 - **KISS**: Link-layer framing protocol wrapping LTP segments directly across all phases (terrestrial, EM, LEO, cislunar). Station identification is provided by callsign-embedded DTN EIDs (dtn://callsign-ssid) in every bundle, ensuring amateur radio regulatory compliance
-- **LTP (RFC 5326)**: Licklider Transmission Protocol — convergence layer running on top of KISS across all phases, providing reliable transfer with deferred acknowledgment for DTN bundle delivery (implemented by ION-DTN)
-- **STM32U585 MCU (ST Microelectronics)**: Ultra-low-power ARM Cortex-M33 onboard computer for EM and LEO CubeSat flight unit (and optionally cislunar). 160 MHz, 2 MB flash, 786 KB SRAM, DMA for IQ sample streaming. Runs ION-DTN over KISS on bare metal or lightweight RTOS.
+- **LTP (RFC 5326)**: Licklider Transmission Protocol — convergence layer running on top of KISS across all phases, providing reliable transfer with deferred acknowledgment for DTN bundle delivery (implemented by HDTN)
+- **STM32U585 MCU (ST Microelectronics)**: Ultra-low-power ARM Cortex-M33 onboard computer for EM and LEO CubeSat flight unit (and optionally cislunar). 160 MHz, 2 MB flash, 786 KB SRAM, DMA for IQ sample streaming. Runs HDTN over KISS on bare metal or lightweight RTOS.
 - **IQ transceiver IC / RF front-end (flight)**: Dedicated flight-qualified IQ baseband transceiver or DAC/ADC pair interfacing directly with the STM32U585 for transmit/receive IQ sample generation and processing on the LEO and cislunar flight units. Provides the analog RF interface for UHF (LEO) and S-band (cislunar) links. Replaces the B200mini used in the EM phase.
 - **Ettus Research USRP B200mini (EM only)**: Compact USB 3.0 software-defined radio used as the RF front-end for the Engineering Model phase. Full-duplex IQ streaming, 12-bit ADC/DAC, 70 MHz – 6 GHz frequency range (covers UHF 437 MHz and S-band 2.2 GHz), up to 56 MHz instantaneous bandwidth. Connects to a companion Raspberry Pi or PC via USB 3.0. Not used in flight — replaced by a dedicated flight-qualified IQ transceiver IC.
 - **UHD — USRP Hardware Driver (EM only)**: Open-source driver library from Ettus Research for controlling the B200mini SDR. Runs on the companion Raspberry Pi or PC that bridges IQ samples between the B200mini (USB 3.0) and the STM32U585 (SPI/UART/DMA). Provides frequency tuning, gain control, sample rate configuration, and IQ streaming APIs.

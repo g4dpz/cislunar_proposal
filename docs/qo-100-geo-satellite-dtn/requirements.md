@@ -6,7 +6,7 @@ This document specifies the requirements for Phase 1.5 of the cislunar amateur D
 
 QO-100 is a geostationary satellite at 25.9°E providing amateur radio transponder services with a 2.4 GHz uplink and 10.45 GHz downlink. The satellite introduces approximately 500ms round-trip time (250ms one-way light time) and validates DTN operation over a real space link before progressing to LEO CubeSat missions.
 
-The system reuses the Phase 1 software stack: ION-DTN (BPv7, LTP), the dtn-node Go orchestrator, and KISS framing with callsign-embedded DTN EIDs (dtn://callsign-ssid). The primary changes are hardware-specific: 2.4 GHz uplink transmitter, 10.45 GHz downlink receiver (LNB + SDR), and QO-100 modem or SDR for digital mode operation. The geostationary orbit eliminates pass prediction complexity — the satellite is always visible from the ground station's location, providing an always-on contact window with minimal Doppler shift.
+The system reuses the Phase 1 software stack: HDTN (BPv7, LTP), the dtn-node Go orchestrator, and KISS framing with callsign-embedded DTN EIDs (dtn://callsign-ssid). The primary changes are hardware-specific: 2.4 GHz uplink transmitter, 10.45 GHz downlink receiver (LNB + SDR), and QO-100 modem or SDR for digital mode operation. The geostationary orbit eliminates pass prediction complexity — the satellite is always visible from the ground station's location, providing an always-on contact window with minimal Doppler shift.
 
 This spec validates DTN ping and store-and-forward operations over the QO-100 satellite link, demonstrating that the protocol stack handles real space delays and RF propagation characteristics before advancing to LEO orbital mechanics and CubeSat hardware.
 
@@ -23,10 +23,10 @@ This spec validates DTN ping and store-and-forward operations over the QO-100 sa
 - **Doppler_Shift**: Frequency shift due to relative motion between transmitter and receiver — minimal for GEO satellites
 - **Transponder**: Satellite payload that receives uplink signals, frequency-translates them, and retransmits on downlink
 - **Dish_Antenna**: Parabolic reflector antenna providing high gain for satellite communication, typically 60-90cm diameter for QO-100
-- **BPA**: Bundle Protocol Agent — ION-DTN core engine (reused from Phase 1)
+- **BPA**: Bundle Protocol Agent — HDTN core engine (reused from Phase 1)
 - **Bundle_Store**: Persistent bundle storage (reused from Phase 1)
 - **Contact_Plan_Manager**: Manages communication windows (reused from Phase 1, simplified for always-on GEO contact)
-- **CLA**: Convergence Layer Adapter — interfaces ION-DTN with radio hardware (reused from Phase 1)
+- **CLA**: Convergence Layer Adapter — interfaces HDTN with radio hardware (reused from Phase 1)
 - **Node_Controller**: Top-level orchestrator (reused from Phase 1)
 
 ## Requirements
@@ -172,7 +172,7 @@ This spec validates DTN ping and store-and-forward operations over the QO-100 sa
 
 1. THE QO-100 system SHALL reuse the Phase 1 BPA, Bundle_Store, Contact_Plan_Manager, CLA, and Node_Controller components without modification to their core logic
 2. THE QO-100 system SHALL extend the CLA to support the QO-100 uplink transmitter and downlink receiver hardware interfaces in addition to the Phase 1 TNC4 interface
-3. THE QO-100 system SHALL reuse the Phase 1 ION-DTN configuration format (ionrc, ltprc, bprc) with QO-100-specific contact plan entries
+3. THE QO-100 system SHALL reuse the Phase 1 HDTN JSON configuration format with QO-100-specific contact plan entries
 4. THE QO-100 system SHALL reuse the Phase 1 dtn-node Go orchestrator CLI with a QO-100-specific configuration file
 
 ### Requirement 14: QO-100 Error Handling and Recovery

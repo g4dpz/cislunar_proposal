@@ -29,6 +29,7 @@ zip -r "$OUTPUT_DIR/$ZIP_NAME" \
   website/services/ \
   website/views/ \
   website/public/ \
+  docs/ \
   deploy/radiant.service \
   deploy/apache-radiant.conf \
   deploy/setup.sh \
@@ -36,6 +37,7 @@ zip -r "$OUTPUT_DIR/$ZIP_NAME" \
   deploy/README.md \
   -x "website/data/*" \
   -x "website/tests/*" \
+  -x "docs/*/.config.kiro" \
   -x "*.db" \
   -x "*.db-shm" \
   -x "*.db-wal"

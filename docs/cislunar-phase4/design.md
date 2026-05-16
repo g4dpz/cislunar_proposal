@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design describes the Phase 4 Cislunar Mission system — the final phase extending DTN operations from LEO (Phase 3) to cislunar distances (~384,000 km). The OBC runs the complete flight software stack autonomously: ION-DTN (BPv7/LTP over KISS), IQ baseband DSP with BPSK modulation, LDPC/Turbo FEC encoding/decoding, NVM bundle store (256 MB–1 GB), CGR contact prediction adapted for cislunar orbits, Doppler compensation at S-band 2.2 GHz, power management (10–20 W), and enhanced radiation tolerance for the cislunar environment.
+This design describes the Phase 4 Cislunar Mission system — the final phase extending DTN operations from LEO (Phase 3) to cislunar distances (~384,000 km). The OBC runs the complete flight software stack autonomously: HDTN (BPv7/LTP over KISS), IQ baseband DSP with BPSK modulation, LDPC/Turbo FEC encoding/decoding, NVM bundle store (256 MB–1 GB), CGR contact prediction adapted for cislunar orbits, Doppler compensation at S-band 2.2 GHz, power management (10–20 W), and enhanced radiation tolerance for the cislunar environment.
 
 The baseline OBC is the STM32U585 (same as Phase 3), with the option to upgrade to a more capable processor. All interfaces are designed to work on the STM32U585 while accommodating a higher-capability OBC. The design uses `obc_` prefixes instead of `stm32_` to maintain processor flexibility.
 
@@ -18,7 +18,7 @@ The key architectural changes from Phase 3 are:
 8. **Slower Doppler dynamics**: Doppler at S-band is ±5 kHz (vs. ±10 kHz at UHF in LEO), with slower rate of change. Update rate relaxed to once per 10 seconds.
 9. **Power budget**: 10–20 W (vs. 5–10 W in Phase 3).
 
-Phase 3 components carried forward unchanged: ION-DTN BPA (BPv7 creation/validation/serialization), NVM Bundle Store (atomic writes, priority index, eviction), KISS CLA plugin architecture, pool allocator, rate limiting, bundle size limits, priority ordering, watchdog manager, time manager, node health/telemetry framework.
+Phase 3 components carried forward unchanged: HDTN BPA (BPv7 creation/validation/serialization), NVM Bundle Store (atomic writes, priority index, eviction), KISS CLA plugin architecture, pool allocator, rate limiting, bundle size limits, priority ordering, watchdog manager, time manager, node health/telemetry framework.
 
 ### Scope Boundaries
 
@@ -33,9 +33,9 @@ graph TD
     subgraph "OBC — C Firmware (Autonomous, Cislunar)"
         subgraph "Non-Secure World"
             NC[Node Controller<br/>Autonomous operation cycle<br/>Wake → Communicate → Sleep<br/>Hours-long contact arcs]
-            BPA[Bundle Protocol Agent<br/>ION-DTN BPA — BPv7 bundles]
-            LTP_E[LTP Engine<br/>ION-DTN LTP — deferred ACK<br/>Cislunar timers: 10s session timeout]
-            CLA[KISS CLA (ltpkisscli/ltpkissclo)<br/>ION CLA — S-band adapter<br/>Adapted from Phase 3]
+            BPA[Bundle Protocol Agent<br/>HDTN BPA — BPv7 bundles]
+            LTP_E[LTP Engine<br/>HDTN LTP — deferred ACK<br/>Cislunar timers: 10s session timeout]
+            CLA[HDTN KISS CLA plugin<br/>HDTN CLA — S-band adapter<br/>Adapted from Phase 3]
             FEC[LDPC/Turbo FEC Codec<br/>Encode TX / Decode RX<br/>Rate for BER 1e-5 at Eb/N0 2dB]
             DSP[IQ Baseband DSP<br/>BPSK mod/demod 500 bps<br/>DMA streaming + Doppler comp]
             BS[Bundle Store<br/>NVM-backed — SPI/QSPI flash<br/>256 MB–1 GB external]
@@ -105,7 +105,7 @@ graph TD
 ```mermaid
 graph TD
     subgraph "OBC SRAM — 786 KB Baseline (STM32U585)"
-        ION_MEM["ION-DTN Runtime<br/>~256 KB<br/>BPA, LTP state, CLA buffers"]
+        HDTN_MEM["HDTN Runtime<br/>~256 KB<br/>BPA, LTP state, CLA buffers"]
         FEC_MEM["LDPC/Turbo FEC Codec<br/>~96 KB<br/>Encoder/decoder state + buffers"]
         IQ_BUF["IQ Sample Buffers<br/>~96 KB<br/>TX double-buffer + RX double-buffer<br/>DMA ping-pong (lower rate = smaller)"]
         KISS_BUF["KISS/LTP Frame Buffers<br/>~48 KB<br/>TX frame + RX frame + reassembly"]
@@ -114,7 +114,7 @@ graph TD
         POOL["Static Pool Allocator<br/>~146 KB<br/>Fixed-size block pools<br/>No dynamic heap"]
     end
 
-    style ION_MEM fill:#1a3a5c,color:#fff
+    style HDTN_MEM fill:#1a3a5c,color:#fff
     style FEC_MEM fill:#5c1a3a,color:#fff
     style IQ_BUF fill:#5c1a3a,color:#fff
     style KISS_BUF fill:#5c1a3a,color:#fff
@@ -134,7 +134,7 @@ sequenceDiagram
     participant DSP as IQ DSP + Doppler
     participant FEC as LDPC/Turbo FEC
     participant CLA as KISS CLA
-    participant BPA as BPA (ION-DTN)
+    participant BPA as BPA (HDTN)
     participant BS as Bundle Store (NVM 256MB–1GB)
 
     Note over T3,XCVR: Contact arc begins — payload woke autonomously
@@ -870,7 +870,7 @@ bpa_error_t catalog_reload(void);
 
 ### Component 12: LTP Engine — OBC C Firmware (ADAPTED from Phase 3)
 
-**Carried from Phase 3.** Same ION-DTN LTP implementation. Phase 4 configures LTP for cislunar delay:
+**Carried from Phase 3.** Same HDTN LTP implementation. Phase 4 configures LTP for cislunar delay:
 - Retransmission timer: 10 seconds (vs. ~1 second in LEO)
 - Session timeout: 10 seconds
 - Max retries: 5

@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document specifies the requirements for Phase 2 of the cislunar amateur DTN project: the CubeSat Engineering Model (EM). Phase 2 validates the flight software stack on ground-based, flight-representative hardware before committing to orbital deployment. The EM uses an STM32U585 ultra-low-power ARM Cortex-M33 OBC (160 MHz, 2 MB flash, 786 KB SRAM) running ION-DTN (BPv7/LTP over KISS) on bare metal or a lightweight RTOS, with C firmware for the DTN/radio stack and Go orchestration on a companion host.
+This document specifies the requirements for Phase 2 of the cislunar amateur DTN project: the CubeSat Engineering Model (EM). Phase 2 validates the flight software stack on ground-based, flight-representative hardware before committing to orbital deployment. The EM uses an STM32U585 ultra-low-power ARM Cortex-M33 OBC (160 MHz, 2 MB flash, 786 KB SRAM) running HDTN (BPv7/LTP over KISS) on bare metal or a lightweight RTOS, with C firmware for the DTN/radio stack and Go orchestration on a companion host.
 
 The RF front-end is an Ettus Research USRP B200mini SDR (USB 3.0, 12-bit ADC/DAC, 70 MHz–6 GHz, full-duplex IQ), connected to a companion Raspberry Pi or PC running the UHD driver. The companion host bridges IQ samples to/from the STM32U585 via SPI/UART/DMA. The STM32U585 generates TX IQ samples and processes RX IQ samples directly via its DMA engine — the same baseband DSP code that will fly. The B200mini is EM-only; the flight unit replaces it with a dedicated IQ transceiver IC. External SPI/QSPI NVM (64–256 MB) provides persistent bundle storage.
 
@@ -10,7 +10,7 @@ The system supports two core operations: ping (DTN reachability test) and store-
 
 Phase 2 operates at UHF 437 MHz at 9.6 kbps, matching the flight configuration. Simulated orbital pass testing validates store-and-forward under realistic contact windows (5–10 min, 4–6 passes/day). Power budget profiling validates STM32U585 Stop 2 ultra-low-power mode (~16 µA idle) and active power consumption (5–10 W average).
 
-Phase 1 (terrestrial validation with RPi + TNC4 + FT-817) is complete and provides the ION-DTN protocol stack, KISS CLA architecture, ping/store-and-forward operations, and no-relay constraint that Phase 2 inherits and adapts for the STM32U585 IQ baseband architecture.
+Phase 1 (terrestrial validation with RPi + TNC4 + FT-817) is complete and provides the HDTN protocol stack, KISS CLA architecture, ping/store-and-forward operations, and no-relay constraint that Phase 2 inherits and adapts for the STM32U585 IQ baseband architecture.
 
 Out of scope: flight-qualified IQ transceiver IC (Phase 3), orbital deployment (Phase 3), CGR contact prediction / orbital mechanics (Phase 3), S-band / X-band / cislunar communications (Phase 4), relay functionality.
 
@@ -27,13 +27,13 @@ Phase 2 EM development and testing uses an **ST NUCLEO-F753ZI** development boar
 - **UHD**: USRP Hardware Driver — Ettus Research library for controlling the B200mini SDR from the Companion_Host
 - **IQ_Bridge**: The SPI/UART/DMA interface between the Companion_Host and the STM32U585 that carries baseband IQ samples in both TX and RX directions
 - **NVM**: External SPI/QSPI non-volatile memory (64–256 MB flash) connected to the STM32U585 for persistent bundle storage
-- **BPA**: Bundle Protocol Agent — the core ION-DTN engine running on the STM32U585 that creates, receives, validates, stores, and delivers BPv7 bundles
+- **BPA**: Bundle Protocol Agent — the core HDTN engine running on the STM32U585 that creates, receives, validates, stores, and delivers BPv7 bundles
 - **Bundle_Store**: Persistent storage subsystem backed by external NVM for bundles awaiting delivery
 - **Contact_Plan_Manager**: Subsystem that maintains manually configured communication windows for simulated orbital passes (no CGR in Phase 2)
-- **CLA**: Convergence Layer Adapter — native ION-DTN CLA plugin running on the STM32U585 that provides KISS framing as the LTP link service layer, adapted from Phase 1 for IQ baseband instead of TNC4
+- **CLA**: Convergence Layer Adapter — native HDTN CLA plugin running on the STM32U585 that provides KISS framing as the LTP link service layer, adapted from Phase 1 for IQ baseband instead of TNC4
 - **Node_Controller**: Top-level orchestrator — Go process on the Companion_Host managing the STM32U585 firmware lifecycle, contact scheduling, and telemetry collection
-- **Firmware**: C code running on the STM32U585 (bare metal or lightweight RTOS) implementing ION-DTN BPv7/LTP, KISS CLA, IQ baseband DSP, NVM bundle store, and power management
-- **ION-DTN**: NASA JPL's Interplanetary Overlay Network — the DTN implementation providing BPv7, LTP, and related protocols, cross-compiled for STM32U585
+- **Firmware**: C code running on the STM32U585 (bare metal or lightweight RTOS) implementing HDTN BPv7/LTP, KISS CLA, IQ baseband DSP, NVM bundle store, and power management
+- **HDTN**: NASA Glenn's High-rate Delay Tolerant Networking — the DTN implementation providing BPv7, LTP, CGR, and related protocols (C++17, modular CLA plugin architecture), cross-compiled for STM32U585
 - **LTP**: Licklider Transmission Protocol — runs directly over KISS framing, providing reliable transfer with deferred acknowledgment
 - **KISS**: Minimal serial framing protocol (FEND/CMD/DATA/FEND) wrapping LTP segments for IQ baseband transport
 - **Stop_2_Mode**: STM32U585 ultra-low-power sleep mode (~16 µA) with SRAM retention, used between simulated contact windows
@@ -45,7 +45,7 @@ Phase 2 EM development and testing uses an **ST NUCLEO-F753ZI** development boar
 
 ## Requirements
 
-### Requirement 1: STM32U585 ION-DTN Bundle Creation and Validation
+### Requirement 1: STM32U585 HDTN Bundle Creation and Validation
 
 **User Story:** As an EM test operator, I want the STM32U585 firmware to create and validate BPv7 bundles within its constrained SRAM, so that the flight DTN stack is validated on representative hardware.
 
@@ -56,7 +56,7 @@ Phase 2 EM development and testing uses an **ST NUCLEO-F753ZI** development boar
 3. IF a received bundle fails any validation check, THEN THE BPA SHALL discard the bundle and log the specific validation failure reason along with the source Endpoint_ID
 4. THE BPA SHALL support three bundle types: data bundles for store-and-forward payload delivery, ping request bundles for echo requests, and ping response bundles for echo responses
 5. FOR ALL valid Bundle objects, serializing a Bundle to its BPv7 wire format (CBOR) and then parsing the wire format back SHALL produce a Bundle equivalent to the original (round-trip property)
-6. THE BPA SHALL complete bundle creation and validation using a working memory allocation that fits within the STM32U585 786 KB SRAM budget shared with IQ buffers and the ION-DTN runtime
+6. THE BPA SHALL complete bundle creation and validation using a working memory allocation that fits within the STM32U585 786 KB SRAM budget shared with IQ buffers and the HDTN runtime
 
 ### Requirement 2: NVM Bundle Storage and Persistence
 
@@ -125,7 +125,7 @@ Phase 2 EM development and testing uses an **ST NUCLEO-F753ZI** development boar
 3. THE Firmware SHALL use the STM32U585 DMA engine for IQ sample streaming, avoiding CPU-bound sample transfers between memory and the IQ_Bridge peripheral
 4. THE Companion_Host SHALL run the UHD driver to control the B200mini, converting between IQ sample streams (USB 3.0 to/from B200mini) and the IQ_Bridge interface (SPI/UART/DMA to/from STM32U585)
 5. THE IQ_Bridge SHALL operate at UHF 437 MHz center frequency with sufficient sample rate to support 9.6 kbps GFSK/G3RUH modulation
-6. THE Firmware SHALL manage IQ sample buffers within the STM32U585 786 KB SRAM budget, sharing memory with the ION-DTN runtime and Bundle_Store index
+6. THE Firmware SHALL manage IQ sample buffers within the STM32U585 786 KB SRAM budget, sharing memory with the HDTN runtime and Bundle_Store index
 7. FOR ALL valid KISS frames, modulating a frame into IQ samples and then demodulating the IQ samples back SHALL produce a frame equivalent to the original (round-trip property for the baseband DSP path)
 
 ### Requirement 8: KISS CLA and LTP Convergence Layer on STM32U585
@@ -189,13 +189,13 @@ Phase 2 EM development and testing uses an **ST NUCLEO-F753ZI** development boar
 
 ### Requirement 14: SRAM Memory Management
 
-**User Story:** As an embedded systems engineer, I want the STM32U585 firmware to operate within the 786 KB SRAM constraint while concurrently running ION-DTN, IQ baseband DSP, and bundle index management, so that the flight memory budget is validated.
+**User Story:** As an embedded systems engineer, I want the STM32U585 firmware to operate within the 786 KB SRAM constraint while concurrently running HDTN, IQ baseband DSP, and bundle index management, so that the flight memory budget is validated.
 
 #### Acceptance Criteria
 
-1. THE Firmware SHALL operate within the STM32U585 786 KB SRAM for all concurrent operations: ION-DTN runtime, IQ sample buffers (TX and RX), KISS/LTP frame buffers, and bundle metadata index
+1. THE Firmware SHALL operate within the STM32U585 786 KB SRAM for all concurrent operations: HDTN runtime, IQ sample buffers (TX and RX), KISS/LTP frame buffers, and bundle metadata index
 2. THE Firmware SHALL use static or pool-based memory allocation for all runtime data structures, avoiding dynamic heap allocation that could cause fragmentation on the constrained MCU
-3. THE Firmware SHALL report peak and current SRAM utilization as part of telemetry, broken down by subsystem (ION-DTN, IQ buffers, bundle index)
+3. THE Firmware SHALL report peak and current SRAM utilization as part of telemetry, broken down by subsystem (HDTN, IQ buffers, bundle index)
 4. IF an operation would exceed the SRAM budget, THEN THE Firmware SHALL reject the operation and log the memory exhaustion event rather than corrupting adjacent memory regions
 
 ### Requirement 15: Split Architecture — Go Orchestration and C Firmware

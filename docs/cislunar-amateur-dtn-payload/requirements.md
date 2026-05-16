@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document specifies the requirements for a phased Delay/Disruption Tolerant Networking (DTN) system for amateur radio, progressing through four phases: terrestrial validation (RPi + Mobilinkd TNC4 + FT-817), CubeSat Engineering Model (STM32U585 + Ettus B200mini), LEO CubeSat flight (STM32U585 + flight IQ transceiver), and cislunar deep-space communication. The system uses ION-DTN (BPv7/LTP) over KISS framing with callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) for station identification, supporting two core operations — ping and store-and-forward — with no relay functionality. Requirements are derived from the approved design document.
+This document specifies the requirements for a phased Delay/Disruption Tolerant Networking (DTN) system for amateur radio, progressing through four phases: terrestrial validation (RPi + Mobilinkd TNC4 + FT-817), CubeSat Engineering Model (STM32U585 + Ettus B200mini), LEO CubeSat flight (STM32U585 + flight IQ transceiver), and cislunar deep-space communication. The system uses HDTN (BPv7/LTP) over KISS framing with callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) for station identification, supporting two core operations — ping and store-and-forward — with no relay functionality. Requirements are derived from the approved design document.
 
 ## Glossary
 
@@ -10,10 +10,10 @@ This document specifies the requirements for a phased Delay/Disruption Tolerant 
 - **Bundle**: A BPv7 protocol data unit carrying a payload between DTN endpoints
 - **Bundle_Store**: Persistent storage subsystem for bundles awaiting delivery, backed by NVM on space nodes
 - **Contact_Plan_Manager**: Subsystem that manages scheduled communication windows and uses CGR for contact prediction
-- **CGR**: Contact Graph Routing — ION-DTN module used exclusively for contact prediction / pass scheduling (not multi-hop routing)
+- **CGR**: Contact Graph Routing — HDTN module used exclusively for contact prediction / pass scheduling (not multi-hop routing)
 - **CLA**: Convergence Layer Adapter — abstracts the physical/link layer for bundle transmission across all radio links
 - **Node_Controller**: Top-level orchestrator that ties together BPA, Bundle_Store, Contact_Plan_Manager, and CLA
-- **ION-DTN**: NASA JPL's Interplanetary Overlay Network — the DTN implementation providing BPv7, LTP, and CGR
+- **HDTN**: NASA Glenn's High-rate Delay Tolerant Networking — the DTN implementation providing BPv7, LTP, CGR, and related protocols (C++17, modular CLA plugin architecture)
 - **LTP**: Licklider Transmission Protocol — convergence layer running directly over KISS framing, providing reliable transfer with deferred acknowledgment
 - **KISS**: Minimal serial framing protocol (FEND/CMD/DATA/FEND) wrapping LTP segments for TNC or IQ baseband transport
 - **STM32U585**: Ultra-low-power ARM Cortex-M33 MCU (160 MHz, 786 KB SRAM, 2 MB flash) used as OBC for EM and flight nodes
@@ -110,7 +110,7 @@ This document specifies the requirements for a phased Delay/Disruption Tolerant 
 
 #### Acceptance Criteria
 
-1. WHEN provided with orbital parameters and a list of ground station locations, THE Contact_Plan_Manager SHALL use ION-DTN's CGR engine to compute predicted contact windows over a specified time horizon
+1. WHEN provided with orbital parameters and a list of ground station locations, THE Contact_Plan_Manager SHALL use HDTN's CGR engine to compute predicted contact windows over a specified time horizon
 2. THE Contact_Plan_Manager SHALL return only predicted contacts where the maximum elevation angle meets or exceeds the ground station's minimum elevation threshold
 3. THE Contact_Plan_Manager SHALL sort predicted contacts by start time in ascending order
 4. THE Contact_Plan_Manager SHALL assign a confidence value to each predicted contact that decreases for windows further from the orbital parameter epoch
@@ -158,7 +158,7 @@ This document specifies the requirements for a phased Delay/Disruption Tolerant 
 
 #### Acceptance Criteria
 
-1. THE EM node SHALL run ION-DTN (BPv7/LTP over KISS) on the STM32U585 OBC with identical software to the flight unit
+1. THE EM node SHALL run HDTN (BPv7/LTP over KISS) on the STM32U585 OBC with identical software to the flight unit
 2. THE CLA SHALL interface with the Ettus B200mini SDR as the RF front-end via a companion Raspberry Pi or PC running UHD, bridging IQ samples to the STM32U585 over SPI or UART/DMA
 3. THE STM32U585 SHALL generate TX IQ samples and process RX IQ samples via its DMA engine for baseband DSP
 4. WHEN operating as an EM node, THE Node_Controller SHALL complete an operation cycle within 1 second
@@ -172,7 +172,7 @@ This document specifies the requirements for a phased Delay/Disruption Tolerant 
 
 #### Acceptance Criteria
 
-1. THE LEO flight node SHALL run ION-DTN (BPv7/LTP over KISS) on the STM32U585 OBC with a flight-qualified IQ transceiver IC — no companion host or B200mini
+1. THE LEO flight node SHALL run HDTN (BPv7/LTP over KISS) on the STM32U585 OBC with a flight-qualified IQ transceiver IC — no companion host or B200mini
 2. THE CLA SHALL perform GMSK/BPSK modulation and demodulation at 9.6 kbps on UHF 437 MHz via IQ baseband on the STM32U585
 3. WHEN operating as a LEO flight node, THE Node_Controller SHALL complete an operation cycle within 1 second
 4. WHEN no contact window is active, THE STM32U585 SHALL enter Stop 2 ultra-low-power mode to comply with the 5–10 W average power budget
@@ -184,7 +184,7 @@ This document specifies the requirements for a phased Delay/Disruption Tolerant 
 
 #### Acceptance Criteria
 
-1. THE cislunar node SHALL run ION-DTN (BPv7/LTP over KISS) with BPSK modulation and strong FEC (LDPC or Turbo coding) at 500 bps on S-band 2.2 GHz
+1. THE cislunar node SHALL run HDTN (BPv7/LTP over KISS) with BPSK modulation and strong FEC (LDPC or Turbo coding) at 500 bps on S-band 2.2 GHz
 2. THE CLA SHALL account for 1–2 second one-way light-time delay in LTP session management for cislunar links
 3. WHEN operating as a cislunar node, THE Node_Controller SHALL complete an operation cycle within 10 seconds
 4. THE cislunar node SHALL support long-duration message storage for bundles awaiting delivery across extended contact gaps

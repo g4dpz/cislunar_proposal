@@ -141,11 +141,21 @@ dtn://g4dpz-1/beacon       # Beacon service
 └──────────────────────────────────────┘
 ```
 
-**ION-DTN Configuration:**
-```
-# ltprc configuration
-a span 1 10 10 1400 10000 1 'dtn://g4dpz-1'
-s 'dtn://w1abc-1'
+**HDTN Configuration (in hdtn-config.json):**
+```json
+{
+  "inductsConfig": {
+    "inductVector": [
+      {
+        "convergenceLayer": "kiss_ltp",
+        "kissTncDevice": "/dev/ttyACM0",
+        "kissBaudRate": 9600,
+        "thisLtpEngineId": 1,
+        "remoteLtpEngineId": 2
+      }
+    ]
+  }
+}
 ```
 
 ### 4. Station Identification
@@ -312,7 +322,7 @@ After Phase 1 validation, deploy to Phase 1.5:
 
 ### Implementation Steps (Phase 1)
 
-1. **ION-DTN Configuration**
+1. **HDTN Configuration**
    - Configure LTP convergence layer for KISS serial device
    - Map DTN EIDs to serial ports
    - Example: `dtn://g4dpz-1` → `/dev/ttyUSB0`
@@ -350,10 +360,10 @@ After Phase 1 validation, deploy to Phase 1.5:
 - `ax25/ax25_test.go` (AX.25 tests) - 100+ lines
 
 **Modify:**
-- `pkg/ion/ltp.go` (LTP → KISS instead of LTP → AX.25 → KISS)
+- `pkg/hdtn/ltp.go` (LTP → KISS instead of LTP → AX.25 → KISS)
 - `cmd/dtn-node/main.go` (EID configuration, remove AX.25 setup)
-- `configs/node-a/*.ionrc` (Update to use dtn:// EIDs)
-- `configs/node-b/*.ionrc` (Update to use dtn:// EIDs)
+- `configs/node-a/hdtn-config.json` (Update to use dtn:// EIDs)
+- `configs/node-b/hdtn-config.json` (Update to use dtn:// EIDs)
 
 **Add:**
 - `pkg/kiss/kiss.go` (Simple KISS framing - ~100 lines)
@@ -367,51 +377,74 @@ After Phase 1 validation, deploy to Phase 1.5:
 
 ## Example Configuration
 
-### ION-DTN Configuration Files
+### HDTN JSON Configuration
 
-**node.ionrc:**
-```
-1 1 ''
-a contact +0 +3600 1 2 100000
-a range +0 +3600 1 2 1
-m production 1000000
-m consumption 1000000
-```
-
-**node.ltprc:**
-```
-1 32
-a span 1 10 10 1400 10000 1 'dtn://g4dpz-1'
-s 'dtn://w1abc-1'
-```
-
-**node.bprc:**
-```
-1
-a scheme dtn 'dtnpn' 'dtndeliver'
-a endpoint dtn://g4dpz-1 q
-a protocol ltp 1400 100
-a induct ltp 1 ltpcli
-a outduct ltp 1 ltpclo
-s
+**hdtn-config.json (complete node configuration):**
+```json
+{
+  "hdtnConfigName": "node-a-g4dpz",
+  "myNodeId": 1,
+  "mySchemeStr": "dtn",
+  "myDtnEidStr": "dtn://g4dpz-1",
+  "myDtnDemuxServices": ["mail", "file", "beacon"],
+  "inductsConfig": {
+    "inductVector": [
+      {
+        "convergenceLayer": "kiss_ltp",
+        "name": "kissInduct",
+        "kissTncDevice": "/dev/ttyACM0",
+        "kissBaudRate": 9600,
+        "thisLtpEngineId": 1,
+        "remoteLtpEngineId": 2,
+        "ltpMtu": 1400
+      }
+    ]
+  },
+  "outductsConfig": {
+    "outductVector": [
+      {
+        "convergenceLayer": "kiss_ltp",
+        "name": "kissOutduct",
+        "nextHopNodeId": 2,
+        "kissTncDevice": "/dev/ttyACM0",
+        "kissBaudRate": 9600,
+        "thisLtpEngineId": 1,
+        "remoteLtpEngineId": 2,
+        "ltpMtu": 1400,
+        "ltpDataSegmentRate": 960
+      }
+    ]
+  },
+  "contactPlanJson": {
+    "contacts": [
+      {
+        "source": 1,
+        "dest": 2,
+        "startTime": 0,
+        "endTime": 3600,
+        "rateBitsPerSec": 100000
+      }
+    ]
+  }
+}
 ```
 
 ### Application Usage
 
 **Ping:**
 ```bash
-bping dtn://g4dpz-1 dtn://w1abc-1 -c 5
+bping --my-uri-eid=dtn://g4dpz-1 --dest-uri-eid=dtn://w1abc-1 --bundle-count=5
 ```
 
 **File Transfer:**
 ```bash
-bpsendfile dtn://g4dpz-1 dtn://w1abc-1/file message.txt
+bpsendfile --my-uri-eid=dtn://g4dpz-1 --dest-uri-eid=dtn://w1abc-1/file --file-or-folder-path=message.txt
 ```
 
 **Beacon:**
 ```bash
 # Automated beacon every 10 minutes
-bpsendfile dtn://g4dpz-1 dtn://beacon beacon.txt
+bpsendfile --my-uri-eid=dtn://g4dpz-1 --dest-uri-eid=dtn://beacon --file-or-folder-path=beacon.txt
 ```
 
 ---
@@ -455,7 +488,7 @@ This architecture can be used for:
 1. **RFC 9171**: Bundle Protocol Version 7 (BPv7)
 2. **RFC 5326**: Licklider Transmission Protocol (LTP)
 4. **KISS Protocol**: http://www.ax25.net/kiss.aspx
-5. **ION-DTN**: https://sourceforge.net/projects/ion-dtn/
+5. **HDTN**: https://github.com/nasa/HDTN
 6. **Amateur Radio Regulations**: FCC Part 97 (US), OfCom (UK)
 
 ---

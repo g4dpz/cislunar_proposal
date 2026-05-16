@@ -4,7 +4,7 @@
 
 This design extends the Phase 1 terrestrial DTN system to operate over the QO-100 (Es'hail-2) geostationary amateur radio satellite, validating the DTN protocol stack with real space delays and RF propagation through space. QO-100 is positioned at 25.9°E in geostationary orbit at approximately 35,786 km altitude, providing an always-visible amateur radio transponder with 2.4 GHz uplink and 10.45 GHz downlink.
 
-The system reuses the Phase 1 software architecture: ION-DTN (BPv7, LTP), the dtn-node Go orchestrator, and KISS framing. The primary changes are hardware-specific: a 2.4 GHz uplink transmitter (typically 5-10W with a 60-90cm dish), a 10.45 GHz downlink receiver (LNB + SDR), and digital modem capability for data transmission through the satellite's narrowband (500 kHz) or wideband (8 MHz) transponders.
+The system reuses the Phase 1 software architecture: HDTN (BPv7, LTP), the dtn-node Go orchestrator, and KISS framing. The primary changes are hardware-specific: a 2.4 GHz uplink transmitter (typically 5-10W with a 60-90cm dish), a 10.45 GHz downlink receiver (LNB + SDR), and digital modem capability for data transmission through the satellite's narrowband (500 kHz) or wideband (8 MHz) transponders.
 
 The geostationary orbit introduces approximately 250ms one-way light time (500ms round-trip), which is the key validation target for this phase. Unlike LEO satellites, QO-100 eliminates pass prediction complexity — the satellite is always visible from ground stations within its coverage footprint, providing an always-on contact window with minimal Doppler shift (typically <100 Hz due to stationkeeping maneuvers).
 
@@ -39,10 +39,10 @@ graph TD
         CPM[Contact Plan Manager<br/>Always-on GEO contact]
         TEL[Telemetry Collector<br/>Space link metrics]
 
-        subgraph "ION-DTN Stack (C libraries via cgo)"
-            BPA[Bundle Protocol Agent<br/>ION-DTN BPA]
-            LTP[LTP Engine<br/>ION-DTN LTP<br/>600ms min timeout]
-            CLA[QO-100 CLA Plugin<br/>ION CLA plugin — C module<br/>Dual uplink/downlink]
+        subgraph "HDTN Stack (C++17 libraries via cgo)"
+            BPA[Bundle Protocol Agent<br/>HDTN BPA]
+            LTP[LTP Engine<br/>HDTN LTP<br/>600ms min timeout]
+            CLA[QO-100 CLA Plugin<br/>HDTN CLA plugin — C module<br/>Dual uplink/downlink]
         end
     end
 
@@ -82,8 +82,8 @@ graph TD
 ```mermaid
 graph LR
     subgraph "Ground Station A"
-        A_NC[Node Controller] --> A_BPA[ION-DTN BPA]
-        A_BPA --> A_LTP[ION-DTN LTP]
+        A_NC[Node Controller] --> A_BPA[HDTN BPA]
+        A_BPA --> A_LTP[HDTN LTP]
         A_LTP --> A_CLA[QO-100 CLA Plugin]
         A_CLA --> A_TX[2.4 GHz TX]
         A_CLA --> A_RX[10.45 GHz RX]
@@ -95,8 +95,8 @@ graph LR
     subgraph "Ground Station B"
         B_RX[10.45 GHz RX] --> B_CLA[QO-100 CLA Plugin]
         B_TX[2.4 GHz TX] --> B_CLA
-        B_CLA --> B_LTP[ION-DTN LTP]
-        B_LTP --> B_BPA[ION-DTN BPA]
+        B_CLA --> B_LTP[HDTN LTP]
+        B_LTP --> B_BPA[HDTN BPA]
         B_BPA --> B_NC[Node Controller]
     end
 
@@ -108,24 +108,24 @@ graph LR
 
 ### Component 1: QO-100 CLA Plugin (Extended from Phase 1)
 
-**Purpose**: A native ION-DTN CLA plugin that extends the Phase 1 KISS CLA to support QO-100 hardware: 2.4 GHz uplink transmitter and 10.45 GHz downlink receiver. The CLA provides KISS framing over the QO-100 link, sending LTP segments through the satellite transponder. The plugin manages separate uplink and downlink hardware interfaces, handles link budget monitoring, and provides frequency coordination support.
+**Purpose**: A native HDTN CLA plugin that extends the Phase 1 KISS CLA to support QO-100 hardware: 2.4 GHz uplink transmitter and 10.45 GHz downlink receiver. The CLA provides KISS framing over the QO-100 link, sending LTP segments through the satellite transponder. The plugin manages separate uplink and downlink hardware interfaces, handles link budget monitoring, and provides frequency coordination support.
 
 **Interface**:
 ```go
 // QO100CLAPlugin extends the Phase 1 KISS CLA for QO-100 hardware.
 type QO100CLAPlugin interface {
     // Init initializes the C CLA plugin module for QO-100 operation.
-    // Registers with ION-DTN's convergence layer framework.
+    // Registers with HDTN's convergence layer framework.
     Init(config QO100CLAConfig) error
 
     // ActivateLink opens both uplink and downlink connections for QO-100.
-    // Signals ION-DTN that the link service is available.
+    // Signals HDTN that the link service is available.
     ActivateLink(contact ContactWindow) error
 
     // DeactivateLink closes uplink and downlink connections.
     DeactivateLink() error
 
-    // Shutdown unregisters the CLA plugin from ION-DTN.
+    // Shutdown unregisters the CLA plugin from HDTN.
     Shutdown() error
 
     // Status returns the current CLA state.
@@ -199,16 +199,16 @@ type SpectrumPoint struct {
 ```
 
 **Responsibilities**:
-- Register as a native ION-DTN CLA plugin implementing the LTP link service adapter interface
+- Register as a native HDTN CLA plugin implementing the LTP link service adapter interface
 - Manage 2.4 GHz uplink transmitter: configure frequency, set power, transmit KISS frames
 - Manage 10.45 GHz downlink receiver: configure LNB, receive via SDR, decode KISS frames
 - Provide `sendSegment` callback: wrap LTP segments in KISS frames, transmit on 2.4 GHz uplink
-- Provide receive loop: read 10.45 GHz downlink via SDR, extract KISS frames, deliver LTP segments to ION
+- Provide receive loop: read 10.45 GHz downlink via SDR, extract KISS frames, deliver LTP segments to HDTN
 - Measure and report space link metrics: RTT, RSSI, SNR, BER, Doppler shift
 - Compute link budget: uplink EIRP, downlink G/T, path loss, link margins
 - Provide spectrum monitoring for frequency coordination
 - Detect hardware failures (transmitter fault, LNB power loss, SDR error) within 10 seconds
-- No LTP segmentation/reassembly — ION-DTN's LTP engine handles that natively
+- No LTP segmentation/reassembly — HDTN's LTP engine handles that natively
 
 ### Component 2: Contact Plan Manager (Extended for GEO)
 
@@ -222,7 +222,7 @@ type GEOContactPlanManager interface {
     // For QO-100: validates that the contact has no end time (always-on).
     LoadPlan(plan ContactPlan) error
 
-    // LoadFromFile loads a contact plan from an ION-DTN format config file.
+    // LoadFromFile loads a contact plan from an HDTN JSON config file.
     LoadFromFile(path string) error
 
     // GetActiveContacts returns the QO-100 contact if hardware is operational.
@@ -935,14 +935,14 @@ func (nc *qo100NodeController) RunCycle(currentTime uint64) error {
         return fmt.Errorf("failed to retrieve bundles: %w", err)
     }
     
-    // Step 5: Transmit bundles through ION-DTN BPA
+    // Step 5: Transmit bundles through HDTN BPA
     for _, bundle := range bundles {
         if currentTime >= contact.EndTime && contact.EndTime != 0 {
             break // contact window closed (should not happen for GEO)
         }
         
-        // Submit bundle to ION-DTN BPA for transmission
-        // ION-DTN's LTP engine will send segments through CLA plugin callbacks
+        // Submit bundle to HDTN BPA for transmission
+        // HDTN's LTP engine will send segments through CLA plugin callbacks
         startTime := time.Now()
         if err := nc.bpa.Transmit(bundle); err != nil {
             nc.logger.Errorf("failed to transmit bundle %v: %v", bundle.ID, err)
@@ -965,7 +965,7 @@ func (nc *qo100NodeController) RunCycle(currentTime uint64) error {
         }
     }
     
-    // Step 6: Process incoming bundles delivered by ION-DTN
+    // Step 6: Process incoming bundles delivered by HDTN
     incomingBundles := nc.bpa.ReceivePending()
     for _, bundle := range incomingBundles {
         if err := nc.ProcessIncomingBundle(bundle, currentTime); err != nil {
@@ -998,7 +998,7 @@ func (nc *qo100NodeController) RunCycle(currentTime uint64) error {
 **Preconditions:**
 - Node is initialized with valid QO-100 configuration
 - Contact plan is loaded with GEO contact (EndTime=0)
-- QO-100 CLA plugin is registered with ION-DTN
+- QO-100 CLA plugin is registered with HDTN
 - Uplink transmitter and downlink receiver are operational or gracefully degraded
 
 **Postconditions:**
@@ -1216,9 +1216,9 @@ func (nc *qo100NodeController) attemptHardwareRecovery() {
 - Typical RTT: 500ms (space link)
 - LTP timeout: 600ms (500ms RTT + 100ms margin)
 
-**ION-DTN Configuration:**
+**HDTN Configuration:**
 ```
-# ltprc configuration for QO-100
+# HDTN JSON configuration for QO-100
 a span 2 600 600 1400 10000 1 'udplso localhost:1113'
 ```
 - Span 2: remote node ID
@@ -1229,13 +1229,13 @@ a span 2 600 600 1400 10000 1 'udplso localhost:1113'
 - 1: LTP engine ID
 - 'udplso localhost:1113': link service output (replaced by QO-100 CLA)
 
-**Note:** The QO-100 CLA plugin replaces the UDP link service. The actual LTP retransmission timeout is configured within ION-DTN's LTP engine based on measured RTT.
+**Note:** The QO-100 CLA plugin replaces the UDP link service. The actual LTP retransmission timeout is configured within HDTN's LTP engine based on measured RTT.
 
 ### Geostationary Contact Model
 
 **Contact Plan Entry:**
 ```
-# ionrc configuration for QO-100
+# HDTN contact configuration for QO-100
 a contact +0 +999999999 2 2 100000
 ```
 - +0: contact start time (now)
@@ -1365,7 +1365,7 @@ a contact +0 +999999999 2 2 100000
 
 **Configuration Changes:**
 - Add QO-100 hardware parameters to config file
-- Add GEO contact entry to ION-DTN contact plan
+- Add GEO contact entry to HDTN contact plan
 - Configure uplink/downlink frequencies
 - Configure link budget thresholds
 
