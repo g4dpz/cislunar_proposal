@@ -36,7 +36,9 @@ const pageMeta: Record<string, PageMeta> = {
       "AMSAT",
       "CubeSat",
       "store-and-forward",
-      "AX.25",
+      "LTP",
+      "KISS",
+      "DTN EID",
     ],
     ogTitle: "RADIANT — Radio Amateur Delay-tolerant Interplanetary Networking Testbed",
     ogDescription:
@@ -83,13 +85,13 @@ const pageMeta: Record<string, PageMeta> = {
     title: "Documentation — RADIANT",
     description:
       "Technical documentation including phase-specific requirements, design documents, " +
-      "RFC references for Bundle Protocol (BPv7), LTP, and AX.25.",
+      "RFC references for Bundle Protocol (BPv7), LTP, and KISS framing.",
     keywords: [
       ...BASE_KEYWORDS,
       "documentation",
       "RFC 9171",
       "RFC 5326",
-      "AX.25",
+      "KISS",
       "LTP",
     ],
     ogTitle: "Documentation — RADIANT",

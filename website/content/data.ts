@@ -144,9 +144,10 @@ const overview: OverviewContent = {
     "to Low Earth Orbit (LEO) and ultimately to cislunar space.",
   missionSummary2:
     "Built on NASA Glenn's HDTN (High-rate Delay Tolerant Networking), this project implements " +
-    "the Bundle Protocol version 7 (BPv7) over amateur radio links.",
+    "the Bundle Protocol version 7 (BPv7) over amateur radio links using LTP wrapped directly " +
+    "in KISS framing, with callsign-embedded DTN Endpoint Identifiers for station identification.",
   features: [
-    "AX.25 link-layer framing with callsign addressing (amateur radio compliance)",
+    "LTP-over-KISS with callsign-embedded DTN Endpoint Identifiers (amateur radio compliance)",
     "No encryption or cryptography (amateur radio regulatory compliance)",
     "Automated orbital pass prediction using Contact Graph Routing (CGR)",
     "Priority-based bundle handling (critical, expedited, normal, bulk)",
@@ -155,10 +156,9 @@ const overview: OverviewContent = {
   ],
   protocolStack: [
     "Application (bping, bpsendfile)",
-    "BPv7 (Bundle Protocol)",
+    "BPv7 (Bundle Protocol) — EID: dtn://callsign-ssid",
     "LTP (Licklider Transmission)",
-    "AX.25 (Amateur Radio Link Layer)",
-    "KISS (TNC Serial Protocol)",
+    "KISS (TNC Serial Framing)",
     "USB Serial (TNC4)",
     "G3RUH GFSK (9600 baud)",
   ],
@@ -170,7 +170,7 @@ const roadmap: RoadmapPhase[] = [
   {
     id: "phase-1",
     name: "Phase 1: Terrestrial DTN Validation",
-    status: "complete",
+    status: "in-progress",
     hardware: "Raspberry Pi + Mobilinkd TNC4 + Yaesu FT-817",
     link: "VHF/UHF at 9600 baud (G3RUH GFSK)",
     purpose:
@@ -224,7 +224,8 @@ const roadmap: RoadmapPhase[] = [
     purpose:
       "Amateur participation in Earth-Moon DTN. " +
       "Earth-Moon distance (~384,400 km). " +
-      "3-5m dishes for 500 bps cislunar links.",
+      "3-5m dishes for 500 bps cislunar links. " +
+      "Seeking support from the ESA ARTES programme for the prospective cislunar payload.",
     docsPath: "docs/cislunar-phase4/",
   },
 ];
@@ -250,9 +251,9 @@ const documentation: DocumentationLinks = {
       description: "Reliable transmission protocol designed for deep-space links.",
     },
     {
-      title: "AX.25 Link Access Protocol",
-      url: "http://www.ax25.net/AX25.2.2-Jul%2098-2.pdf",
-      description: "Amateur radio data link layer protocol specification.",
+      title: "KISS Protocol Specification",
+      url: "http://www.ax25.net/kiss.aspx",
+      description: "TNC serial framing protocol used for LTP segment transport.",
     },
   ],
   packages: [
@@ -359,7 +360,7 @@ const conops: ConOpsContent = {
     "that a cislunar mission would require, using amateur radio links as realistic " +
     "disrupted-network analogues.",
   rfLinkTypes: [
-    "Amateur packet radio (VHF/UHF AX.25 at 9600 baud)",
+    "Amateur radio LTP-over-KISS (VHF/UHF at 9600 baud, callsign in DTN EID)",
     "Microwave point-to-point paths (10 GHz, 2.4 GHz)",
     "Satellite-style scheduled links (QO-100 transponder)",
     "EME-inspired operational patterns (moonbounce timing disciplines)",
