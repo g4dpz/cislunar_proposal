@@ -1,16 +1,21 @@
 #!/bin/bash
-# Stop ION-DTN node (works for either Node A or Node B)
+# Stop a running DTN node by sending SIGTERM
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-ION_BIN="$PROJECT_DIR/ion-install/bin"
-ION_LIB="$PROJECT_DIR/ion-install/lib"
+PID_FILE="${1:-/tmp/dtn-node.pid}"
 
-export PATH="$ION_BIN:$PATH"
-export DYLD_LIBRARY_PATH="$ION_LIB:$DYLD_LIBRARY_PATH"
-export LD_LIBRARY_PATH="$ION_LIB:$LD_LIBRARY_PATH"
-
-echo "=== Stopping ION-DTN node ==="
-ionstop
-echo "Node stopped."
+if [ -f "$PID_FILE" ]; then
+    PID=$(cat "$PID_FILE")
+    echo "Stopping DTN node (PID $PID)..."
+    kill -TERM "$PID" 2>/dev/null || true
+    rm -f "$PID_FILE"
+else
+    # Find by process name
+    PID=$(pgrep -f "dtn-node" || true)
+    if [ -n "$PID" ]; then
+        echo "Stopping DTN node (PID $PID)..."
+        kill -TERM $PID
+    else
+        echo "No running DTN node found"
+    fi
+fi

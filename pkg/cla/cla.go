@@ -9,32 +9,42 @@ import (
 type CLAType int
 
 const (
-	CLATypeAX25LTPVHFTNC CLAType = iota
-	CLATypeAX25LTPUHFTNC
-	CLATypeAX25LTPUHFIQB200
-	CLATypeAX25LTPUHFIQ
-	CLATypeAX25LTPSBandIQ
-	CLATypeAX25LTPXBandIQ
+	CLATypeKISSLTPVHFTNC CLAType = iota
+	CLATypeKISSLTPUHFTNC
+	CLATypeKISSLTPUHFIQB200
+	CLATypeKISSLTPUHFIQ
+	CLATypeKISSLTPSBandIQ
+	CLATypeKISSLTPXBandIQ
 )
 
 func (ct CLAType) String() string {
 	switch ct {
-	case CLATypeAX25LTPVHFTNC:
-		return "ax25ltp_vhf_tnc"
-	case CLATypeAX25LTPUHFTNC:
-		return "ax25ltp_uhf_tnc"
-	case CLATypeAX25LTPUHFIQB200:
-		return "ax25ltp_uhf_iq_b200"
-	case CLATypeAX25LTPUHFIQ:
-		return "ax25ltp_uhf_iq"
-	case CLATypeAX25LTPSBandIQ:
-		return "ax25ltp_sband_iq"
-	case CLATypeAX25LTPXBandIQ:
-		return "ax25ltp_xband_iq"
+	case CLATypeKISSLTPVHFTNC:
+		return "kissltp_vhf_tnc"
+	case CLATypeKISSLTPUHFTNC:
+		return "kissltp_uhf_tnc"
+	case CLATypeKISSLTPUHFIQB200:
+		return "kissltp_uhf_iq_b200"
+	case CLATypeKISSLTPUHFIQ:
+		return "kissltp_uhf_iq"
+	case CLATypeKISSLTPSBandIQ:
+		return "kissltp_sband_iq"
+	case CLATypeKISSLTPXBandIQ:
+		return "kissltp_xband_iq"
 	default:
 		return "unknown"
 	}
 }
+
+// Legacy aliases for backward compatibility
+const (
+	CLATypeAX25LTPVHFTNC    = CLATypeKISSLTPVHFTNC
+	CLATypeAX25LTPUHFTNC    = CLATypeKISSLTPUHFTNC
+	CLATypeAX25LTPUHFIQB200 = CLATypeKISSLTPUHFIQB200
+	CLATypeAX25LTPUHFIQ     = CLATypeKISSLTPUHFIQ
+	CLATypeAX25LTPSBandIQ   = CLATypeKISSLTPSBandIQ
+	CLATypeAX25LTPXBandIQ   = CLATypeKISSLTPXBandIQ
+)
 
 // CLAStatus represents the current status of the CLA
 type CLAStatus int

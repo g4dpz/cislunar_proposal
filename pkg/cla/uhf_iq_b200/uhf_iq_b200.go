@@ -72,7 +72,7 @@ func New(config Config) (*UHFIQB200CLA, error) {
 
 // CLAType returns the CLA type
 func (c *UHFIQB200CLA) CLAType() cla.CLAType {
-	return cla.CLATypeAX25LTP_UHF_IQ_B200
+	return cla.CLATypeAX25LTPUHFIQB200
 }
 
 // Open establishes the link for a contact window
@@ -155,10 +155,10 @@ func (c *UHFIQB200CLA) SendBundle(bundle bpa.Bundle) (cla.LinkMetrics, error) {
 
 	// Update metrics (simulated)
 	c.metrics = cla.LinkMetrics{
-		RSSI:             -70.0, // Simulated
+		RSSI:             -70, // Simulated
 		SNR:              15.0,
 		BitErrorRate:     1e-5,
-		BytesTransferred: len(bundle.Payload),
+		BytesTransferred: int64(len(bundle.Payload)),
 	}
 
 	c.status = cla.CLAStatusIdle
@@ -197,23 +197,23 @@ func (c *UHFIQB200CLA) RecvBundle() (bpa.Bundle, cla.LinkMetrics, error) {
 	bundle := bpa.Bundle{
 		ID: bpa.BundleID{
 			SourceEID:         bpa.EndpointID{Scheme: "dtn", SSP: "//remote/data"},
-			CreationTimestamp: uint64(time.Now().Unix()),
+			CreationTimestamp: int64(time.Now().Unix()),
 			SequenceNumber:    1,
 		},
 		Destination: bpa.EndpointID{Scheme: "dtn", SSP: "//local/data"},
 		Payload:     data,
 		Priority:    bpa.PriorityNormal,
 		Lifetime:    3600,
-		CreatedAt:   uint64(time.Now().Unix()),
+		CreatedAt:   int64(time.Now().Unix()),
 		BundleType:  bpa.BundleTypeData,
 	}
 
 	// Convert IQ metrics to CLA metrics
 	c.metrics = cla.LinkMetrics{
-		RSSI:             iqMetrics.RSSI,
+		RSSI:             int(iqMetrics.RSSI),
 		SNR:              iqMetrics.SNR,
 		BitErrorRate:     iqMetrics.EVM / 100.0, // Convert EVM to BER approximation
-		BytesTransferred: len(data),
+		BytesTransferred: int64(len(data)),
 	}
 
 	c.status = cla.CLAStatusIdle

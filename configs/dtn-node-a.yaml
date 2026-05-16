@@ -1,10 +1,10 @@
 # DTN Node Configuration - Node A
-node_id: "node-a"
+node_id: "ground-station-a"
 node_number: 1
-callsign: "G4DPZ-1"
-config_dir: "./configs/node-a"
-ion_install: "./ion-install"
-contact_plan_file: "./configs/terrestrial-contact-plan.yaml"
+callsign: "G4DPZ"
+hdtn_binary: "/usr/local/bin/hdtn-one-process"
+hdtn_config: "/opt/radiant/configs/hdtn-config-node-a.json"
+contact_plan_file: ""
 telemetry_port: 8080
-telemetry_file: "./telemetry-node-a.json"
+telemetry_file: "/var/log/hdtn-telemetry-a.json"
 health_interval: 10

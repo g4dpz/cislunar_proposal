@@ -1,0 +1,66 @@
+{
+  "hdtnConfigName": "node-a",
+  "myNodeId": 1,
+  "mySchemeStr": "ipn",
+  "myDtnEidStr": "ipn:1.0",
+  "storagePath": "/var/hdtn/storage-a",
+  "inductsConfig": {
+    "inductVector": [
+      {
+        "convergenceLayer": "ltp_over_udp",
+        "name": "node-a-udp-induct",
+        "boundPort": 4556,
+        "thisLtpEngineId": 1,
+        "remoteLtpEngineId": 2
+      },
+      {
+        "convergenceLayer": "kiss",
+        "name": "node-a-kiss-induct",
+        "kissTncDevice": "/dev/ttyUSB0",
+        "kissBaudRate": 9600,
+        "thisLtpEngineId": 1,
+        "remoteLtpEngineId": 2
+      }
+    ]
+  },
+  "outductsConfig": {
+    "outductVector": [
+      {
+        "convergenceLayer": "ltp_over_udp",
+        "name": "node-a-udp-outduct",
+        "nextHopNodeId": 2,
+        "remoteHostname": "192.168.1.2",
+        "remotePort": 4556,
+        "thisLtpEngineId": 1,
+        "remoteLtpEngineId": 2
+      },
+      {
+        "convergenceLayer": "kiss",
+        "name": "node-a-kiss-outduct",
+        "nextHopNodeId": 2,
+        "kissTncDevice": "/dev/ttyUSB0",
+        "kissBaudRate": 9600,
+        "thisLtpEngineId": 1,
+        "remoteLtpEngineId": 2
+      }
+    ]
+  },
+  "contactPlanJson": {
+    "contacts": [
+      {
+        "source": 1,
+        "dest": 2,
+        "startTime": 0,
+        "endTime": 86400,
+        "rateBitsPerSec": 9600
+      },
+      {
+        "source": 2,
+        "dest": 1,
+        "startTime": 0,
+        "endTime": 86400,
+        "rateBitsPerSec": 9600
+      }
+    ]
+  }
+}
