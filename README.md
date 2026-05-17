@@ -78,8 +78,29 @@ Migrated from ION-DTN to NASA Glenn's HDTN:
 
 ### Prerequisites
 
-- HDTN 2.0 installed (`hdtn-one-process`, `bpsendfile`, `bpreceivefile` in PATH)
+- HDTN 2.0 built and installed (see below)
 - macOS or Linux
+
+### Building HDTN
+
+HDTN must be cloned, built, and symlinked into this project:
+
+```bash
+# Clone HDTN alongside this project
+cd ~/dev
+git clone https://github.com/nasa/HDTN.git
+cd HDTN
+mkdir build && cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release
+make -j$(nproc)
+sudo make install
+
+# Symlink HDTN source into the project (for config references)
+cd ~/dev/cislunar_proposal
+ln -s ../HDTN HDTN
+```
+
+After installation, `hdtn-one-process`, `bpsendfile`, `bpreceivefile`, and `udp-delay-sim` should be in your PATH.
 
 ### Quick Start
 
