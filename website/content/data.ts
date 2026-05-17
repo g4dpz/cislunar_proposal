@@ -147,12 +147,14 @@ const overview: OverviewContent = {
     "the Bundle Protocol version 7 (BPv7) over amateur radio links using LTP wrapped directly " +
     "in KISS framing, with callsign-embedded DTN Endpoint Identifiers for station identification.",
   features: [
+    "Working 3-node cislunar simulation with true packet-level propagation delay",
+    "Demonstrated Earth-Moon (1.3s) and Earth-Mars (3-12 min) DTN store-and-forward",
     "LTP-over-KISS with callsign-embedded DTN Endpoint Identifiers (amateur radio compliance)",
+    "Contact Graph Routing (CGR) computing multi-hop paths through relay nodes",
     "No encryption or cryptography (amateur radio regulatory compliance)",
-    "Automated orbital pass prediction using Contact Graph Routing (CGR)",
     "Priority-based bundle handling (critical, expedited, normal, bulk)",
     "Persistent bundle storage surviving power cycles",
-    "Real-time telemetry and health monitoring",
+    "Real-time telemetry and health monitoring via HDTN REST API",
   ],
   protocolStack: [
     "Application (bping, bpsendfile)",
