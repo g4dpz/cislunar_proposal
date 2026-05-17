@@ -60,7 +60,7 @@ Migrated from ION-DTN to NASA Glenn's HDTN:
 │   Application (bpsendfile, bping)   │
 ├─────────────────────────────────────┤
 │   BPv7 (Bundle Protocol)            │
-│   EID: dtn://callsign-ssid          │
+│   EID: dtn://callsign/service       │
 ├─────────────────────────────────────┤
 │   LTP (Licklider Transmission)      │
 ├─────────────────────────────────────┤
@@ -71,6 +71,18 @@ Migrated from ION-DTN to NASA Glenn's HDTN:
 │   G3RUH GFSK (9600 baud)            │
 └─────────────────────────────────────┘
 ```
+
+### Station Identification (Amateur Radio Compliance)
+
+Amateur radio regulations require station identification in every transmission. RADIANT achieves this by embedding callsigns in DTN Endpoint Identifiers carried in every bundle's metadata:
+
+| Node | ipn:// (routing) | dtn:// (callsign metadata) |
+|------|-----------------|---------------------------|
+| Ground Station | ipn:10.* | dtn://g4dpz/gs |
+| Spacecraft | ipn:20.* | dtn://g4dpz/spacecraft |
+| Lander | ipn:30.* | dtn://g4dpz/lander |
+
+HDTN uses numeric `ipn://` addresses for internal routing (CGR requires integer node IDs). The `dtn://` EID with the callsign is stored in each node's configuration via `myDtnEidStr` and appears in bundle metadata, satisfying the regulatory requirement that every transmission carries the operator's callsign.
 
 ---
 
