@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+
+      - name: Build
+        run: go build ./...
+
+      - name: Run tests
+        run: go test ./pkg/hdtn/... ./pkg/hdtnconfig/... ./kiss/... ./cmd/dtn-node/... ./pkg/cla/sband_iq/... ./pkg/store/... ./pkg/bpa/... ./pkg/node/... ./pkg/contact/... ./pkg/iq/... ./pkg/linkbudget/... ./pkg/security/... ./test/integration/... -count=1 -timeout 300s
+
+      - name: Vet
+        run: go vet ./...
