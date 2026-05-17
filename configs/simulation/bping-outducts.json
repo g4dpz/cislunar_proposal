@@ -1,0 +1,15 @@
+{
+    "outductConfigName": "bping-cislunar",
+    "outductVector": [
+        {
+            "name": "bping-to-ground-station",
+            "convergenceLayer": "stcp",
+            "nextHopNodeId": 20,
+            "remoteHostname": "localhost",
+            "remotePort": 4556,
+            "maxNumberOfBundlesInPipeline": 50,
+            "maxSumOfBundleBytesInPipeline": 50000000,
+            "keepAliveIntervalSeconds": 15
+        }
+    ]
+}

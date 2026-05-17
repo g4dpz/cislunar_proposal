@@ -1,0 +1,107 @@
+{
+    "hdtnConfigName": "Cislunar Lunar Lander (nodeId=30)",
+    "userInterfaceOn": true,
+    "mySchemeName": "unused_scheme_name",
+    "myNodeId": 30,
+    "myBpEchoServiceId": 2047,
+    "myCustodialSsp": "unused_custodial_ssp",
+    "myCustodialServiceId": 0,
+    "myRouterServiceId": 100,
+    "isAcsAware": true,
+    "acsMaxFillsPerAcsPacket": 100,
+    "acsSendPeriodMilliseconds": 1000,
+    "retransmitBundleAfterNoCustodySignalMilliseconds": 30000,
+    "maxBundleSizeBytes": 10000000,
+    "maxIngressBundleWaitOnEgressMilliseconds": 5000,
+    "bufferRxToStorageOnLinkUpSaturation": false,
+    "maxLtpReceiveUdpPacketSizeBytes": 1500,
+    "neighborDepletedStorageDelaySeconds": 0,
+    "fragmentBundlesLargerThanBytes": 0,
+    "enforceBundlePriority": false,
+    "zmqBoundRouterPubSubPortPath": 10220,
+    "zmqBoundTelemApiPortPath": 10325,
+    "inductsConfig": {
+        "inductConfigName": "myconfig",
+        "inductVector": [
+            {
+                "name": "ltp_ingress_from_orbiter",
+                "convergenceLayer": "ltp_over_udp",
+                "boundPort": 3113,
+                "numRxCircularBufferElements": 1000,
+                "thisLtpEngineId": 30,
+                "remoteLtpEngineId": 20,
+                "ltpReportSegmentMtu": 1360,
+                "oneWayLightTimeMs": 10,
+                "oneWayMarginTimeMs": 200,
+                "clientServiceId": 1,
+                "preallocatedRedDataBytes": 1000000,
+                "ltpMaxRetriesPerSerialNumber": 500,
+                "ltpRandomNumberSizeBits": 64,
+                "ltpRemoteUdpHostname": "localhost",
+                "ltpRemoteUdpPort": 2123,
+                "ltpRxDataSegmentSessionNumberRecreationPreventerHistorySize": 1000,
+                "ltpMaxExpectedSimultaneousSessions": 500,
+                "ltpMaxUdpPacketsToSendPerSystemCall": 1,
+                "delaySendingOfReportSegmentsTimeMsOrZeroToDisable": 20,
+                "keepActiveSessionDataOnDisk": false,
+                "activeSessionDataOnDiskNewFileDurationMs": 2000,
+                "activeSessionDataOnDiskDirectory": "./"
+            },
+            {
+                "name": "stcp_ingress_for_bpsink",
+                "convergenceLayer": "stcp",
+                "boundPort": 4558,
+                "numRxCircularBufferElements": 100,
+                "keepAliveIntervalSeconds": 15
+            }
+        ]
+    },
+    "outductsConfig": {
+        "outductConfigName": "myconfig",
+        "outductVector": [
+            {
+                "name": "ltp_egress_to_orbiter",
+                "convergenceLayer": "ltp_over_udp",
+                "nextHopNodeId": 20,
+                "remoteHostname": "localhost",
+                "remotePort": 3133,
+                "maxNumberOfBundlesInPipeline": 50,
+                "maxSumOfBundleBytesInPipeline": 50000000,
+                "thisLtpEngineId": 30,
+                "remoteLtpEngineId": 20,
+                "ltpDataSegmentMtu": 1360,
+                "oneWayLightTimeMs": 10,
+                "oneWayMarginTimeMs": 200,
+                "clientServiceId": 1,
+                "numRxCircularBufferElements": 100,
+                "ltpMaxRetriesPerSerialNumber": 5,
+                "ltpCheckpointEveryNthDataSegment": 0,
+                "ltpRandomNumberSizeBits": 64,
+                "ltpSenderBoundPort": 2143,
+                "ltpMaxUdpPacketsToSendPerSystemCall": 1,
+                "ltpSenderPingSecondsOrZeroToDisable": 15,
+                "delaySendingOfDataSegmentsTimeMsOrZeroToDisable": 0,
+                "keepActiveSessionDataOnDisk": false,
+                "activeSessionDataOnDiskNewFileDurationMs": 2000,
+                "activeSessionDataOnDiskDirectory": "./"
+            }
+        ]
+    },
+    "storageConfig": {
+        "storageImplementation": "asio_single_threaded",
+        "tryToRestoreFromDisk": false,
+        "autoDeleteFilesOnExit": true,
+        "totalStorageCapacityBytes": 8192000000,
+        "storageDeletionPolicy": "never",
+        "storageDiskConfigVector": [
+            {
+                "name": "d1",
+                "storeFilePath": "/tmp/hdtn-sim/lander/store1.bin"
+            },
+            {
+                "name": "d2",
+                "storeFilePath": "/tmp/hdtn-sim/lander/store2.bin"
+            }
+        ]
+    }
+}

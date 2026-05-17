@@ -1,0 +1,12 @@
+{
+    "inductConfigName": "bpsink-cislunar",
+    "inductVector": [
+        {
+            "name": "bpsink-at-lander",
+            "convergenceLayer": "stcp",
+            "boundPort": 4558,
+            "numRxCircularBufferElements": 100,
+            "keepAliveIntervalSeconds": 15
+        }
+    ]
+}
