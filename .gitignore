@@ -51,3 +51,4 @@ cislunar_received/
 
 # Build artifacts
 dist/
+*.bin
