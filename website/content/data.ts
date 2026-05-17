@@ -145,7 +145,9 @@ const overview: OverviewContent = {
   missionSummary2:
     "Built on NASA Glenn's HDTN (High-rate Delay Tolerant Networking), this project implements " +
     "the Bundle Protocol version 7 (BPv7) over amateur radio links using LTP wrapped directly " +
-    "in KISS framing, with callsign-embedded DTN Endpoint Identifiers for station identification.",
+    "in KISS framing. Station identification is achieved through callsign-embedded DTN Endpoint " +
+    "Identifiers (e.g. dtn://g4dpz/spacecraft) carried in every bundle's metadata, ensuring " +
+    "regulatory compliance while using numeric ipn:// addresses for efficient routing.",
   features: [
     "Working 3-node cislunar simulation with true packet-level propagation delay",
     "Demonstrated Earth-Moon (1.3s) and Earth-Mars (3-12 min) DTN store-and-forward",
