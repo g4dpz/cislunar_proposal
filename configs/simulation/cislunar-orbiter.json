@@ -1,5 +1,5 @@
 {
-    "hdtnConfigName": "LTP loopback node 2 (middle relay, 3-hop, delayed)",
+    "hdtnConfigName": "Cislunar Lunar Orbiter (relay, nodeId=20)",
     "userInterfaceOn": true,
     "mySchemeName": "unused_scheme_name",
     "myNodeId": 20,
@@ -31,7 +31,7 @@
                 "thisLtpEngineId": 20,
                 "remoteLtpEngineId": 10,
                 "ltpReportSegmentMtu": 1000,
-                "oneWayLightTimeMs": 1000,
+                "oneWayLightTimeMs": 1300,
                 "oneWayMarginTimeMs": 200,
                 "clientServiceId": 1,
                 "preallocatedRedDataBytes": 200000,
@@ -42,7 +42,7 @@
                 "ltpRxDataSegmentSessionNumberRecreationPreventerHistorySize": 1000,
                 "ltpMaxExpectedSimultaneousSessions": 500,
                 "ltpMaxUdpPacketsToSendPerSystemCall": 1,
-                "delaySendingOfReportSegmentsTimeMsOrZeroToDisable": 250,
+                "delaySendingOfReportSegmentsTimeMsOrZeroToDisable": 0,
                 "keepActiveSessionDataOnDisk": false,
                 "activeSessionDataOnDiskNewFileDurationMs": 2000,
                 "activeSessionDataOnDiskDirectory": "./"
@@ -63,7 +63,7 @@
                 "thisLtpEngineId": 20,
                 "remoteLtpEngineId": 30,
                 "ltpDataSegmentMtu": 1360,
-                "oneWayLightTimeMs": 1000,
+                "oneWayLightTimeMs": 10,
                 "oneWayMarginTimeMs": 200,
                 "clientServiceId": 1,
                 "numRxCircularBufferElements": 100,
@@ -73,7 +73,7 @@
                 "ltpSenderBoundPort": 2123,
                 "ltpMaxUdpPacketsToSendPerSystemCall": 1,
                 "ltpSenderPingSecondsOrZeroToDisable": 15,
-                "delaySendingOfDataSegmentsTimeMsOrZeroToDisable": 250,
+                "delaySendingOfDataSegmentsTimeMsOrZeroToDisable": 0,
                 "keepActiveSessionDataOnDisk": false,
                 "activeSessionDataOnDiskNewFileDurationMs": 2000,
                 "activeSessionDataOnDiskDirectory": "./"

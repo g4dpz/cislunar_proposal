@@ -1,5 +1,5 @@
 {
-    "hdtnConfigName": "LTP loopback node 3 (final relay, delayed)",
+    "hdtnConfigName": "Cislunar Lunar Lander (nodeId=30)",
     "userInterfaceOn": true,
     "mySchemeName": "unused_scheme_name",
     "myNodeId": 30,
@@ -31,7 +31,7 @@
                 "thisLtpEngineId": 30,
                 "remoteLtpEngineId": 20,
                 "ltpReportSegmentMtu": 1000,
-                "oneWayLightTimeMs": 1000,
+                "oneWayLightTimeMs": 10,
                 "oneWayMarginTimeMs": 200,
                 "clientServiceId": 1,
                 "preallocatedRedDataBytes": 200000,
@@ -42,7 +42,7 @@
                 "ltpRxDataSegmentSessionNumberRecreationPreventerHistorySize": 1000,
                 "ltpMaxExpectedSimultaneousSessions": 500,
                 "ltpMaxUdpPacketsToSendPerSystemCall": 1,
-                "delaySendingOfReportSegmentsTimeMsOrZeroToDisable": 250,
+                "delaySendingOfReportSegmentsTimeMsOrZeroToDisable": 0,
                 "keepActiveSessionDataOnDisk": false,
                 "activeSessionDataOnDiskNewFileDurationMs": 2000,
                 "activeSessionDataOnDiskDirectory": "./"
