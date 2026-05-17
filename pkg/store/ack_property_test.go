@@ -27,23 +27,20 @@ func TestProperty_ACKDeletesNoACKRetains(t *testing.T) {
 	properties.Property("ACK deletes, no-ACK retains", prop.ForAll(
 		func(ackReceived bool, seqNum uint64) bool {
 			// Create store
-			config := Config{
-				MaxBytes: 1024 * 1024,
-			}
-			store := New(config)
+			store := NewBundleStore(1024 * 1024)
 
 			// Create and store bundle
-			bundle := bpa.Bundle{
+			bundle := &bpa.Bundle{
 				ID: bpa.BundleID{
 					SourceEID:         bpa.EndpointID{Scheme: "ipn", SSP: "1.0"},
-					CreationTimestamp: uint64(time.Now().Unix()),
+					CreationTimestamp: time.Now().Unix(),
 					SequenceNumber:    seqNum,
 				},
 				Destination: bpa.EndpointID{Scheme: "ipn", SSP: "2.0"},
 				Payload:     []byte("test payload"),
 				Priority:    bpa.PriorityNormal,
 				Lifetime:    3600,
-				CreatedAt:   uint64(time.Now().Unix()),
+				CreatedAt:   time.Now().Unix(),
 				BundleType:  bpa.BundleTypeData,
 			}
 
@@ -92,25 +89,22 @@ func TestProperty_RetryAfterNoACK(t *testing.T) {
 				return true // Skip invalid inputs
 			}
 
-			config := Config{
-				MaxBytes: 10 * 1024 * 1024,
-			}
-			store := New(config)
+			store := NewBundleStore(10 * 1024 * 1024)
 
 			// Store bundles
 			bundleIDs := make([]bpa.BundleID, numBundles)
 			for i := 0; i < numBundles; i++ {
-				bundle := bpa.Bundle{
+				bundle := &bpa.Bundle{
 					ID: bpa.BundleID{
 						SourceEID:         bpa.EndpointID{Scheme: "ipn", SSP: "1.0"},
-						CreationTimestamp: uint64(time.Now().Unix()),
+						CreationTimestamp: time.Now().Unix(),
 						SequenceNumber:    uint64(i),
 					},
 					Destination: bpa.EndpointID{Scheme: "ipn", SSP: "2.0"},
 					Payload:     []byte("test"),
 					Priority:    bpa.PriorityNormal,
 					Lifetime:    3600,
-					CreatedAt:   uint64(time.Now().Unix()),
+					CreatedAt:   time.Now().Unix(),
 					BundleType:  bpa.BundleTypeData,
 				}
 
@@ -152,25 +146,22 @@ func TestProperty_ACKSequence(t *testing.T) {
 				return true // Skip invalid inputs
 			}
 
-			config := Config{
-				MaxBytes: 10 * 1024 * 1024,
-			}
-			store := New(config)
+			store := NewBundleStore(10 * 1024 * 1024)
 
 			// Store bundles
-			bundles := make([]bpa.Bundle, len(ackPattern))
+			bundles := make([]*bpa.Bundle, len(ackPattern))
 			for i := range ackPattern {
-				bundles[i] = bpa.Bundle{
+				bundles[i] = &bpa.Bundle{
 					ID: bpa.BundleID{
 						SourceEID:         bpa.EndpointID{Scheme: "ipn", SSP: "1.0"},
-						CreationTimestamp: uint64(time.Now().Unix()),
+						CreationTimestamp: time.Now().Unix(),
 						SequenceNumber:    uint64(i),
 					},
 					Destination: bpa.EndpointID{Scheme: "ipn", SSP: "2.0"},
 					Payload:     []byte("test"),
 					Priority:    bpa.PriorityNormal,
 					Lifetime:    3600,
-					CreatedAt:   uint64(time.Now().Unix()),
+					CreatedAt:   time.Now().Unix(),
 					BundleType:  bpa.BundleTypeData,
 				}
 
@@ -215,23 +206,20 @@ func TestProperty_ACKIdempotence(t *testing.T) {
 				return true // Skip invalid inputs
 			}
 
-			config := Config{
-				MaxBytes: 1024 * 1024,
-			}
-			store := New(config)
+			store := NewBundleStore(1024 * 1024)
 
 			// Store bundle
-			bundle := bpa.Bundle{
+			bundle := &bpa.Bundle{
 				ID: bpa.BundleID{
 					SourceEID:         bpa.EndpointID{Scheme: "ipn", SSP: "1.0"},
-					CreationTimestamp: uint64(time.Now().Unix()),
+					CreationTimestamp: time.Now().Unix(),
 					SequenceNumber:    seqNum,
 				},
 				Destination: bpa.EndpointID{Scheme: "ipn", SSP: "2.0"},
 				Payload:     []byte("test"),
 				Priority:    bpa.PriorityNormal,
 				Lifetime:    3600,
-				CreatedAt:   uint64(time.Now().Unix()),
+				CreatedAt:   time.Now().Unix(),
 				BundleType:  bpa.BundleTypeData,
 			}
 

@@ -1,13 +1,18 @@
 package node
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/leanovate/gopter"
 	"github.com/leanovate/gopter/gen"
 	"github.com/leanovate/gopter/prop"
 )
+
+// operation represents a single node operation for property testing
+type operation struct {
+	OpType     string
+	BundleSize int
+}
 
 // Property 23: Statistics Consistency
 // For any sequence of node operations, the cumulative statistics (total bundles
@@ -21,38 +26,30 @@ func TestProperty_StatisticsConsistency(t *testing.T) {
 
 	properties := gopter.NewProperties(parameters)
 
-	// Generator for operation sequences
-	genOperationType := gen.IntRange(0, 3).Map(func(i int) string {
-		switch i {
-		case 0:
-			return "receive"
-		case 1:
-			return "send"
-		case 2:
-			return "forward"
-		default:
-			return "drop"
-		}
-	})
+	// Generator for operation type
+	genOperationType := gen.OneConstOf("receive", "send", "forward", "drop")
 
+	// Generator for bundle size
 	genBundleSize := gen.IntRange(1, 1024)
 
-	// Generator for operation sequence (list of operations)
-	genOperationSequence := gen.SliceOf(
-		gen.Struct(reflect.TypeOf(struct {
-			OpType     string
-			BundleSize int
-		}{}), map[string]gopter.Gen{
-			"OpType":     genOperationType,
-			"BundleSize": genBundleSize,
-		}),
-	).SuchThat(func(ops interface{}) bool {
-		slice := ops.([]interface{})
-		return len(slice) >= 1 && len(slice) <= 50
+	// Generator for a single operation
+	genOperation := gopter.CombineGens(genOperationType, genBundleSize).Map(
+		func(values []interface{}) operation {
+			return operation{
+				OpType:     values[0].(string),
+				BundleSize: values[1].(int),
+			}
+		},
+	)
+
+	// Generator for operation sequence
+	genOperationSequence := gen.SliceOf(genOperation).SuchThat(func(v interface{}) bool {
+		ops := v.([]operation)
+		return len(ops) >= 1 && len(ops) <= 50
 	})
 
 	properties.Property("statistics are monotonically non-decreasing and consistent", prop.ForAll(
-		func(operations []interface{}) bool {
+		func(operations []operation) bool {
 			// Initialize statistics
 			stats := &NodeStatistics{
 				TotalBundlesReceived: 0,
@@ -69,50 +66,41 @@ func TestProperty_StatisticsConsistency(t *testing.T) {
 			expectedSent := int64(0)
 			expectedBytesReceived := int64(0)
 			expectedBytesSent := int64(0)
-			expectedForwarded := int64(0)
-			expectedDropped := int64(0)
 
 			// Apply operations
 			for _, op := range operations {
-				opStruct := op.(struct {
-					OpType     string
-					BundleSize int
-				})
-
 				prevReceived := stats.TotalBundlesReceived
 				prevSent := stats.TotalBundlesSent
 				prevBytesReceived := stats.TotalBytesReceived
 				prevBytesSent := stats.TotalBytesSent
 
 				// Simulate operation
-				switch opStruct.OpType {
+				switch op.OpType {
 				case "receive":
 					stats.TotalBundlesReceived++
-					stats.TotalBytesReceived += int64(opStruct.BundleSize)
+					stats.TotalBytesReceived += int64(op.BundleSize)
 					expectedReceived++
-					expectedBytesReceived += int64(opStruct.BundleSize)
+					expectedBytesReceived += int64(op.BundleSize)
 
 				case "send":
 					stats.TotalBundlesSent++
-					stats.TotalBytesSent += int64(opStruct.BundleSize)
+					stats.TotalBytesSent += int64(op.BundleSize)
 					expectedSent++
-					expectedBytesSent += int64(opStruct.BundleSize)
+					expectedBytesSent += int64(op.BundleSize)
 
 				case "forward":
 					// Forward counts as both receive and send
 					stats.TotalBundlesReceived++
 					stats.TotalBundlesSent++
-					stats.TotalBytesReceived += int64(opStruct.BundleSize)
-					stats.TotalBytesSent += int64(opStruct.BundleSize)
+					stats.TotalBytesReceived += int64(op.BundleSize)
+					stats.TotalBytesSent += int64(op.BundleSize)
 					expectedReceived++
 					expectedSent++
-					expectedBytesReceived += int64(opStruct.BundleSize)
-					expectedBytesSent += int64(opStruct.BundleSize)
-					expectedForwarded++
+					expectedBytesReceived += int64(op.BundleSize)
+					expectedBytesSent += int64(op.BundleSize)
 
 				case "drop":
 					// Drop doesn't affect send/receive stats
-					expectedDropped++
 				}
 
 				// Verify monotonicity
@@ -181,8 +169,8 @@ func TestProperty_StatisticsByteCountConsistency(t *testing.T) {
 
 	// Generator for bundle sequence
 	genBundleSequence := gen.SliceOf(gen.IntRange(1, 512)).
-		SuchThat(func(sizes []int) bool {
-			return len(sizes) >= 1 && len(sizes) <= 100
+		SuchThat(func(sizes interface{}) bool {
+			return len(sizes.([]int)) >= 1 && len(sizes.([]int)) <= 100
 		})
 
 	properties.Property("byte counts match sum of bundle sizes", prop.ForAll(
@@ -233,8 +221,8 @@ func TestProperty_StatisticsContactCountsNonNegative(t *testing.T) {
 
 	// Generator for contact outcomes (true = completed, false = missed)
 	genContactSequence := gen.SliceOf(gen.Bool()).
-		SuchThat(func(contacts []bool) bool {
-			return len(contacts) >= 1 && len(contacts) <= 100
+		SuchThat(func(contacts interface{}) bool {
+			return len(contacts.([]bool)) >= 1 && len(contacts.([]bool)) <= 100
 		})
 
 	properties.Property("contact statistics are non-negative and consistent", prop.ForAll(

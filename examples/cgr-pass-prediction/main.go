@@ -9,7 +9,7 @@ import (
 
 // Example demonstrating CGR-based LEO pass prediction
 func main() {
-	fmt.Println("=== CGR-Based LEO Pass Prediction Example ===\n")
+	fmt.Println("=== CGR-Based LEO Pass Prediction Example ===")
 
 	// Define ISS-like orbital parameters
 	// These would typically come from TLE data

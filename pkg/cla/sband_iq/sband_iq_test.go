@@ -80,12 +80,12 @@ func TestType(t *testing.T) {
 		{
 			name: "S-band type",
 			band: sband_transceiver.BandS,
-			want: "ax25ltp_sband_iq",
+			want: "kissltp_sband_iq",
 		},
 		{
 			name: "X-band type",
 			band: sband_transceiver.BandX,
-			want: "ax25ltp_xband_iq",
+			want: "kissltp_xband_iq",
 		},
 	}
 

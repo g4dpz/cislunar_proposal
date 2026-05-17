@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Cislunar Amateur DTN Payload - Pass Prediction Example ===\n")
+	fmt.Println("=== Cislunar Amateur DTN Payload - Pass Prediction Example ===")
 
 	// Define cislunar orbital parameters
 	// This represents a payload in lunar orbit at ~384,400 km from Earth
@@ -111,7 +111,7 @@ func main() {
 	}
 
 	// Demonstrate confidence degradation comparison
-	fmt.Println("=== Confidence Degradation Comparison ===\n")
+	fmt.Println("=== Confidence Degradation Comparison ===")
 	fmt.Println("Time from Epoch | LEO Confidence | Cislunar Confidence")
 	fmt.Println("----------------|----------------|--------------------")
 

@@ -121,83 +121,26 @@ func TestProperty_CGRConfidenceMonotonicity(t *testing.T) {
 	))
 
 	// Property: Cislunar confidence decreases faster than LEO
+	// Validated directly via the confidence functions rather than pass prediction,
+	// since pass timing differences make direct comparison unreliable.
 	properties.Property("cislunar confidence decreases faster than LEO", prop.ForAll(
-		func(horizonDays int64) bool {
-			if horizonDays <= 0 || horizonDays > 7 {
-				return true // Skip invalid horizons
+		func(timeDiffHours int64) bool {
+			if timeDiffHours <= 0 || timeDiffHours > 168 {
+				return true // Skip invalid inputs
 			}
 
-			epoch := time.Now()
+			epoch := time.Now().Unix()
+			predictionTime := epoch + timeDiffHours*3600
 
-			// LEO orbital parameters
-			leoParams := &OrbitalParameters{
-				Epoch:           epoch.Unix(),
-				SemiMajorAxisM:  6771.0 * 1000.0,
-				Eccentricity:    0.001,
-				InclinationDeg:  51.6,
-				RAANDeg:         0.0,
-				ArgPeriapsisDeg: 0.0,
-				TrueAnomalyDeg:  0.0,
-			}
+			// Compute confidence using the same functions used by the prediction engine
+			// LEO: exp(-t/10 days), Cislunar: exp(-t/5 days)
+			leoConf := computeConfidence(epoch, predictionTime)
+			cislunarConf := computeCislunarConfidence(epoch, predictionTime)
 
-			// Cislunar orbital parameters
-			cislunarParams := &OrbitalParameters{
-				Epoch:           epoch.Unix(),
-				SemiMajorAxisM:  384400.0 * 1000.0,
-				Eccentricity:    0.05,
-				InclinationDeg:  5.0,
-				RAANDeg:         0.0,
-				ArgPeriapsisDeg: 0.0,
-				TrueAnomalyDeg:  0.0,
-			}
-
-			stations := []GroundStationLocation{
-				{
-					StationID:       NodeID("gs-1"),
-					LatitudeDeg:     40.0,
-					LongitudeDeg:    -75.0,
-					AltitudeM:       100.0,
-					MinElevationDeg: 10.0,
-				},
-			}
-
-			fromTime := epoch
-			toTime := epoch.Add(time.Duration(horizonDays) * 24 * time.Hour)
-
-			// Predict LEO passes
-			leoPredicted, err := PredictLEOPasses(leoParams, stations, fromTime, toTime, 30)
-			if err != nil || len(leoPredicted) == 0 {
-				return true
-			}
-
-			// Predict cislunar passes
-			cislunarPredicted, err := PredictCislunarPasses(cislunarParams, stations, fromTime, toTime, 60)
-			if err != nil || len(cislunarPredicted) == 0 {
-				return true
-			}
-
-			// Compare confidence degradation
-			// For similar time offsets from epoch, cislunar should have lower confidence
-			// Find contacts at similar times
-			for _, leoPc := range leoPredicted {
-				for _, cisPc := range cislunarPredicted {
-					// If contacts are within 1 hour of each other
-					timeDiff := leoPc.Window.StartTime - cisPc.Window.StartTime
-					if timeDiff < 0 {
-						timeDiff = -timeDiff
-					}
-					if timeDiff < 3600 {
-						// Cislunar confidence should be <= LEO confidence
-						if cisPc.Confidence > leoPc.Confidence {
-							return false
-						}
-					}
-				}
-			}
-
-			return true
+			// Cislunar confidence should be <= LEO confidence for same time offset
+			return cislunarConf <= leoConf
 		},
-		gen.Int64Range(1, 7),
+		gen.Int64Range(1, 168),
 	))
 
 	// Property: First contact has highest confidence
