@@ -2,23 +2,23 @@
 ion-build/
 ion-install/
 
-# ION-DTN source (symlink — clone separately on each machine)
-HDTN
+# HDTN source (symlink — clone separately on each machine)
+/HDTN
 
 # ION-DTN runtime files
 ion.log
 ion_working_memory
 *.sdrlog
 
-# Go binaries
-ax25send
-ax25recv
-cislunar-node
-dtn-node
-em-node
-leo-node
-terrestrial-node
-integration.test
+# Go binaries (root level only)
+/ax25send
+/ax25recv
+/cislunar-node
+/dtn-node
+/em-node
+/leo-node
+/terrestrial-node
+/integration.test
 
 # macOS
 .DS_Store
