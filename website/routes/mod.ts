@@ -41,6 +41,7 @@ import {
   roleUpdateHandler,
   roleDeleteHandler,
 } from "./admin-roles.ts";
+import { statisticsHandler } from "./admin-statistics.ts";
 import { requireAuth, requireAdmin, guestOnly } from "../middleware/auth.ts";
 import type { AuthService } from "../services/auth.ts";
 import type { UserService } from "../services/users.ts";
@@ -105,6 +106,9 @@ export function createRouter(
   router.get("/admin/roles/:id/edit", requireAdmin(), roleEditFormHandler(roleService, engine));
   router.post("/admin/roles/:id", requireAdmin(), roleUpdateHandler(roleService, engine));
   router.post("/admin/roles/:id/delete", requireAdmin(), roleDeleteHandler(roleService, engine));
+
+  // Statistics
+  router.get("/admin/statistics", requireAdmin(), statisticsHandler(engine));
 
   return router;
 }
