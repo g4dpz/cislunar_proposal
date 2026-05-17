@@ -15,8 +15,8 @@
             "dest": 20,
             "startTime": 0,
             "endTime": 86400,
-            "rateBitsPerSec": 500,
-            "owlt": 1
+            "rateBitsPerSec": 32000,
+            "owlt": 180
         },
         {
             "contact": 2,
@@ -24,7 +24,7 @@
             "dest": 30,
             "startTime": 0,
             "endTime": 86400,
-            "rateBitsPerSec": 9600,
+            "rateBitsPerSec": 128000,
             "owlt": 0
         },
         {

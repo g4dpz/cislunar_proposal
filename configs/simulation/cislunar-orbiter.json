@@ -1,5 +1,5 @@
 {
-    "hdtnConfigName": "Cislunar Lunar Orbiter (relay, nodeId=20)",
+    "hdtnConfigName": "Mars Relay Orbiter (MRO, nodeId=20)",
     "userInterfaceOn": true,
     "mySchemeName": "unused_scheme_name",
     "myNodeId": 20,
@@ -31,7 +31,7 @@
                 "thisLtpEngineId": 20,
                 "remoteLtpEngineId": 10,
                 "ltpReportSegmentMtu": 1000,
-                "oneWayLightTimeMs": 1300,
+                "oneWayLightTimeMs": 180000,
                 "oneWayMarginTimeMs": 200,
                 "clientServiceId": 1,
                 "preallocatedRedDataBytes": 200000,
