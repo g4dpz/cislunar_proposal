@@ -1,5 +1,5 @@
 {
-    "hdtnConfigName": "Cislunar Lunar Orbiter (relay, nodeId=20)",
+    "hdtnConfigName": "Cislunar Lunar Orbiter with packet-level delay (nodeId=20)",
     "userInterfaceOn": true,
     "mySchemeName": "unused_scheme_name",
     "myNodeId": 20,
@@ -38,7 +38,7 @@
                 "ltpMaxRetriesPerSerialNumber": 5,
                 "ltpRandomNumberSizeBits": 64,
                 "ltpRemoteUdpHostname": "localhost",
-                "ltpRemoteUdpPort": 2113,
+                "ltpRemoteUdpPort": 1115,
                 "ltpRxDataSegmentSessionNumberRecreationPreventerHistorySize": 1000,
                 "ltpMaxExpectedSimultaneousSessions": 500,
                 "ltpMaxUdpPacketsToSendPerSystemCall": 1,

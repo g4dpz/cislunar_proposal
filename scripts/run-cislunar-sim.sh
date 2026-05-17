@@ -1,12 +1,10 @@
 #!/bin/bash
-# Three-node cislunar DTN simulation using HDTN
+# Three-node cislunar DTN simulation with TRUE packet-level delay
+# Uses HDTN's udp-delay-sim to add real 1.3-second propagation delay
 #
-# Topology:
-#   bpsendfile (ipn:1.1)
-#     → [STCP :4556] → Ground Station HDTN (nodeId=10)
-#     → [LTP/UDP, 1300ms OWLT, 500 bps] → Orbiter HDTN (nodeId=20)
-#     → [LTP/UDP, 10ms OWLT, 9600 bps] → Lander HDTN (nodeId=30)
-#     → [STCP :4558] → bpreceivefile (ipn:3.1)
+# Port mapping:
+#   Ground (2113) → proxy:1114 → [1300ms delay] → Orbiter:1113
+#   Orbiter reports → proxy:1115 → [1300ms delay] → Ground:2113
 
 set -e
 
@@ -14,21 +12,42 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 SIM_DIR="$PROJECT_DIR/configs/simulation"
 RECEIVED_DIR="$PROJECT_DIR/cislunar_received"
+DELAY_MS=1300
 
-echo "=== Cislunar DTN Simulation (HDTN) ==="
+echo "=== Cislunar DTN with TRUE ${DELAY_MS}ms Packet-Level Delay ==="
 echo ""
-echo "Topology:"
-echo "  Ground (10) →[1.3s OWLT, 500bps]→ Orbiter (20) →[10ms, 9.6kbps]→ Lander (30)"
+echo "  Ground (2113) → proxy:1114 →[${DELAY_MS}ms]→ Orbiter:1113"
+echo "  Orbiter reports → proxy:1115 →[${DELAY_MS}ms]→ Ground:2113"
 echo ""
 
 mkdir -p "$RECEIVED_DIR"
 
-if ! command -v hdtn-one-process &> /dev/null; then
-    echo "Error: hdtn-one-process not found in PATH"
-    exit 1
-fi
+# Start delay proxies
+echo "Starting delay proxies..."
 
-echo "Starting nodes..."
+# Data proxy: receives on 1114, delays, forwards to orbiter 1113
+udp-delay-sim \
+    --remote-udp-hostname=localhost --remote-udp-port=1113 \
+    --my-bound-udp-port=1114 \
+    --num-rx-udp-packets-buffer-size=10000 \
+    --max-rx-udp-packet-size-bytes=1500 \
+    --send-delay-ms=$DELAY_MS &
+PID_PROXY_DATA=$!
+echo "  [Data proxy]   :1114 → :1113 (${DELAY_MS}ms) PID $PID_PROXY_DATA"
+
+# Report proxy: receives on 1115, delays, forwards to ground 2113
+udp-delay-sim \
+    --remote-udp-hostname=localhost --remote-udp-port=2113 \
+    --my-bound-udp-port=1115 \
+    --num-rx-udp-packets-buffer-size=10000 \
+    --max-rx-udp-packet-size-bytes=1500 \
+    --send-delay-ms=$DELAY_MS &
+PID_PROXY_REPORT=$!
+echo "  [Report proxy] :1115 → :2113 (${DELAY_MS}ms) PID $PID_PROXY_REPORT"
+sleep 1
+
+echo ""
+echo "Starting HDTN nodes..."
 
 bpreceivefile \
     --my-uri-eid=ipn:3.1 \
@@ -57,21 +76,20 @@ PID_GROUND=$!
 sleep 8
 
 echo ""
-echo "=== Simulation Ready ==="
+echo "=== Ready — TRUE ${DELAY_MS}ms propagation delay active ==="
 echo ""
 echo "Send a file:"
-echo "  rm -f /tmp/hdtn-send/*"
-echo "  echo 'Hello Moon' > /tmp/hdtn-send/lunar.dat"
+echo "  rm -f /tmp/hdtn-send/*; echo 'Hello Moon' > /tmp/hdtn-send/lunar.dat"
 echo "  bpsendfile --my-uri-eid=ipn:1.1 --dest-uri-eid=ipn:3.1 --use-bp-version-7 --outducts-config-file=$SIM_DIR/bping-outducts.json --file-or-folder-path=/tmp/hdtn-send"
 echo ""
-echo "Received files: $RECEIVED_DIR"
+echo "File arrives after ~1.3s real delay. Received: $RECEIVED_DIR"
 echo "Press Ctrl+C to stop"
 
 cleanup() {
     echo ""
     echo "Stopping..."
-    kill $PID_RECV $PID_GROUND $PID_ORBITER $PID_LANDER 2>/dev/null || true
-    wait $PID_RECV $PID_GROUND $PID_ORBITER $PID_LANDER 2>/dev/null || true
+    kill $PID_RECV $PID_GROUND $PID_ORBITER $PID_LANDER $PID_PROXY_DATA $PID_PROXY_REPORT 2>/dev/null || true
+    wait $PID_RECV $PID_GROUND $PID_ORBITER $PID_LANDER $PID_PROXY_DATA $PID_PROXY_REPORT 2>/dev/null || true
     echo "Done."
 }
 trap cleanup INT TERM

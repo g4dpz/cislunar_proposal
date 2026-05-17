@@ -1,5 +1,5 @@
 {
-    "hdtnConfigName": "Cislunar Ground Station (Earth, nodeId=10)",
+    "hdtnConfigName": "Cislunar Ground Station with packet-level delay (nodeId=10)",
     "userInterfaceOn": true,
     "mySchemeName": "unused_scheme_name",
     "myNodeId": 10,
@@ -40,7 +40,7 @@
                 "convergenceLayer": "ltp_over_udp",
                 "nextHopNodeId": 20,
                 "remoteHostname": "localhost",
-                "remotePort": 1113,
+                "remotePort": 1114,
                 "maxNumberOfBundlesInPipeline": 50,
                 "maxSumOfBundleBytesInPipeline": 50000000,
                 "thisLtpEngineId": 10,
