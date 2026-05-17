@@ -1,8 +1,8 @@
 {
-    "inductConfigName": "bpsink-cislunar",
+    "inductConfigName": "bpreceivefile spacecraft receiver - STCP port 4558",
     "inductVector": [
         {
-            "name": "bpsink-at-lander",
+            "name": "stcp_receivefile",
             "convergenceLayer": "stcp",
             "boundPort": 4558,
             "numRxCircularBufferElements": 100,

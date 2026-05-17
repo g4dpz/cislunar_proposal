@@ -1,15 +1,15 @@
 {
-    "outductConfigName": "bping-cislunar",
+    "outductConfigName": "myconfig",
     "outductVector": [
         {
-            "name": "bping-to-ground-station",
+            "name": "bpgen",
             "convergenceLayer": "stcp",
-            "nextHopNodeId": 20,
+            "nextHopNodeId": 10,
             "remoteHostname": "localhost",
             "remotePort": 4556,
-            "maxNumberOfBundlesInPipeline": 50,
+            "maxNumberOfBundlesInPipeline": 5,
             "maxSumOfBundleBytesInPipeline": 50000000,
-            "keepAliveIntervalSeconds": 15
+            "keepAliveIntervalSeconds": 17
         }
     ]
 }

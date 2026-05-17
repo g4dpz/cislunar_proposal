@@ -2,20 +2,20 @@
     "contacts": [
         {
             "contact": 0,
+            "source": 1,
+            "dest": 10,
+            "startTime": 0,
+            "endTime": 86400,
+            "rateBitsPerSec": 10000000,
+            "owlt": 0
+        },
+        {
+            "contact": 1,
             "source": 10,
             "dest": 20,
             "startTime": 0,
             "endTime": 86400,
-            "rateBitsPerSec": 500,
-            "owlt": 1
-        },
-        {
-            "contact": 1,
-            "source": 20,
-            "dest": 10,
-            "startTime": 0,
-            "endTime": 86400,
-            "rateBitsPerSec": 500,
+            "rateBitsPerSec": 10000000,
             "owlt": 1
         },
         {
@@ -24,16 +24,16 @@
             "dest": 30,
             "startTime": 0,
             "endTime": 86400,
-            "rateBitsPerSec": 9600,
-            "owlt": 0
+            "rateBitsPerSec": 10000000,
+            "owlt": 1
         },
         {
             "contact": 3,
             "source": 30,
-            "dest": 20,
+            "dest": 3,
             "startTime": 0,
             "endTime": 86400,
-            "rateBitsPerSec": 9600,
+            "rateBitsPerSec": 10000000,
             "owlt": 0
         }
     ]

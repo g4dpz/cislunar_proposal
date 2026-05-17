@@ -1,5 +1,5 @@
 {
-    "hdtnConfigName": "Cislunar Lunar Lander (nodeId=30)",
+    "hdtnConfigName": "LTP loopback node 3 (final relay, delayed)",
     "userInterfaceOn": true,
     "mySchemeName": "unused_scheme_name",
     "myNodeId": 30,
@@ -24,35 +24,28 @@
         "inductConfigName": "myconfig",
         "inductVector": [
             {
-                "name": "ltp_ingress_from_orbiter",
+                "name": "ltp_ingress_from_node2",
                 "convergenceLayer": "ltp_over_udp",
                 "boundPort": 3113,
                 "numRxCircularBufferElements": 1000,
                 "thisLtpEngineId": 30,
                 "remoteLtpEngineId": 20,
-                "ltpReportSegmentMtu": 1360,
-                "oneWayLightTimeMs": 10,
+                "ltpReportSegmentMtu": 1000,
+                "oneWayLightTimeMs": 1000,
                 "oneWayMarginTimeMs": 200,
                 "clientServiceId": 1,
-                "preallocatedRedDataBytes": 1000000,
-                "ltpMaxRetriesPerSerialNumber": 500,
+                "preallocatedRedDataBytes": 200000,
+                "ltpMaxRetriesPerSerialNumber": 5,
                 "ltpRandomNumberSizeBits": 64,
                 "ltpRemoteUdpHostname": "localhost",
                 "ltpRemoteUdpPort": 2123,
                 "ltpRxDataSegmentSessionNumberRecreationPreventerHistorySize": 1000,
                 "ltpMaxExpectedSimultaneousSessions": 500,
                 "ltpMaxUdpPacketsToSendPerSystemCall": 1,
-                "delaySendingOfReportSegmentsTimeMsOrZeroToDisable": 20,
+                "delaySendingOfReportSegmentsTimeMsOrZeroToDisable": 250,
                 "keepActiveSessionDataOnDisk": false,
                 "activeSessionDataOnDiskNewFileDurationMs": 2000,
                 "activeSessionDataOnDiskDirectory": "./"
-            },
-            {
-                "name": "stcp_ingress_for_bpsink",
-                "convergenceLayer": "stcp",
-                "boundPort": 4558,
-                "numRxCircularBufferElements": 100,
-                "keepAliveIntervalSeconds": 15
             }
         ]
     },
@@ -60,30 +53,14 @@
         "outductConfigName": "myconfig",
         "outductVector": [
             {
-                "name": "ltp_egress_to_orbiter",
-                "convergenceLayer": "ltp_over_udp",
-                "nextHopNodeId": 20,
+                "name": "stcp_egress_to_bpreceivefile",
+                "convergenceLayer": "stcp",
+                "nextHopNodeId": 3,
                 "remoteHostname": "localhost",
-                "remotePort": 3133,
+                "remotePort": 4558,
                 "maxNumberOfBundlesInPipeline": 50,
                 "maxSumOfBundleBytesInPipeline": 50000000,
-                "thisLtpEngineId": 30,
-                "remoteLtpEngineId": 20,
-                "ltpDataSegmentMtu": 1360,
-                "oneWayLightTimeMs": 10,
-                "oneWayMarginTimeMs": 200,
-                "clientServiceId": 1,
-                "numRxCircularBufferElements": 100,
-                "ltpMaxRetriesPerSerialNumber": 5,
-                "ltpCheckpointEveryNthDataSegment": 0,
-                "ltpRandomNumberSizeBits": 64,
-                "ltpSenderBoundPort": 2143,
-                "ltpMaxUdpPacketsToSendPerSystemCall": 1,
-                "ltpSenderPingSecondsOrZeroToDisable": 15,
-                "delaySendingOfDataSegmentsTimeMsOrZeroToDisable": 0,
-                "keepActiveSessionDataOnDisk": false,
-                "activeSessionDataOnDiskNewFileDurationMs": 2000,
-                "activeSessionDataOnDiskDirectory": "./"
+                "keepAliveIntervalSeconds": 17
             }
         ]
     },
@@ -96,11 +73,11 @@
         "storageDiskConfigVector": [
             {
                 "name": "d1",
-                "storeFilePath": "/tmp/hdtn-sim/lander/store1.bin"
+                "storeFilePath": "./loopback_node3_store1.bin"
             },
             {
                 "name": "d2",
-                "storeFilePath": "/tmp/hdtn-sim/lander/store2.bin"
+                "storeFilePath": "./loopback_node3_store2.bin"
             }
         ]
     }

@@ -1,5 +1,5 @@
 {
-    "hdtnConfigName": "Cislunar Lunar Orbiter relay (nodeId=20)",
+    "hdtnConfigName": "LTP loopback node 2 (middle relay, 3-hop, delayed)",
     "userInterfaceOn": true,
     "mySchemeName": "unused_scheme_name",
     "myNodeId": 20,
@@ -24,49 +24,25 @@
         "inductConfigName": "myconfig",
         "inductVector": [
             {
-                "name": "ltp_ingress_from_ground",
+                "name": "ltp_ingress_from_node1",
                 "convergenceLayer": "ltp_over_udp",
                 "boundPort": 1113,
                 "numRxCircularBufferElements": 1000,
                 "thisLtpEngineId": 20,
                 "remoteLtpEngineId": 10,
-                "ltpReportSegmentMtu": 1360,
-                "oneWayLightTimeMs": 1300,
+                "ltpReportSegmentMtu": 1000,
+                "oneWayLightTimeMs": 1000,
                 "oneWayMarginTimeMs": 200,
                 "clientServiceId": 1,
-                "preallocatedRedDataBytes": 1000000,
-                "ltpMaxRetriesPerSerialNumber": 500,
+                "preallocatedRedDataBytes": 200000,
+                "ltpMaxRetriesPerSerialNumber": 5,
                 "ltpRandomNumberSizeBits": 64,
                 "ltpRemoteUdpHostname": "localhost",
                 "ltpRemoteUdpPort": 2113,
                 "ltpRxDataSegmentSessionNumberRecreationPreventerHistorySize": 1000,
                 "ltpMaxExpectedSimultaneousSessions": 500,
                 "ltpMaxUdpPacketsToSendPerSystemCall": 1,
-                "delaySendingOfReportSegmentsTimeMsOrZeroToDisable": 20,
-                "keepActiveSessionDataOnDisk": false,
-                "activeSessionDataOnDiskNewFileDurationMs": 2000,
-                "activeSessionDataOnDiskDirectory": "./"
-            },
-            {
-                "name": "ltp_ingress_from_lander",
-                "convergenceLayer": "ltp_over_udp",
-                "boundPort": 3133,
-                "numRxCircularBufferElements": 1000,
-                "thisLtpEngineId": 20,
-                "remoteLtpEngineId": 30,
-                "ltpReportSegmentMtu": 1360,
-                "oneWayLightTimeMs": 10,
-                "oneWayMarginTimeMs": 200,
-                "clientServiceId": 1,
-                "preallocatedRedDataBytes": 1000000,
-                "ltpMaxRetriesPerSerialNumber": 500,
-                "ltpRandomNumberSizeBits": 64,
-                "ltpRemoteUdpHostname": "localhost",
-                "ltpRemoteUdpPort": 2143,
-                "ltpRxDataSegmentSessionNumberRecreationPreventerHistorySize": 1000,
-                "ltpMaxExpectedSimultaneousSessions": 500,
-                "ltpMaxUdpPacketsToSendPerSystemCall": 1,
-                "delaySendingOfReportSegmentsTimeMsOrZeroToDisable": 20,
+                "delaySendingOfReportSegmentsTimeMsOrZeroToDisable": 250,
                 "keepActiveSessionDataOnDisk": false,
                 "activeSessionDataOnDiskNewFileDurationMs": 2000,
                 "activeSessionDataOnDiskDirectory": "./"
@@ -77,7 +53,7 @@
         "outductConfigName": "myconfig",
         "outductVector": [
             {
-                "name": "ltp_egress_to_lander",
+                "name": "ltp_egress_to_node3",
                 "convergenceLayer": "ltp_over_udp",
                 "nextHopNodeId": 30,
                 "remoteHostname": "localhost",
@@ -87,7 +63,7 @@
                 "thisLtpEngineId": 20,
                 "remoteLtpEngineId": 30,
                 "ltpDataSegmentMtu": 1360,
-                "oneWayLightTimeMs": 10,
+                "oneWayLightTimeMs": 1000,
                 "oneWayMarginTimeMs": 200,
                 "clientServiceId": 1,
                 "numRxCircularBufferElements": 100,
@@ -97,33 +73,7 @@
                 "ltpSenderBoundPort": 2123,
                 "ltpMaxUdpPacketsToSendPerSystemCall": 1,
                 "ltpSenderPingSecondsOrZeroToDisable": 15,
-                "delaySendingOfDataSegmentsTimeMsOrZeroToDisable": 0,
-                "keepActiveSessionDataOnDisk": false,
-                "activeSessionDataOnDiskNewFileDurationMs": 2000,
-                "activeSessionDataOnDiskDirectory": "./"
-            },
-            {
-                "name": "ltp_egress_to_ground",
-                "convergenceLayer": "ltp_over_udp",
-                "nextHopNodeId": 10,
-                "remoteHostname": "localhost",
-                "remotePort": 1133,
-                "maxNumberOfBundlesInPipeline": 50,
-                "maxSumOfBundleBytesInPipeline": 50000000,
-                "thisLtpEngineId": 20,
-                "remoteLtpEngineId": 10,
-                "ltpDataSegmentMtu": 1360,
-                "oneWayLightTimeMs": 1300,
-                "oneWayMarginTimeMs": 200,
-                "clientServiceId": 1,
-                "numRxCircularBufferElements": 100,
-                "ltpMaxRetriesPerSerialNumber": 5,
-                "ltpCheckpointEveryNthDataSegment": 0,
-                "ltpRandomNumberSizeBits": 64,
-                "ltpSenderBoundPort": 2133,
-                "ltpMaxUdpPacketsToSendPerSystemCall": 1,
-                "ltpSenderPingSecondsOrZeroToDisable": 15,
-                "delaySendingOfDataSegmentsTimeMsOrZeroToDisable": 0,
+                "delaySendingOfDataSegmentsTimeMsOrZeroToDisable": 250,
                 "keepActiveSessionDataOnDisk": false,
                 "activeSessionDataOnDiskNewFileDurationMs": 2000,
                 "activeSessionDataOnDiskDirectory": "./"
@@ -139,11 +89,11 @@
         "storageDiskConfigVector": [
             {
                 "name": "d1",
-                "storeFilePath": "/tmp/hdtn-sim/orbiter/store1.bin"
+                "storeFilePath": "./loopback_node2_store1.bin"
             },
             {
                 "name": "d2",
-                "storeFilePath": "/tmp/hdtn-sim/orbiter/store2.bin"
+                "storeFilePath": "./loopback_node2_store2.bin"
             }
         ]
     }
