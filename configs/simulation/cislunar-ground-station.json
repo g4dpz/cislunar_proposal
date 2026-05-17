@@ -1,5 +1,5 @@
 {
-    "hdtnConfigName": "Cislunar Ground Station with packet-level delay (nodeId=10)",
+    "hdtnConfigName": "G4DPZ Ground Station (dtn://g4dpz/gs, nodeId=10)",
     "userInterfaceOn": true,
     "mySchemeName": "unused_scheme_name",
     "myNodeId": 10,
@@ -79,5 +79,6 @@
                 "storeFilePath": "./loopback_node1_store2.bin"
             }
         ]
-    }
+    },
+    "myDtnEidStr": "dtn://g4dpz/gs"
 }

@@ -1,5 +1,5 @@
 {
-    "hdtnConfigName": "Cislunar Lunar Orbiter with packet-level delay (nodeId=20)",
+    "hdtnConfigName": "G4DPZ Spacecraft (dtn://g4dpz/spacecraft, nodeId=20)",
     "userInterfaceOn": true,
     "mySchemeName": "unused_scheme_name",
     "myNodeId": 20,
@@ -96,5 +96,6 @@
                 "storeFilePath": "./loopback_node2_store2.bin"
             }
         ]
-    }
+    },
+    "myDtnEidStr": "dtn://g4dpz/spacecraft"
 }

@@ -1,5 +1,5 @@
 {
-    "hdtnConfigName": "Cislunar Lunar Lander (nodeId=30)",
+    "hdtnConfigName": "G4DPZ Lander (dtn://g4dpz/lander, nodeId=30)",
     "userInterfaceOn": true,
     "mySchemeName": "unused_scheme_name",
     "myNodeId": 30,
@@ -80,5 +80,6 @@
                 "storeFilePath": "./loopback_node3_store2.bin"
             }
         ]
-    }
+    },
+    "myDtnEidStr": "dtn://g4dpz/lander"
 }
