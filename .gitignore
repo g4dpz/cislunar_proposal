@@ -52,3 +52,11 @@ cislunar_received/
 # Build artifacts
 dist/
 *.bin
+
+# SQLite WAL files (runtime)
+website/data/*.db-shm
+website/data/*.db-wal
+
+# External project symlinks
+esa-competition-contestants
+esa-competition-teams
