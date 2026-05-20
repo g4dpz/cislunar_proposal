@@ -42,10 +42,22 @@ import {
   roleDeleteHandler,
 } from "./admin-roles.ts";
 import { statisticsHandler } from "./admin-statistics.ts";
+import {
+  outreachListHandler,
+  outreachCreateFormHandler,
+  outreachCreateHandler,
+  outreachDetailHandler,
+  outreachEditFormHandler,
+  outreachUpdateHandler,
+  outreachDeleteHandler,
+  outreachAdvanceHandler,
+} from "./outreach.ts";
+import { collaboratorsHandler } from "./collaborators.ts";
 import { requireAuth, requireAdmin, guestOnly } from "../middleware/auth.ts";
 import type { AuthService } from "../services/auth.ts";
 import type { UserService } from "../services/users.ts";
 import type { RoleService } from "../services/roles.ts";
+import type { OutreachService } from "../services/outreach.ts";
 
 /**
  * Creates and configures the Oak router with all page routes.
@@ -56,6 +68,7 @@ export function createRouter(
   authService: AuthService,
   userService: UserService,
   roleService: RoleService,
+  outreachService: OutreachService,
 ): Router {
   const router = new Router();
 
@@ -109,6 +122,20 @@ export function createRouter(
 
   // Statistics
   router.get("/admin/statistics", requireAdmin(), statisticsHandler(engine));
+
+  // Outreach management
+  router.get("/admin/outreach", requireAdmin(), outreachListHandler(outreachService, engine));
+  router.get("/admin/outreach/new", requireAdmin(), outreachCreateFormHandler(outreachService, engine));
+  router.post("/admin/outreach", requireAdmin(), outreachCreateHandler(outreachService, engine));
+  router.get("/admin/outreach/:id", requireAdmin(), outreachDetailHandler(outreachService, engine));
+  router.get("/admin/outreach/:id/edit", requireAdmin(), outreachEditFormHandler(outreachService, engine));
+  router.post("/admin/outreach/:id", requireAdmin(), outreachUpdateHandler(outreachService, engine));
+  router.post("/admin/outreach/:id/delete", requireAdmin(), outreachDeleteHandler(outreachService, engine));
+  router.post("/admin/outreach/:id/advance", requireAdmin(), outreachAdvanceHandler(outreachService, engine));
+
+  // ─── Public Collaborators Route ─────────────────────────────────────────────
+
+  router.get("/collaborators", collaboratorsHandler(outreachService, engine));
 
   return router;
 }

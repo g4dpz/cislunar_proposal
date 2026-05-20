@@ -30,10 +30,10 @@ Deno.test("Property 7: Database Seeding Idempotence - seeding N times produces s
       assertEquals(roles[0]!.name, "admin");
       assertEquals(roles[1]!.name, "users");
 
-      // Verify exactly 1 user exists with email "admin@arthur.radio"
+      // Verify exactly 1 user exists with email "admin@radiant.radio"
       const users = db.prepare("SELECT email FROM users").all() as Array<{ email: string }>;
       assertEquals(users.length, 1, `Expected exactly 1 user, got ${users.length} after ${n} seed calls`);
-      assertEquals(users[0]!.email, "admin@arthur.radio");
+      assertEquals(users[0]!.email, "admin@radiant.radio");
 
       // Verify exactly 1 user_roles entry exists (admin user → admin role)
       const userRoles = db.prepare("SELECT user_id, role_id FROM user_roles").all() as Array<{ user_id: number; role_id: number }>;

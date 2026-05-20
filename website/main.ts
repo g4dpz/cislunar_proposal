@@ -12,6 +12,7 @@ import { createAuthMiddleware } from "./middleware/auth.ts";
 import { createAuthService } from "./services/auth.ts";
 import { createUserService } from "./services/users.ts";
 import { createRoleService } from "./services/roles.ts";
+import { createOutreachService } from "./services/outreach.ts";
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -39,12 +40,13 @@ const db = await initDatabase(dbPath);
 const authService = createAuthService(db);
 const userService = createUserService(db);
 const roleService = createRoleService(db);
+const outreachService = createOutreachService(db);
 
 // Create auth middleware (must run before router to populate ctx.state.user)
 const authMiddleware = createAuthMiddleware(authService);
 
 // Create router with all routes
-const router = createRouter(engine, db, authService, userService, roleService);
+const router = createRouter(engine, db, authService, userService, roleService, outreachService);
 
 // ─── Application Setup ───────────────────────────────────────────────────────
 

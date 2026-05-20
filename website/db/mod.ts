@@ -45,6 +45,21 @@ export interface SessionRow {
   createdAt: string;
 }
 
+export interface OutreachContactRow {
+  id: number;
+  name: string;
+  contact_type: string;
+  status: string;
+  contact_url: string | null;
+  callsign: string | null;
+  email: string | null;
+  notes: string | null;
+  contacted_by: string | null;
+  contacted_date: string | null;
+  created_at: string;
+  last_updated: string;
+}
+
 // ─── Database Initialization ──────────────────────────────────────────────────
 
 /**
@@ -110,6 +125,35 @@ export async function initDatabase(dbPath: string): Promise<Database> {
 
   // Index for user email lookups
   db.exec(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);`);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS outreach_contacts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      contact_type TEXT NOT NULL CHECK(contact_type IN (
+        'facebook_group', 'mailing_list', 'club', 'university',
+        'individual', 'cubesat_team', 'organisation'
+      )),
+      status TEXT NOT NULL DEFAULT 'identified' CHECK(status IN (
+        'identified', 'contacted', 'responded', 'collaborating'
+      )),
+      contact_url TEXT,
+      callsign TEXT,
+      email TEXT,
+      notes TEXT,
+      contacted_by TEXT,
+      contacted_date TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      last_updated TEXT DEFAULT (datetime('now')),
+      UNIQUE(name COLLATE NOCASE, contact_type)
+    );
+  `);
+
+  // Index for status filtering (most common query pattern)
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_outreach_status ON outreach_contacts(status);`);
+
+  // Index for type filtering
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_outreach_type ON outreach_contacts(contact_type);`);
 
   // Seed default roles and admin user
   await seedDatabase(db);

@@ -14,6 +14,7 @@ import { createAuthMiddleware } from "../../middleware/auth.ts";
 import { createAuthService } from "../../services/auth.ts";
 import { createUserService } from "../../services/users.ts";
 import { createRoleService } from "../../services/roles.ts";
+import { createOutreachService } from "../../services/outreach.ts";
 
 // ─── Test Setup ───────────────────────────────────────────────────────────────
 
@@ -27,7 +28,8 @@ async function createTestApp(): Promise<Application> {
   const authService = createAuthService(db);
   const userService = createUserService(db);
   const roleService = createRoleService(db);
-  const router = createRouter(engine, db, authService, userService, roleService);
+  const outreachService = createOutreachService(db);
+  const router = createRouter(engine, db, authService, userService, roleService, outreachService);
 
   const app = new Application();
 

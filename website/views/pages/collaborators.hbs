@@ -1,0 +1,39 @@
+<section class="py-5 mt-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <h1 class="h3 mb-4">Collaborators &amp; Partners</h1>
+
+        {{#if content.groups.length}}
+        {{#each content.groups}}
+        <div class="mb-5">
+          <h2 class="h5 border-bottom pb-2 mb-3">{{this.label}}</h2>
+          <div class="row g-3">
+            {{#each this.contacts}}
+            <div class="col-sm-6 col-md-4">
+              <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                  {{#if this.contactUrl}}
+                  <a href="{{this.contactUrl}}" class="text-decoration-none" target="_blank" rel="noopener noreferrer">
+                    <strong>{{this.name}}</strong>
+                  </a>
+                  {{else}}
+                  <strong>{{this.name}}</strong>
+                  {{/if}}
+                </div>
+              </div>
+            </div>
+            {{/each}}
+          </div>
+        </div>
+        {{/each}}
+        {{else}}
+        <div class="text-center py-5">
+          <p class="text-muted fs-5">No collaborators yet. Check back soon as we grow our community of partners.</p>
+        </div>
+        {{/if}}
+
+      </div>
+    </div>
+  </div>
+</section>

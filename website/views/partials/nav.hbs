@@ -28,6 +28,12 @@
         {{/if}}
         {{/each}}
 
+        {{!-- Collaborators link (visible to all visitors) --}}
+        <li class="nav-item">
+          <a class="nav-link{{#if (eq activeSection "collaborators")}} active{{/if}}" href="/collaborators"
+             {{#if (eq activeSection "collaborators")}}aria-current="page"{{/if}}>Collaborators</a>
+        </li>
+
         {{!-- Admin dropdown for admin users --}}
         {{#if user}}
           {{#if user.isAdmin}}
@@ -39,6 +45,7 @@
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="/admin/users">Users</a></li>
               <li><a class="dropdown-item" href="/admin/roles">Roles</a></li>
+              <li><a class="dropdown-item" href="/admin/outreach">Outreach</a></li>
               <li><a class="dropdown-item" href="/admin/statistics">Statistics</a></li>
             </ul>
           </li>

@@ -71,7 +71,7 @@ Deno.test("getRole - returns role with assigned users", async () => {
   assertNotEquals(role, null, "Should find the admin role");
   assertEquals(role!.name, "admin");
   assertEquals(role!.users.length >= 1, true, "Admin role should have at least 1 user");
-  assertEquals(role!.users[0]!.email, "admin@arthur.radio");
+  assertEquals(role!.users[0]!.email, "admin@radiant.radio");
 
   db.close();
 });

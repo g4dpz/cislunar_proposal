@@ -1,0 +1,101 @@
+<section class="py-5 mt-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-7">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1 class="h3 mb-0">{{#if content.isEdit}}Edit Contact{{else}}Add Contact{{/if}}</h1>
+          <a href="/admin/outreach" class="btn btn-outline-secondary btn-sm">Back to Outreach</a>
+        </div>
+
+        {{> flash-message}}
+        {{> form-errors}}
+
+        {{#if content.duplicateWarning}}
+        <div class="alert alert-warning" role="alert">
+          <strong>Duplicate Warning:</strong> {{content.duplicateWarning}}
+          {{#if content.similarContacts}}
+          <ul class="mt-2 mb-0">
+            {{#each content.similarContacts}}
+            <li><a href="/admin/outreach/{{this.id}}">{{this.name}}</a> ({{this.contactType}} — {{this.status}})</li>
+            {{/each}}
+          </ul>
+          {{/if}}
+        </div>
+        {{/if}}
+
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <form method="POST" action="{{#if content.isEdit}}/admin/outreach/{{content.contact.id}}{{else}}/admin/outreach{{/if}}" novalidate>
+              <div class="mb-3">
+                <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="name" name="name"
+                       value="{{content.contact.name}}" required>
+              </div>
+
+              <div class="mb-3">
+                <label for="contactType" class="form-label">Contact Type <span class="text-danger">*</span></label>
+                <select class="form-select" id="contactType" name="contactType" required>
+                  <option value="">Select a type...</option>
+                  {{#each content.contactTypes}}
+                  <option value="{{this}}" {{#if (eq this ../content.contact.contactType)}}selected{{/if}}>{{this}}</option>
+                  {{/each}}
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                  {{#each content.statuses}}
+                  <option value="{{this}}" {{#if (eq this ../content.contact.status)}}selected{{/if}}>{{this}}</option>
+                  {{/each}}
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="contactUrl" class="form-label">Contact URL</label>
+                <input type="url" class="form-control" id="contactUrl" name="contactUrl"
+                       value="{{content.contact.contactUrl}}" placeholder="https://...">
+              </div>
+
+              <div class="mb-3">
+                <label for="callsign" class="form-label">Callsign</label>
+                <input type="text" class="form-control" id="callsign" name="callsign"
+                       value="{{content.contact.callsign}}">
+              </div>
+
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email"
+                       value="{{content.contact.email}}">
+              </div>
+
+              <div class="mb-3">
+                <label for="notes" class="form-label">Notes</label>
+                <textarea class="form-control" id="notes" name="notes" rows="4">{{content.contact.notes}}</textarea>
+              </div>
+
+              <div class="mb-3">
+                <label for="contactedBy" class="form-label">Contacted By</label>
+                <input type="text" class="form-control" id="contactedBy" name="contactedBy"
+                       value="{{content.contact.contactedBy}}">
+              </div>
+
+              <div class="mb-3">
+                <label for="contactedDate" class="form-label">Contacted Date</label>
+                <input type="date" class="form-control" id="contactedDate" name="contactedDate"
+                       value="{{content.contact.contactedDate}}">
+              </div>
+
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary">
+                  {{#if content.isEdit}}Update Contact{{else}}Create Contact{{/if}}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>

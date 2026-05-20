@@ -1,0 +1,144 @@
+<section class="py-5 mt-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1 class="h3 mb-0">Outreach Tracker</h1>
+          <a href="/admin/outreach/new" class="btn btn-primary">Add Contact</a>
+        </div>
+
+        {{> flash-message}}
+
+        {{!-- Stats Summary --}}
+        <div class="row g-3 mb-4">
+          <div class="col-sm-6 col-lg-3">
+            <div class="card text-center shadow-sm">
+              <div class="card-body">
+                <div class="h4 mb-1">{{content.stats.total}}</div>
+                <div class="text-muted small">Total Contacts</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="card text-center shadow-sm">
+              <div class="card-body">
+                <div class="h4 mb-1">{{content.stats.byStatus.identified}}</div>
+                <div class="text-muted small">Identified</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="card text-center shadow-sm">
+              <div class="card-body">
+                <div class="h4 mb-1">{{content.stats.byStatus.contacted}}</div>
+                <div class="text-muted small">Contacted</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="card text-center shadow-sm">
+              <div class="card-body">
+                <div class="h4 mb-1">{{content.stats.byStatus.responded}}</div>
+                <div class="text-muted small">Responded</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="card text-center shadow-sm">
+              <div class="card-body">
+                <div class="h4 mb-1">{{content.stats.byStatus.collaborating}}</div>
+                <div class="text-muted small">Collaborating</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {{!-- By Type Stats --}}
+        <div class="row g-3 mb-4">
+          {{#each content.stats.byType}}
+          {{#if this}}
+          <div class="col-auto">
+            <span class="badge bg-secondary">{{@key}}: {{this}}</span>
+          </div>
+          {{/if}}
+          {{/each}}
+        </div>
+
+        {{!-- Filters --}}
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <form method="GET" action="/admin/outreach" class="row g-3 align-items-end">
+              <div class="col-sm-4">
+                <label for="filter-status" class="form-label">Filter by Status</label>
+                <select class="form-select" id="filter-status" name="status">
+                  <option value="">All Statuses</option>
+                  {{#each content.statuses}}
+                  <option value="{{this}}" {{#if (eq this ../content.filters.status)}}selected{{/if}}>{{this}}</option>
+                  {{/each}}
+                </select>
+              </div>
+              <div class="col-sm-4">
+                <label for="filter-type" class="form-label">Filter by Type</label>
+                <select class="form-select" id="filter-type" name="type">
+                  <option value="">All Types</option>
+                  {{#each content.contactTypes}}
+                  <option value="{{this}}" {{#if (eq this ../content.filters.type)}}selected{{/if}}>{{this}}</option>
+                  {{/each}}
+                </select>
+              </div>
+              <div class="col-sm-4">
+                <button type="submit" class="btn btn-outline-primary">Apply Filters</button>
+                <a href="/admin/outreach" class="btn btn-outline-secondary ms-2">Clear</a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {{!-- Contacts Table --}}
+        <div class="card shadow-sm">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Contacted By</th>
+                  <th scope="col">Contacted Date</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each content.contacts}}
+                <tr>
+                  <td>{{this.name}}</td>
+                  <td><span class="badge bg-info text-dark">{{this.contactType}}</span></td>
+                  <td><span class="badge bg-primary">{{this.status}}</span></td>
+                  <td>{{this.contactedBy}}</td>
+                  <td>{{this.contactedDate}}</td>
+                  <td>
+                    <a href="/admin/outreach/{{this.id}}" class="btn btn-sm btn-outline-primary me-1">View</a>
+                    <a href="/admin/outreach/{{this.id}}/edit" class="btn btn-sm btn-outline-secondary me-1">Edit</a>
+                    {{#unless (eq this.status "collaborating")}}
+                    <form method="POST" action="/admin/outreach/{{this.id}}/advance" class="d-inline">
+                      <button type="submit" class="btn btn-sm btn-outline-success">Advance</button>
+                    </form>
+                    {{else}}
+                    <button type="button" class="btn btn-sm btn-outline-success" disabled>Advance</button>
+                    {{/unless}}
+                  </td>
+                </tr>
+                {{else}}
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">No contacts found.</td>
+                </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>

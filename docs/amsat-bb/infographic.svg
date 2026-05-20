@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="50%" style="stop-color:#0d2137"/>
+      <stop offset="100%" style="stop-color:#061018"/>
+    </linearGradient>
+    <linearGradient id="boxGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a3a5c;stop-opacity:0.9"/>
+      <stop offset="100%" style="stop-color:#0f2640;stop-opacity:0.9"/>
+    </linearGradient>
+    <linearGradient id="phaseGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e4a6e;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#12304a;stop-opacity:0.8"/>
+    </linearGradient>
+    <linearGradient id="stackGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2a5a3a;stop-opacity:0.9"/>
+      <stop offset="100%" style="stop-color:#1a3a2a;stop-opacity:0.9"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1600" height="900" fill="url(#bgGrad)"/>
+
+  <!-- Stars -->
+  <circle cx="50" cy="80" r="1" fill="white" opacity="0.6"/>
+  <circle cx="200" cy="40" r="0.8" fill="white" opacity="0.4"/>
+  <circle cx="350" cy="120" r="1.2" fill="white" opacity="0.5"/>
+  <circle cx="500" cy="60" r="0.7" fill="white" opacity="0.3"/>
+  <circle cx="700" cy="30" r="1" fill="white" opacity="0.5"/>
+  <circle cx="900" cy="90" r="0.9" fill="white" opacity="0.4"/>
+  <circle cx="1100" cy="50" r="1.1" fill="white" opacity="0.6"/>
+  <circle cx="1300" cy="100" r="0.8" fill="white" opacity="0.3"/>
+  <circle cx="1450" cy="70" r="1" fill="white" opacity="0.5"/>
+  <circle cx="150" cy="200" r="0.6" fill="white" opacity="0.4"/>
+  <circle cx="1500" cy="150" r="0.9" fill="white" opacity="0.5"/>
+  <circle cx="80" cy="400" r="0.7" fill="white" opacity="0.3"/>
+  <circle cx="1550" cy="350" r="1" fill="white" opacity="0.4"/>
+  <circle cx="300" cy="750" r="0.8" fill="white" opacity="0.5"/>
+  <circle cx="1400" cy="800" r="0.9" fill="white" opacity="0.4"/>
+
+  <!-- Moon (top right) -->
+  <circle cx="1480" cy="120" r="60" fill="#c8c8c8" opacity="0.15"/>
+  <circle cx="1470" cy="110" r="8" fill="#b0b0b0" opacity="0.1"/>
+  <circle cx="1500" cy="130" r="12" fill="#a0a0a0" opacity="0.08"/>
+  <circle cx="1460" cy="140" r="6" fill="#b8b8b8" opacity="0.1"/>
+
+  <!-- Earth (bottom left, partial) -->
+  <circle cx="100" cy="850" r="120" fill="#1a4a7a" opacity="0.2"/>
+  <ellipse cx="80" cy="830" rx="40" ry="20" fill="#2a6a3a" opacity="0.15"/>
+
+  <!-- ============ TITLE ============ -->
+  <text x="800" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#e8a020" filter="url(#glow)">☰ RADIANT ☰</text>
+  <text x="800" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#ffffff">Radio Amateur Delay-tolerant Interplanetary Networking Testbed</text>
+  <text x="800" y="92" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#88bbdd" font-style="italic">Bringing NASA's Delay-Tolerant Networking to amateur radio — from terrestrial links to cislunar space</text>
+  <text x="800" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#666666">Built with: NASA Glenn HDTN 2.0 | Bundle Protocol v7 (RFC 9171) | Licklider Transmission Protocol (RFC 5326) | Contact Graph Routing</text>
+  <text x="800" y="127" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#e8a020" filter="url(#glow)">radiant.amsat-uk.org</text>
+
+  <!-- ============ MAIN NETWORK DIAGRAM (top section) ============ -->
+
+  <!-- Ground Station Node -->
+  <rect x="40" y="140" width="200" height="110" rx="8" fill="url(#boxGrad)" stroke="#3a7ab8" stroke-width="1.5"/>
+  <text x="140" y="162" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#e8a020">EARTH GROUND STATION</text>
+  <text x="140" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">DTN Node</text>
+  <text x="140" y="198" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">Raspberry Pi + Mobilinkd TNC4</text>
+  <text x="140" y="213" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">Yaesu FT-817</text>
+  <text x="140" y="228" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">9600 baud G3RUH</text>
+  <text x="140" y="243" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#aaaaaa">435.000 MHz</text>
+
+  <!-- Arrow: Ground to GEO -->
+  <line x1="240" y1="195" x2="360" y2="195" stroke="#4a9ae8" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <polygon points="358,190 368,195 358,200" fill="#4a9ae8"/>
+  <text x="300" y="185" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#88bbdd">Amateur Radio Link</text>
+  <text x="300" y="210" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#88bbdd">LTP-over-KISS (VHF/UHF)</text>
+
+  <!-- GEO Satellite Node (QO-100) -->
+  <rect x="370" y="140" width="200" height="110" rx="8" fill="url(#boxGrad)" stroke="#3a7ab8" stroke-width="1.5"/>
+  <text x="470" y="158" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#88bbdd">GEO SATELLITE DEMO</text>
+  <text x="470" y="172" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#e8a020">(QO-100 / Es'hail-2)</text>
+  <text x="470" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">DTN Node</text>
+  <text x="470" y="205" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">Store – Wait – Forward</text>
+  <text x="470" y="220" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">HDTN / BPv7</text>
+  <text x="470" y="238" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#aaaaaa">2.4 GHz up / 10 GHz down</text>
+
+  <!-- Arrow: GEO to LEO -->
+  <line x1="570" y1="195" x2="690" y2="195" stroke="#4a9ae8" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <polygon points="688,190 698,195 688,200" fill="#4a9ae8"/>
+
+  <!-- LEO CubeSat Node -->
+  <rect x="700" y="140" width="200" height="110" rx="8" fill="url(#boxGrad)" stroke="#3a7ab8" stroke-width="1.5"/>
+  <text x="800" y="158" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#88bbdd">LEO CUBESAT FLIGHT</text>
+  <text x="800" y="175" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">DTN Node</text>
+  <text x="800" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">Store – Wait – Forward</text>
+  <text x="800" y="205" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">Contact Graph Routing</text>
+  <text x="800" y="222" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#aaaaaa">UHF 437 MHz / 9.6 kbps</text>
+  <text x="800" y="237" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#aaaaaa">STM32U585 OBC</text>
+
+  <!-- Arrow: LEO to Cislunar -->
+  <line x1="900" y1="195" x2="1020" y2="195" stroke="#4a9ae8" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <polygon points="1018,190 1028,195 1018,200" fill="#4a9ae8"/>
+  <text x="960" y="185" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#88bbdd">Long Delay /</text>
+  <text x="960" y="197" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#88bbdd">Intermittent Link</text>
+  <text x="960" y="212" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#e8a020">1.3 s one-way Earth→Moon</text>
+
+  <!-- Cislunar Node -->
+  <rect x="1030" y="140" width="220" height="110" rx="8" fill="url(#boxGrad)" stroke="#e8a020" stroke-width="1.5"/>
+  <text x="1140" y="158" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#e8a020">CISLUNAR COMMUNICATIONS</text>
+  <text x="1140" y="175" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">DTN Payload / Remote Node</text>
+  <text x="1140" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">Store – Wait – Forward</text>
+  <text x="1140" y="205" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">Data to Applications</text>
+  <text x="1140" y="222" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#aaaaaa">S-band 2.2 GHz / 500 bps</text>
+  <text x="1140" y="237" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#aaaaaa">~384,400 km Earth–Moon</text>
+
+  <!-- ============ DTN FLOW DIAGRAM (middle band) ============ -->
+  <rect x="40" y="275" width="710" height="55" rx="6" fill="#0d1f30" stroke="#2a5a8a" stroke-width="1" opacity="0.8"/>
+  <text x="395" y="288" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff">HDTN PROCESS</text>
+
+
+  <text x="70" y="305" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#ffffff">1. RECEIVE</text>
+  <text x="70" y="320" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">Bundle arrives</text>
+
+  <text x="195" y="312" font-family="Arial, sans-serif" font-size="16" fill="#4a9ae8">→</text>
+
+  <text x="225" y="305" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#ffffff">2. STORE</text>
+  <text x="225" y="320" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">Persist to NVM</text>
+
+  <text x="345" y="312" font-family="Arial, sans-serif" font-size="16" fill="#4a9ae8">→</text>
+
+  <text x="375" y="305" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#ffffff">3. WAIT</text>
+  <text x="375" y="320" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">Until contact window</text>
+
+  <text x="510" y="312" font-family="Arial, sans-serif" font-size="16" fill="#4a9ae8">→</text>
+
+  <text x="540" y="305" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#ffffff">4. FORWARD</text>
+  <text x="540" y="320" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">Deliver when link available</text>
+
+  <!-- ============ PROTOCOL STACK (left column) ============ -->
+  <rect x="40" y="350" width="260" height="195" rx="8" fill="url(#stackGrad)" stroke="#4a8a4a" stroke-width="1.5"/>
+  <text x="170" y="372" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ffffff">RADIANT PROTOCOL STACK</text>
+
+  <!-- Stack layers -->
+  <rect x="55" y="385" width="230" height="28" rx="4" fill="#2a6a9a" stroke="#4a9ae8" stroke-width="1"/>
+  <text x="170" y="403" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#ffffff">Application (bping, bpsendfile)</text>
+
+  <rect x="55" y="418" width="230" height="28" rx="4" fill="#2a5a8a" stroke="#3a7ab8" stroke-width="1"/>
+  <text x="170" y="433" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#ffffff">BPv7 (Bundle Protocol)</text>
+  <text x="170" y="444" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#e8a020">EID: dtn://callsign/service</text>
+
+  <rect x="55" y="451" width="230" height="28" rx="4" fill="#2a4a7a" stroke="#3a6a9a" stroke-width="1"/>
+  <text x="170" y="469" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#ffffff">LTP (Licklider Transmission Protocol)</text>
+
+  <rect x="55" y="484" width="230" height="28" rx="4" fill="#2a3a6a" stroke="#3a5a8a" stroke-width="1"/>
+  <text x="170" y="502" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#ffffff">KISS (TNC Serial Framing)</text>
+
+  <rect x="55" y="517" width="230" height="22" rx="4" fill="#1a2a5a" stroke="#2a4a7a" stroke-width="1"/>
+  <text x="170" y="532" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">Amateur Radio Link (G3RUH GFSK 9600 baud)</text>
+
+  <!-- ============ PROJECT ROADMAP ============ -->
+  <rect x="320" y="350" width="980" height="195" rx="8" fill="#0d1f30" stroke="#2a5a8a" stroke-width="1.5" opacity="0.9"/>
+  <text x="810" y="372" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ffffff">PROJECT ROADMAP</text>
+
+  <!-- Phase 1 -->
+  <rect x="335" y="385" width="155" height="145" rx="6" fill="url(#phaseGrad)" stroke="#4a9ae8" stroke-width="1"/>
+  <text x="412" y="403" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#4ae84a">PHASE 1</text>
+  <text x="412" y="416" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff">Terrestrial DTN</text>
+  <text x="412" y="428" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff">Validation</text>
+  <line x1="355" y1="435" x2="470" y2="435" stroke="#3a5a8a" stroke-width="0.5"/>
+  <text x="412" y="450" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">Raspberry Pi + TNC4</text>
+  <text x="412" y="462" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">Yaesu FT-817</text>
+  <text x="412" y="474" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">9600 baud G3RUH</text>
+  <text x="412" y="486" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">Ground-based testing</text>
+  <text x="412" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#4ae84a">● IN PROGRESS</text>
+
+  <!-- Arrow -->
+  <text x="498" y="460" font-family="Arial, sans-serif" font-size="14" fill="#4a9ae8">→</text>
+
+  <!-- Phase 1.5 -->
+  <rect x="515" y="385" width="155" height="145" rx="6" fill="url(#phaseGrad)" stroke="#e8a020" stroke-width="1"/>
+  <text x="592" y="403" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#e8a020">PHASE 1.5</text>
+  <text x="592" y="416" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff">QO-100 GEO</text>
+  <text x="592" y="428" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff">Demo</text>
+  <line x1="535" y1="435" x2="650" y2="435" stroke="#3a5a8a" stroke-width="0.5"/>
+  <text x="592" y="450" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">2.4 GHz uplink</text>
+  <text x="592" y="462" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">10 GHz downlink</text>
+  <text x="592" y="474" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">Constant visibility</text>
+  <text x="592" y="486" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">First space link demo</text>
+  <text x="592" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#e8a020">○ PLANNED</text>
+
+  <!-- Arrow -->
+  <text x="678" y="460" font-family="Arial, sans-serif" font-size="14" fill="#4a9ae8">→</text>
+
+  <!-- Phase 2 -->
+  <rect x="695" y="385" width="155" height="145" rx="6" fill="url(#phaseGrad)" stroke="#3a7ab8" stroke-width="1"/>
+  <text x="772" y="403" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#88bbdd">PHASE 2</text>
+  <text x="772" y="416" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff">CubeSat</text>
+  <text x="772" y="428" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff">Engineering Model</text>
+  <line x1="715" y1="435" x2="830" y2="435" stroke="#3a5a8a" stroke-width="0.5"/>
+  <text x="772" y="450" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">STM32U585 + B200mini</text>
+  <text x="772" y="462" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">Flight-like hardware</text>
+  <text x="772" y="474" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">Thermal / vacuum</text>
+  <text x="772" y="486" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">Lab validation</text>
+  <text x="772" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#888888">○ PLANNED</text>
+
+  <!-- Arrow -->
+  <text x="858" y="460" font-family="Arial, sans-serif" font-size="14" fill="#4a9ae8">→</text>
+
+  <!-- Phase 3 -->
+  <rect x="875" y="385" width="155" height="145" rx="6" fill="url(#phaseGrad)" stroke="#3a7ab8" stroke-width="1"/>
+  <text x="952" y="403" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#88bbdd">PHASE 3</text>
+  <text x="952" y="416" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff">LEO CubeSat</text>
+  <text x="952" y="428" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff">Flight</text>
+  <line x1="895" y1="435" x2="1010" y2="435" stroke="#3a5a8a" stroke-width="0.5"/>
+  <text x="952" y="450" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">UHF 437 MHz</text>
+  <text x="952" y="462" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">9.6 kbps</text>
+  <text x="952" y="474" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">Ground-to-space DTN</text>
+  <text x="952" y="486" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">Orbital demonstration</text>
+  <text x="952" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#888888">○ PLANNED</text>
+
+  <!-- Arrow -->
+  <text x="1038" y="460" font-family="Arial, sans-serif" font-size="14" fill="#4a9ae8">→</text>
+
+  <!-- Phase 4 -->
+  <rect x="1055" y="385" width="155" height="145" rx="6" fill="url(#phaseGrad)" stroke="#e8a020" stroke-width="1"/>
+  <text x="1132" y="403" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#e8a020">PHASE 4</text>
+  <text x="1132" y="416" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff">Cislunar Deep-Space</text>
+  <text x="1132" y="428" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff">Communication</text>
+  <line x1="1075" y1="435" x2="1190" y2="435" stroke="#3a5a8a" stroke-width="0.5"/>
+  <text x="1132" y="450" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">S-band 2.2 GHz</text>
+  <text x="1132" y="462" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">~384,400 km</text>
+  <text x="1132" y="474" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">500 bps links</text>
+  <text x="1132" y="486" text-anchor="middle" font-family="Arial, sans-serif" font-size="7.5" fill="#88bbdd">Earth–Moon DTN</text>
+  <text x="1132" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#888888">○ PLANNED</text>
+
+  <!-- ============ WHAT IS CISLUNAR? (right of roadmap) ============ -->
+  <rect x="1320" y="350" width="240" height="195" rx="8" fill="#0d2a1a" stroke="#4a8a4a" stroke-width="1.5" opacity="0.9"/>
+  <text x="1440" y="375" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#4ae84a">WHAT IS CISLUNAR?</text>
+  <text x="1335" y="400" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">Cislunar space is the region</text>
+  <text x="1335" y="414" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">between Earth and the Moon,</text>
+  <text x="1335" y="428" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">including the space around</text>
+  <text x="1335" y="442" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">both bodies.</text>
+  <text x="1335" y="466" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">Signals take about 1.3 seconds</text>
+  <text x="1335" y="480" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">one-way to the Moon.</text>
+  <text x="1335" y="504" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">Connectivity can be intermittent,</text>
+  <text x="1335" y="518" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">making Delay-Tolerant Networking</text>
+  <text x="1335" y="532" font-family="Arial, sans-serif" font-size="9" fill="#e8a020">essential.</text>
+
+  <!-- ============ KEY FEATURES (moved left, next to HDTN Process) ============ -->
+  <rect x="770" y="275" width="480" height="55" rx="8" fill="#1a2a3a" stroke="#3a7ab8" stroke-width="1.5" opacity="0.9"/>
+  <text x="1010" y="295" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#e8a020">KEY FEATURES</text>
+
+  <text x="785" y="312" font-family="Arial, sans-serif" font-size="9" fill="#4ae84a">✓</text>
+  <text x="800" y="312" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">Store-and-forward</text>
+
+  <text x="785" y="326" font-family="Arial, sans-serif" font-size="9" fill="#4ae84a">✓</text>
+  <text x="800" y="326" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">NASA Glenn HDTN / BPv7</text>
+
+  <text x="955" y="312" font-family="Arial, sans-serif" font-size="9" fill="#4ae84a">✓</text>
+  <text x="970" y="312" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">LTP-over-KISS + callsign EIDs</text>
+
+  <text x="955" y="326" font-family="Arial, sans-serif" font-size="9" fill="#4ae84a">✓</text>
+  <text x="970" y="326" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">CGR for scheduled contacts</text>
+
+  <text x="1110" y="312" font-family="Arial, sans-serif" font-size="9" fill="#4ae84a">✓</text>
+  <text x="1125" y="312" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">No encryption (compliant)</text>
+
+  <text x="1110" y="326" font-family="Arial, sans-serif" font-size="9" fill="#4ae84a">✓</text>
+  <text x="1125" y="326" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">Open source (MIT)</text>
+
+  <!-- ============ SIMULATION DEMO (bottom left) ============ -->
+  <rect x="40" y="560" width="260" height="130" rx="8" fill="#1a1a2a" stroke="#6a4ae8" stroke-width="1.5" opacity="0.9"/>
+  <text x="170" y="582" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#b088ee">WORKING SIMULATION</text>
+
+  <text x="55" y="602" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">3-node relay: Ground → Orbiter → Lander</text>
+  <text x="55" y="618" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">• Cislunar: 1.3s OWLT, 500 bps S-band</text>
+  <text x="55" y="634" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">• Mars closest: 3-min OWLT, 32 kbps</text>
+  <text x="55" y="650" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">• Mars average: 12-min OWLT, 32 kbps</text>
+  <text x="55" y="668" font-family="Arial, sans-serif" font-size="9" fill="#aaaaaa">True packet-level delay via udp-delay-sim</text>
+  <text x="55" y="682" font-family="Arial, sans-serif" font-size="9" fill="#aaaaaa">LTP deferred ACK + CGR multi-hop paths</text>
+
+  <!-- ============ STATION IDENTIFICATION (bottom center) ============ -->
+  <rect x="320" y="560" width="380" height="130" rx="8" fill="#1a2a1a" stroke="#4a8a4a" stroke-width="1.5" opacity="0.9"/>
+  <text x="510" y="582" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#4ae84a">STATION IDENTIFICATION (REGULATORY COMPLIANCE)</text>
+
+  <text x="335" y="602" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">Callsigns embedded in DTN Endpoint Identifiers:</text>
+
+  <!-- Table header -->
+  <text x="345" y="620" font-family="monospace" font-size="8" fill="#e8a020">Node</text>
+  <text x="445" y="620" font-family="monospace" font-size="8" fill="#e8a020">ipn:// (routing)</text>
+  <text x="575" y="620" font-family="monospace" font-size="8" fill="#e8a020">dtn:// (callsign)</text>
+
+  <text x="345" y="636" font-family="monospace" font-size="8" fill="#88bbdd">Ground Station</text>
+  <text x="445" y="636" font-family="monospace" font-size="8" fill="#cccccc">ipn:10.*</text>
+  <text x="575" y="636" font-family="monospace" font-size="8" fill="#4ae84a">dtn://g4dpz/gs</text>
+
+  <text x="345" y="652" font-family="monospace" font-size="8" fill="#88bbdd">Spacecraft</text>
+  <text x="445" y="652" font-family="monospace" font-size="8" fill="#cccccc">ipn:20.*</text>
+  <text x="575" y="652" font-family="monospace" font-size="8" fill="#4ae84a">dtn://g4dpz/spacecraft</text>
+
+  <text x="345" y="668" font-family="monospace" font-size="8" fill="#88bbdd">Lander</text>
+  <text x="445" y="668" font-family="monospace" font-size="8" fill="#cccccc">ipn:30.*</text>
+  <text x="575" y="668" font-family="monospace" font-size="8" fill="#4ae84a">dtn://g4dpz/lander</text>
+
+  <text x="335" y="685" font-family="Arial, sans-serif" font-size="8" fill="#aaaaaa">Every bundle carries operator callsign in metadata — satisfies amateur radio regulations</text>
+
+  <!-- ============ GROUND STATION TIERS (bottom center-right) ============ -->
+  <rect x="720" y="560" width="280" height="130" rx="8" fill="#1a2030" stroke="#3a7ab8" stroke-width="1.5" opacity="0.9"/>
+  <text x="860" y="582" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#88bbdd">GROUND STATION TIERS</text>
+
+  <text x="735" y="602" font-family="Arial, sans-serif" font-size="9" fill="#4ae84a">Tier 1:</text>
+  <text x="775" y="602" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">Handheld / small Yagi (VHF/UHF)</text>
+
+  <text x="735" y="620" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">Tier 2:</text>
+  <text x="775" y="620" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">Rotator Yagi / small dish (UHF/S-band)</text>
+
+  <text x="735" y="638" font-family="Arial, sans-serif" font-size="9" fill="#e8a020">Tier 3:</text>
+  <text x="775" y="638" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">3–5 m dish (S-band/X-band, cislunar)</text>
+
+  <text x="735" y="656" font-family="Arial, sans-serif" font-size="9" fill="#b088ee">Tier 4:</text>
+  <text x="775" y="656" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">Partner/University (large dish, backbone)</text>
+
+  <text x="735" y="680" font-family="Arial, sans-serif" font-size="8" fill="#aaaaaa">All tiers can participate in DTN experiments</text>
+
+  <!-- ============ ADDITIONAL FEATURES (bottom right) ============ -->
+  <rect x="1020" y="560" width="540" height="130" rx="8" fill="#1a2a3a" stroke="#3a7ab8" stroke-width="1.5" opacity="0.9"/>
+  <text x="1290" y="582" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#e8a020">DEMONSTRATED CAPABILITIES</text>
+
+  <text x="1035" y="602" font-family="Arial, sans-serif" font-size="9" fill="#4ae84a">✓</text>
+  <text x="1050" y="602" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">Store-and-forward over disrupted links</text>
+
+  <text x="1035" y="618" font-family="Arial, sans-serif" font-size="9" fill="#4ae84a">✓</text>
+  <text x="1050" y="618" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">Persistent bundle storage (survives power cycles)</text>
+
+  <text x="1035" y="634" font-family="Arial, sans-serif" font-size="9" fill="#4ae84a">✓</text>
+  <text x="1050" y="634" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">Priority-based bundle handling and eviction</text>
+
+  <text x="1035" y="650" font-family="Arial, sans-serif" font-size="9" fill="#4ae84a">✓</text>
+  <text x="1050" y="650" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">Real-time telemetry via HDTN REST API</text>
+
+  <text x="1035" y="666" font-family="Arial, sans-serif" font-size="9" fill="#4ae84a">✓</text>
+  <text x="1050" y="666" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">LTP deferred acknowledgment with deep-space timers</text>
+
+  <text x="1035" y="682" font-family="Arial, sans-serif" font-size="9" fill="#4ae84a">✓</text>
+  <text x="1050" y="682" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">11 property-based tests validating correctness</text>
+
+  <!-- ============ FOOTER ============ -->
+  <rect x="0" y="710" width="1600" height="190" rx="0" fill="#061018" opacity="0.8"/>
+
+  <!-- Footer icons/labels -->
+  <text x="80" y="740" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">⚙ Open Source</text>
+  <text x="80" y="755" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#aaaaaa">MIT License</text>
+
+  <text x="240" y="740" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">👥 Seeking</text>
+  <text x="240" y="755" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#aaaaaa">Collaborators</text>
+
+  <text x="400" y="740" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">📡 Amateur Radio</text>
+  <text x="400" y="755" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#aaaaaa">9600 baud packet</text>
+
+  <text x="560" y="740" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">🛰 Space Networking</text>
+  <text x="560" y="755" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#aaaaaa">DTN / BPv7 / LTP</text>
+
+  <text x="720" y="740" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">🌍 From Earth to the Moon</text>
+  <text x="720" y="755" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#aaaaaa">and Beyond</text>
+
+  <!-- Supporters box -->
+  <rect x="1050" y="720" width="530" height="65" rx="6" fill="#0d1f30" stroke="#3a7ab8" stroke-width="1"/>
+  <text x="1315" y="740" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#aaaaaa">Supported by:</text>
+
+  <rect x="1070" y="748" width="130" height="28" rx="4" fill="#1a3a5c" stroke="#3a7ab8" stroke-width="0.5"/>
+  <text x="1135" y="766" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff">AMSAT-DL</text>
+
+  <rect x="1220" y="748" width="130" height="28" rx="4" fill="#1a3a5c" stroke="#3a7ab8" stroke-width="0.5"/>
+  <text x="1285" y="766" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff">AMSAT-UK</text>
+
+  <rect x="1370" y="748" width="190" height="28" rx="4" fill="#1a3a5c" stroke="#3a7ab8" stroke-width="0.5"/>
+  <text x="1465" y="766" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff">GOONHILLY EARTH STATION</text>
+
+  <!-- Technologies used -->
+
+  <!-- Seeking collaborators call-out -->
+  <rect x="40" y="790" width="500" height="55" rx="6" fill="#2a1a0a" stroke="#e8a020" stroke-width="1" opacity="0.9"/>
+  <text x="290" y="812" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#e8a020">SEEKING COLLABORATORS</text>
+  <text x="290" y="828" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">Amateur radio clubs • Universities • CubeSat teams</text>
+  <text x="290" y="842" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">Microwave experimenters • Packet radio operators</text>
+
+  <!-- Contact -->
+  <rect x="1100" y="790" width="460" height="55" rx="6" fill="#0d1f30" stroke="#3a7ab8" stroke-width="1" opacity="0.9"/>
+  <text x="1330" y="812" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#88bbdd">CONTACT</text>
+  <text x="1330" y="828" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#cccccc">dave@g4dpz.me.uk  •  Callsign: G4DPZ</text>
+  <text x="1330" y="842" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#88bbdd">github.com/g4dpz/cislunar_proposal</text>
+
+  <!-- Version/date stamp -->
+  <text x="1560" y="890" text-anchor="end" font-family="Arial, sans-serif" font-size="7" fill="#444444">RADIANT Project Infographic v1.0</text>
+
+</svg>

@@ -139,6 +139,31 @@ const pageMeta: Record<string, PageMeta> = {
       "Manage your RADIANT account settings and profile information.",
     canonicalUrl: "/profile",
   },
+  collaborators: {
+    title: "Collaborators — RADIANT",
+    description:
+      "Organisations, clubs, universities, and individuals collaborating on the RADIANT " +
+      "amateur radio DTN project.",
+    keywords: [
+      ...BASE_KEYWORDS,
+      "collaborators",
+      "partners",
+      "community",
+      "outreach",
+    ],
+    ogTitle: "Collaborators — RADIANT",
+    ogDescription:
+      "Meet the organisations and individuals collaborating on amateur radio DTN.",
+    canonicalUrl: "/collaborators",
+  },
+  admin: {
+    title: "Admin — RADIANT",
+    description: "Administration panel for the RADIANT website.",
+    keywords: [...BASE_KEYWORDS, "admin"],
+    ogTitle: "Admin — RADIANT",
+    ogDescription: "RADIANT administration panel.",
+    canonicalUrl: "/admin",
+  },
 };
 
 // ─── Public API ───────────────────────────────────────────────────────────────
