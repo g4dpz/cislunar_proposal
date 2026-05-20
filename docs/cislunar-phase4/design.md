@@ -918,7 +918,7 @@ The following data models from Phase 3 are carried forward unchanged:
 - `nvm_header_t`, `nvm_bundle_entry_t` — NVM storage layout (extended addressing for 256 MB–1 GB)
 - `rate_limiter_entry_t`, `rate_limiter_config_t` — rate limiting state
 - `iq_sample_t`, `dsp_config_t` — IQ DSP types
-- `callsign_t` — amateur radio callsign (used in DTN EID: dtn://callsign-ssid)
+- `callsign_t` — amateur radio callsign (used in DTN EID: dtn://callsign/service)
 - `link_metrics_t` — CLA link metrics
 - `power_state_t`, `power_metrics_t` — power management
 - `pool_stats_t` — pool allocator
@@ -1208,7 +1208,7 @@ def cgrInterpolate (eph : EphemerisTable) (time : Nat) : IO (Except String (Vect
 
 ### Property 15: DTN EID Station Identification
 
-*For any* bundle transmitted through the CLA, the bundle SHALL contain a valid source DTN EID (dtn://callsign-ssid) and a valid destination DTN EID embedding amateur radio callsigns for station identification.
+*For any* bundle transmitted through the CLA, the bundle SHALL contain a valid source DTN EID (dtn://callsign/service) and a valid destination DTN EID embedding amateur radio callsigns for station identification.
 
 **Validates: Requirement 13.1**
 

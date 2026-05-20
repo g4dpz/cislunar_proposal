@@ -6,7 +6,7 @@ This document specifies the requirements for Phase 1.5 of the cislunar amateur D
 
 QO-100 is a geostationary satellite at 25.9°E providing amateur radio transponder services with a 2.4 GHz uplink and 10.45 GHz downlink. The satellite introduces approximately 500ms round-trip time (250ms one-way light time) and validates DTN operation over a real space link before progressing to LEO CubeSat missions.
 
-The system reuses the Phase 1 software stack: HDTN (BPv7, LTP), the dtn-node Go orchestrator, and KISS framing with callsign-embedded DTN EIDs (dtn://callsign-ssid). The primary changes are hardware-specific: 2.4 GHz uplink transmitter, 10.45 GHz downlink receiver (LNB + SDR), and QO-100 modem or SDR for digital mode operation. The geostationary orbit eliminates pass prediction complexity — the satellite is always visible from the ground station's location, providing an always-on contact window with minimal Doppler shift.
+The system reuses the Phase 1 software stack: HDTN (BPv7, LTP), the dtn-node Go orchestrator, and KISS framing with callsign-embedded DTN EIDs (dtn://callsign/service). The primary changes are hardware-specific: 2.4 GHz uplink transmitter, 10.45 GHz downlink receiver (LNB + SDR), and QO-100 modem or SDR for digital mode operation. The geostationary orbit eliminates pass prediction complexity — the satellite is always visible from the ground station's location, providing an always-on contact window with minimal Doppler shift.
 
 This spec validates DTN ping and store-and-forward operations over the QO-100 satellite link, demonstrating that the protocol stack handles real space delays and RF propagation characteristics before advancing to LEO orbital mechanics and CubeSat hardware.
 
@@ -40,7 +40,7 @@ This spec validates DTN ping and store-and-forward operations over the QO-100 sa
 1. THE Uplink_Transmitter SHALL transmit KISS frames carrying LTP segments on the 2.4 GHz amateur radio band (2400-2450 MHz) to the QO-100 satellite
 2. THE Uplink_Transmitter SHALL use a dish antenna with a minimum gain of 15 dBi to achieve the required uplink power budget for QO-100
 3. THE Uplink_Transmitter SHALL operate at a data rate compatible with the QO-100 transponder bandwidth, not exceeding 2 MHz occupied bandwidth
-4. THE Uplink_Transmitter SHALL ensure the amateur radio callsign is present in the DTN Endpoint Identifier (dtn://callsign-ssid) in every transmitted bundle for regulatory compliance
+4. THE Uplink_Transmitter SHALL ensure the amateur radio callsign is present in the DTN Endpoint Identifier (dtn://callsign/service) in every transmitted bundle for regulatory compliance
 5. THE Uplink_Transmitter SHALL coordinate frequency usage with other QO-100 users to avoid interference, selecting an uplink frequency within the 2.4 GHz amateur allocation that is not currently occupied
 
 ### Requirement 2: QO-100 Downlink Reception

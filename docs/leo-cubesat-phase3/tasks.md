@@ -47,7 +47,7 @@
 - [ ] 5.5 Implement transceiver health check and 3-retry reinitialization logic on failure
 - [ ] 5.6 Write unit tests for CLA activation/deactivation, Doppler integration, transceiver failure handling
 - [ ] 5.7 Write property test: End-to-end radio path round-trip (Property 14) — generate random bundles, full stack BPv7 → LTP → KISS → IQ mod → IQ demod → KISS → LTP → BPv7, assert equality
-- [ ] 5.8 Write property test: DTN EID callsign validation (Property 15) — generate random bundles, verify bundles carry valid DTN EIDs (dtn://callsign-ssid) with valid callsigns
+- [ ] 5.8 Write property test: DTN EID callsign validation (Property 15) — generate random bundles, verify bundles carry valid DTN EIDs (dtn://callsign/service) with valid callsigns
 - [ ] 5.9 Write property test: LTP segmentation/reassembly round-trip (Property 16) — generate random large bundles, segment, reassemble, assert equality
 
 ## Task 6: Autonomous Node Controller

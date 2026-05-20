@@ -160,7 +160,7 @@ const overview: OverviewContent = {
   ],
   protocolStack: [
     "Application (bping, bpsendfile)",
-    "BPv7 (Bundle Protocol) — EID: dtn://callsign-ssid",
+    "BPv7 (Bundle Protocol) — EID: dtn://callsign/service",
     "LTP (Licklider Transmission)",
     "KISS (TNC Serial Framing)",
     "USB Serial (TNC4)",

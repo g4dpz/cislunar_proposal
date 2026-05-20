@@ -504,7 +504,7 @@ typedef struct {
     uint32_t frames_received;
 } link_metrics_t;
 
-/* --- Callsign (used in DTN EID: dtn://callsign-ssid) --- */
+/* --- Callsign (used in DTN EID: dtn://callsign/service) --- */
 typedef struct {
     char call[7];   /* e.g., "W1AW\0\0" null-padded */
     uint8_t ssid;   /* 0-15 */
@@ -557,7 +557,7 @@ link_metrics_t cla_get_metrics(void);
 - Register as native HDTN CLA plugin implementing LTP link service adapter (same architecture as Phase 1)
 - `sendSegment` callback: wrap LTP segments in KISS frames, modulate GFSK/G3RUH to IQ samples, stream via DMA
 - Receive path: demodulate IQ samples from DMA, extract KISS frames, deliver LTP segments to HDTN's LTP engine
-- KISS framing with station identification via callsign-embedded DTN EIDs (dtn://callsign-ssid) in every bundle (regulatory compliance)
+- KISS framing with station identification via callsign-embedded DTN EIDs (dtn://callsign/service) in every bundle (regulatory compliance)
 - GFSK/G3RUH modulation/demodulation at 9.6 kbps on UHF 437 MHz
 - DMA-based IQ sample streaming (double-buffered ping-pong) — no CPU-bound sample transfers
 - Link quality monitoring (RSSI, SNR, BER, frame counts)
@@ -1153,7 +1153,7 @@ typedef struct {
 
 ### Property 14: DTN EID Station Identification
 
-*For any* bundle transmitted through the CLA, the bundle SHALL contain a valid source DTN EID (dtn://callsign-ssid) and a valid destination DTN EID embedding amateur radio callsigns for station identification.
+*For any* bundle transmitted through the CLA, the bundle SHALL contain a valid source DTN EID (dtn://callsign/service) and a valid destination DTN EID embedding amateur radio callsigns for station identification.
 
 **Validates: Requirements 8.1**
 
@@ -1328,7 +1328,7 @@ Key property tests:
 11. **ACK/no-ACK behavior** (Property 11): Generate random transmission scenarios with random ACK outcomes. Verify ACKed bundles deleted, unACKed retained.
 12. **No relay** (Property 12): Generate random bundles and contacts. Verify bundles only transmitted to contacts matching their destination.
 13. **End-to-end radio path round-trip** (Property 13): Generate random valid bundles of varying sizes. Push through full stack: BPv7 → LTP → KISS → IQ mod → IQ demod → KISS → LTP → BPv7. Assert bundle equality.
-14. **DTN EID station identification** (Property 14): Generate random bundles. Transmit through CLA. Verify bundles contain valid source/dest DTN EIDs (dtn://callsign-ssid).
+14. **DTN EID station identification** (Property 14): Generate random bundles. Transmit through CLA. Verify bundles contain valid source/dest DTN EIDs (dtn://callsign/service).
 15. **No cryptographic operations** (Property 20): Generate random bundles. Process through BPA. Verify no cryptographic blocks present.
 16. **No encryption** (Property 21): Generate random bundles. Process through BPA. Verify no encrypted blocks present.
 17. **Rate limiting** (Property 22): Generate random submission sequences at various rates from random source EIDs. Verify correct acceptance/rejection.

@@ -180,11 +180,11 @@ Out of scope: S-band / X-band (Phase 4), cislunar distances (Phase 4), LDPC/Turb
 
 ### Requirement 12: KISS CLA and LTP Convergence Layer
 
-**User Story:** As a regulatory compliance engineer, I want all DTN transmissions to use KISS framing with callsign-embedded DTN EIDs (dtn://callsign-ssid) over LTP via the flight IQ baseband radio, so that every orbital transmission complies with amateur radio regulations.
+**User Story:** As a regulatory compliance engineer, I want all DTN transmissions to use KISS framing with callsign-embedded DTN EIDs (dtn://callsign/service) over LTP via the flight IQ baseband radio, so that every orbital transmission complies with amateur radio regulations.
 
 #### Acceptance Criteria
 
-1. THE CLA SHALL encapsulate all bundle transmissions in KISS frames carrying LTP segments, with station identification provided by the callsign embedded in the DTN Endpoint Identifier (dtn://callsign-ssid) in every bundle's primary block
+1. THE CLA SHALL encapsulate all bundle transmissions in KISS frames carrying LTP segments, with station identification provided by the callsign embedded in the DTN Endpoint Identifier (dtn://callsign/service) in every bundle's primary block
 2. THE CLA SHALL run LTP sessions directly over KISS frames, providing reliable transfer with deferred acknowledgment for all bundle delivery
 3. THE CLA SHALL perform LTP segmentation for bundles that exceed a single KISS frame size, and reassemble received LTP segments into complete bundles
 4. THE CLA SHALL interface with the Flight_Transceiver IQ path (STM32U585 DMA → DAC/ADC or SPI → Flight_Transceiver) as the physical transport

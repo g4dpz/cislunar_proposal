@@ -71,7 +71,7 @@ This document proposes a simplified DTN architecture for amateur radio that elim
 
 1. **Remove AX.25 Layer**: Eliminate protocol layer entirely
 2. **LTP in KISS**: Wrap LTP segments directly in KISS frames
-3. **DTN EID Addressing**: Use `dtn://callsign-ssid` format for station identification
+3. **DTN EID Addressing**: Use `dtn://callsign/service` format for station identification
 4. **Native DTN Semantics**: No impedance mismatch between protocols
 
 ---

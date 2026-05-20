@@ -2,7 +2,7 @@
 
 ## Overview
 
-This implementation plan covers the complete four-phase DTN system for amateur radio: terrestrial validation (RPi + Mobilinkd TNC4 + FT-817), CubeSat Engineering Model (STM32U585 + Ettus B200mini), LEO CubeSat flight (STM32U585 + flight IQ transceiver), and cislunar deep-space communication. The system uses HDTN (BPv7/LTP) over KISS framing with callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) for station identification, supporting ping and store-and-forward operations with no relay functionality.
+This implementation plan covers the complete four-phase DTN system for amateur radio: terrestrial validation (RPi + Mobilinkd TNC4 + FT-817), CubeSat Engineering Model (STM32U585 + Ettus B200mini), LEO CubeSat flight (STM32U585 + flight IQ transceiver), and cislunar deep-space communication. The system uses HDTN (BPv7/LTP) over KISS framing with callsign-embedded DTN Endpoint Identifiers (dtn://callsign/service) for station identification, supporting ping and store-and-forward operations with no relay functionality.
 
 Implementation is in Go, leveraging HDTN for core DTN functionality (BPv7, LTP, bundle storage, priority handling, lifetime enforcement). Our code provides: KISS frame validation, HDTN configuration management, node orchestration, telemetry collection, contact plan management (CGR-based pass prediction), and integration testing.
 
@@ -355,7 +355,7 @@ Implementation is in Go, leveraging HDTN for core DTN functionality (BPv7, LTP, 
     - _Requirements: 18.1, 18.2, 18.3_
 
   - [x] 13.2 Implement DTN EID callsign validation
-    - Verify all CLA implementations produce valid DTN EIDs (dtn://callsign-ssid) with callsigns
+    - Verify all CLA implementations produce valid DTN EIDs (dtn://callsign/service) with callsigns
     - Verify callsign present in every bundle's primary block
     - _Requirements: 10.1_
 

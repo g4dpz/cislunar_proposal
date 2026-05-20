@@ -6,7 +6,7 @@ This document specifies the requirements for Phase 2 of the cislunar amateur DTN
 
 The RF front-end is an Ettus Research USRP B200mini SDR (USB 3.0, 12-bit ADC/DAC, 70 MHz–6 GHz, full-duplex IQ), connected to a companion Raspberry Pi or PC running the UHD driver. The companion host bridges IQ samples to/from the STM32U585 via SPI/UART/DMA. The STM32U585 generates TX IQ samples and processes RX IQ samples directly via its DMA engine — the same baseband DSP code that will fly. The B200mini is EM-only; the flight unit replaces it with a dedicated IQ transceiver IC. External SPI/QSPI NVM (64–256 MB) provides persistent bundle storage.
 
-The system supports two core operations: ping (DTN reachability test) and store-and-forward (point-to-point bundle delivery). There is no relay functionality. All bundle delivery is direct (source → destination). The protocol stack is BPv7 bundles over LTP sessions over KISS frames with callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) for amateur radio regulatory compliance. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
+The system supports two core operations: ping (DTN reachability test) and store-and-forward (point-to-point bundle delivery). There is no relay functionality. All bundle delivery is direct (source → destination). The protocol stack is BPv7 bundles over LTP sessions over KISS frames with callsign-embedded DTN Endpoint Identifiers (dtn://callsign/service) for amateur radio regulatory compliance. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
 
 Phase 2 operates at UHF 437 MHz at 9.6 kbps, matching the flight configuration. Simulated orbital pass testing validates store-and-forward under realistic contact windows (5–10 min, 4–6 passes/day). Power budget profiling validates STM32U585 Stop 2 ultra-low-power mode (~16 µA idle) and active power consumption (5–10 W average).
 
@@ -130,11 +130,11 @@ Phase 2 EM development and testing uses an **ST NUCLEO-F753ZI** development boar
 
 ### Requirement 8: KISS CLA and LTP Convergence Layer on STM32U585
 
-**User Story:** As an EM test operator, I want all DTN transmissions to use KISS framing with callsign-embedded DTN EIDs (dtn://callsign-ssid) over LTP via the IQ baseband radio, so that every transmission complies with amateur radio regulations and the CLA architecture from Phase 1 is validated on flight hardware.
+**User Story:** As an EM test operator, I want all DTN transmissions to use KISS framing with callsign-embedded DTN EIDs (dtn://callsign/service) over LTP via the IQ baseband radio, so that every transmission complies with amateur radio regulations and the CLA architecture from Phase 1 is validated on flight hardware.
 
 #### Acceptance Criteria
 
-1. THE CLA SHALL encapsulate all bundle transmissions in KISS frames carrying LTP segments, with station identification provided by the callsign embedded in the DTN Endpoint Identifier (dtn://callsign-ssid) in every bundle's primary block
+1. THE CLA SHALL encapsulate all bundle transmissions in KISS frames carrying LTP segments, with station identification provided by the callsign embedded in the DTN Endpoint Identifier (dtn://callsign/service) in every bundle's primary block
 2. THE CLA SHALL run LTP sessions directly over KISS frames, providing reliable transfer with deferred acknowledgment for all bundle delivery
 3. THE CLA SHALL perform LTP segmentation for bundles that exceed a single KISS frame size, and reassemble received LTP segments into complete bundles
 4. THE CLA SHALL interface with the IQ baseband radio path (STM32U585 DMA → IQ_Bridge → Companion_Host → B200mini) instead of the Phase 1 TNC4 USB serial path

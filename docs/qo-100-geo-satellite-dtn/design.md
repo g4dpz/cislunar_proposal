@@ -560,7 +560,7 @@ After analyzing all acceptance criteria, I've identified the following propertie
 
 ### Property 2: Callsign Inclusion
 
-*For any* bundle transmitted on the QO-100 uplink, the bundle SHALL contain the configured amateur radio callsign in the source DTN EID (dtn://callsign-ssid).
+*For any* bundle transmitted on the QO-100 uplink, the bundle SHALL contain the configured amateur radio callsign in the source DTN EID (dtn://callsign/service).
 
 **Validates: Requirements 1.4**
 
@@ -1329,7 +1329,7 @@ a contact +0 +999999999 2 2 100000
 - Operator must hold valid amateur radio license
 - License must authorize 2.4 GHz (13cm band) operation
 - License must authorize 10.45 GHz (3cm band) operation
-- Callsign must be included in every transmitted bundle via DTN EID (dtn://callsign-ssid)
+- Callsign must be included in every transmitted bundle via DTN EID (dtn://callsign/service)
 
 **Power Limits:**
 - Varies by country (typically 100W-1000W EIRP)

@@ -6,7 +6,7 @@ This document specifies the requirements for Phase 1 of the cislunar amateur DTN
 
 The system supports two core operations: ping (DTN reachability test) and store-and-forward (point-to-point bundle delivery). There is no relay functionality — nodes do not forward bundles on behalf of other nodes. All bundle delivery is direct (source → destination).
 
-The protocol stack is BPv7 bundles over LTP sessions over KISS frames. Station identification for amateur radio regulatory compliance is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) in the bundle primary block, plus periodic beacon bundles. LTP provides reliable transfer with deferred acknowledgment. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
+The protocol stack is BPv7 bundles over LTP sessions over KISS frames. Station identification for amateur radio regulatory compliance is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign/service) in the bundle primary block, plus periodic beacon bundles. LTP provides reliable transfer with deferred acknowledgment. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
 
 This spec is scoped exclusively to terrestrial ground nodes. STM32U585 OBC, IQ baseband/SDR, Ettus B200mini, CGR contact prediction, orbital mechanics, space segment (CubeSat, cislunar), S-band/X-band communications, and flight-qualified hardware are out of scope.
 
@@ -125,11 +125,11 @@ This spec is scoped exclusively to terrestrial ground nodes. STM32U585 OBC, IQ b
 
 ### Requirement 9: KISS CLA and LTP Convergence Layer
 
-**User Story:** As an amateur radio operator, I want all DTN transmissions to use KISS framing with callsign-embedded DTN EIDs (dtn://callsign-ssid) over LTP, so that every transmission complies with amateur radio regulations and provides reliable transfer.
+**User Story:** As an amateur radio operator, I want all DTN transmissions to use KISS framing with callsign-embedded DTN EIDs (dtn://callsign/service) over LTP, so that every transmission complies with amateur radio regulations and provides reliable transfer.
 
 #### Acceptance Criteria
 
-1. THE CLA SHALL encapsulate all bundle transmissions in KISS frames carrying LTP segments, with station identification provided by the callsign embedded in the DTN Endpoint Identifier (dtn://callsign-ssid) in every bundle's primary block
+1. THE CLA SHALL encapsulate all bundle transmissions in KISS frames carrying LTP segments, with station identification provided by the callsign embedded in the DTN Endpoint Identifier (dtn://callsign/service) in every bundle's primary block
 2. THE CLA SHALL run LTP sessions directly over KISS frames, providing reliable transfer with deferred acknowledgment for all bundle delivery
 3. THE CLA SHALL perform LTP segmentation for bundles that exceed a single KISS frame size, and reassemble received LTP segments into complete bundles
 4. THE CLA SHALL interface with the Mobilinkd TNC4 via USB serial connection (not Bluetooth) for all KISS frame operations

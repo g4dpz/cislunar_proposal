@@ -25,7 +25,7 @@
 - [ ] 3.4 Integrate FEC codec into CLA TX/RX data paths (CLA → FEC → DSP → transceiver)
 - [ ] 3.5 Implement transceiver health check and 3-retry reinitialization logic on failure
 - [ ] 3.6 Write unit tests for CLA activation/deactivation, LTP cislunar timer configuration, FEC integration, transceiver failure handling
-- [ ] 3.7 Write property test: DTN EID callsign validation (Property 15) — generate random bundles, verify bundles carry valid DTN EIDs (dtn://callsign-ssid) with valid callsigns
+- [ ] 3.7 Write property test: DTN EID callsign validation (Property 15) — generate random bundles, verify bundles carry valid DTN EIDs (dtn://callsign/service) with valid callsigns
 - [ ] 3.8 Write property test: LTP segmentation/reassembly round-trip (Property 16) — generate random large bundles, segment, reassemble, assert equality
 - [ ] 3.9 Write property test: LTP cislunar timer correctness (Property 29) — generate random session parameters, verify retransmission timer ≥ 2 seconds, concurrent sessions independent
 

@@ -6,13 +6,13 @@ This design describes the Phase 1 terrestrial DTN validation system for amateur 
 
 The system supports two core operations: **ping** (DTN reachability test — send a bundle echo request and receive an echo response) and **store-and-forward** (point-to-point bundle delivery during scheduled contact windows). There is **no relay functionality** — nodes do not forward bundles on behalf of other nodes. All bundle delivery is direct (source → destination).
 
-The protocol stack is: BPv7 bundles over LTP sessions over KISS frames. Station identification for amateur radio regulatory compliance is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) in the bundle primary block, plus periodic beacon bundles. LTP provides reliable transfer with deferred acknowledgment. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
+The protocol stack is: BPv7 bundles over LTP sessions over KISS frames. Station identification for amateur radio regulatory compliance is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign/service) in the bundle primary block, plus periodic beacon bundles. LTP provides reliable transfer with deferred acknowledgment. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
 
-All code is implemented in Go, targeting Linux and macOS (amd64/arm64). The system wraps HDTN's C++17 libraries via cgo for BPv7/LTP protocol operations, with Go managing the application-level orchestration, bundle store, contact plan, and node lifecycle. The KISS Convergence Layer Adapter (CLA) is HDTN's native KISS CLA — the HDTN KISS CLA plugin that wraps LTP segments in KISS frames for serial TNCs. This means HDTN directly handles bundle transmission and reception over KISS with no UDP intermediary. The CLA provides KISS framing as the link service layer below HDTN's LTP engine, sending and receiving LTP segments over KISS frames via the TNC4 USB serial connection. Station identification is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) in every bundle's primary block. The bundle data path is: HDTN BPA → HDTN LTP → HDTN KISS CLA plugin → TNC4 USB → FT-817 radio. No UDP sockets are involved anywhere in the data path.
+All code is implemented in Go, targeting Linux and macOS (amd64/arm64). The system wraps HDTN's C++17 libraries via cgo for BPv7/LTP protocol operations, with Go managing the application-level orchestration, bundle store, contact plan, and node lifecycle. The KISS Convergence Layer Adapter (CLA) is HDTN's native KISS CLA — the HDTN KISS CLA plugin that wraps LTP segments in KISS frames for serial TNCs. This means HDTN directly handles bundle transmission and reception over KISS with no UDP intermediary. The CLA provides KISS framing as the link service layer below HDTN's LTP engine, sending and receiving LTP segments over KISS frames via the TNC4 USB serial connection. Station identification is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign/service) in every bundle's primary block. The bundle data path is: HDTN BPA → HDTN LTP → HDTN KISS CLA plugin → TNC4 USB → FT-817 radio. No UDP sockets are involved anywhere in the data path.
 
 ### Scope Boundaries
 
-**In scope**: Linux/macOS ground nodes, Mobilinkd TNC4 (USB), Yaesu FT-817 (9600 baud), HDTN BPv7/LTP/KISS, HDTN's KISS CLA plugin for LTP-over-KISS framing, callsign-embedded DTN EIDs (dtn://callsign-ssid) for station identification, ping, store-and-forward, priority handling, bundle persistence, contact plan management, rate limiting, telemetry.
+**In scope**: Linux/macOS ground nodes, Mobilinkd TNC4 (USB), Yaesu FT-817 (9600 baud), HDTN BPv7/LTP/KISS, HDTN's KISS CLA plugin for LTP-over-KISS framing, callsign-embedded DTN EIDs (dtn://callsign/service) for station identification, ping, store-and-forward, priority handling, bundle persistence, contact plan management, rate limiting, telemetry.
 
 **Out of scope**: STM32U585 OBC, IQ baseband, SDR, Ettus B200mini, CGR orbital prediction, orbital mechanics, space segment (CubeSat, cislunar), S-band/X-band, flight hardware, relay functionality, UDP-based external CLA interfaces, cryptography (prohibited by amateur radio regulations).
 
@@ -371,13 +371,13 @@ type ContactPlanManager interface {
 
 ### Component 4: Convergence Layer Adapter (CLA) — HDTN Native KISS CLA
 
-**Purpose**: HDTN's native KISS CLA plugin that wraps LTP segments in KISS frames for serial TNCs. The CLA provides KISS framing as the link service layer below HDTN's LTP engine — it sends and receives LTP segments over KISS frames via the Mobilinkd TNC4 USB serial connection. Station identification is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign-ssid) in every bundle's primary block, not in the link-layer framing. HDTN directly handles bundle transmission and reception through the KISS CLA; there is no UDP intermediary anywhere in the data path. The Go Node Controller manages the CLA lifecycle (initialization, contact scheduling, telemetry, error recovery).
+**Purpose**: HDTN's native KISS CLA plugin that wraps LTP segments in KISS frames for serial TNCs. The CLA provides KISS framing as the link service layer below HDTN's LTP engine — it sends and receives LTP segments over KISS frames via the Mobilinkd TNC4 USB serial connection. Station identification is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign/service) in every bundle's primary block, not in the link-layer framing. HDTN directly handles bundle transmission and reception through the KISS CLA; there is no UDP intermediary anywhere in the data path. The Go Node Controller manages the CLA lifecycle (initialization, contact scheduling, telemetry, error recovery).
 
 **HDTN Integration**:
 - The CLA uses HDTN's KISS CLA to to transmit LTP segments as KISS frames over serial
 - The CLA uses HDTN's KISS CLA to receive KISS frames (containing LTP segments) from serial and deliver them to HDTN's LTP engine
 - HDTN's LTP engine handles segmentation, reassembly, retransmission, and acknowledgment natively — the KISS CLA only handles KISS framing and TNC4 serial I/O
-- Station identification is in the DTN EID (dtn://callsign-ssid) in the bundle primary block, not in link-layer headers
+- Station identification is in the DTN EID (dtn://callsign/service) in the bundle primary block, not in link-layer headers
 
 **Interface**:
 ```go
@@ -453,7 +453,7 @@ These are configured via HDTN's JSON configuration file with the TNC4 serial dev
 **Responsibilities**:
 - Use HDTN's KISS CLA plugin for LTP-over-KISS framing
 - KISS framing (FEND/CMD/DATA/FEND) wrapping LTP segments for TNC transport
-- Station identification via callsign-embedded DTN EIDs (dtn://callsign-ssid) in every bundle's primary block
+- Station identification via callsign-embedded DTN EIDs (dtn://callsign/service) in every bundle's primary block
 - USB serial interface to Mobilinkd TNC4 (not Bluetooth)
 - Drive FT-817 at 9600 baud via TNC4 (G3RUH GFSK)
 - Link quality monitoring (RSSI, SNR, BER, frame counts)
@@ -858,7 +858,7 @@ func (cpm *contactPlanManager) FindDirectContact(dest EndpointID, afterTime uint
 
 ### Property 18: DTN EID Callsign Validation
 
-*For any* bundle transmitted through the CLA, the bundle's primary block SHALL carry a valid DTN Endpoint Identifier (dtn://callsign-ssid) containing a valid amateur radio callsign as the source EID.
+*For any* bundle transmitted through the CLA, the bundle's primary block SHALL carry a valid DTN Endpoint Identifier (dtn://callsign/service) containing a valid amateur radio callsign as the source EID.
 
 **Validates: Requirements 9.1**
 
@@ -980,7 +980,7 @@ Key property tests:
 15. **Contact plan validity** (Property 15): Generate random contact plans, verify all contacts within valid range and no overlaps on same link.
 16. **No transmission after window end** (Property 16): Generate random contact windows and time sequences, verify no transmission after end time.
 17. **Missed contact retains bundles** (Property 17): Generate random failed contacts, verify bundles retained and missed counter incremented.
-18. **DTN EID callsign validation** (Property 18): Generate random bundles, transmit through the HDTN KISS CLA, verify output bundles carry valid DTN EIDs (dtn://callsign-ssid) with valid source callsigns.
+18. **DTN EID callsign validation** (Property 18): Generate random bundles, transmit through the HDTN KISS CLA, verify output bundles carry valid DTN EIDs (dtn://callsign/service) with valid source callsigns.
 19. **Rate limiting** (Property 19): Generate random submission sequences at various rates, verify correct acceptance/rejection.
 22. **Bundle size limit** (Property 22): Generate random bundles of varying sizes, verify oversized rejected.
 23. **Statistics monotonicity** (Property 23): Generate random operation sequences, verify cumulative stats are non-decreasing.

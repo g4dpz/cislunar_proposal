@@ -822,7 +822,7 @@ The following data models from Phase 2 are carried forward unchanged:
 - `nvm_header_t`, `nvm_bundle_entry_t` — NVM storage layout
 - `rate_limiter_entry_t`, `rate_limiter_config_t` — rate limiting state
 - `iq_sample_t`, `dsp_config_t` — IQ DSP types
-- `callsign_t` — amateur radio callsign (used in DTN EID: dtn://callsign-ssid)
+- `callsign_t` — amateur radio callsign (used in DTN EID: dtn://callsign/service)
 - `link_metrics_t` — CLA link metrics
 - `power_state_t`, `power_metrics_t` — power management
 - `pool_id_t`, `pool_stats_t` — pool allocator
@@ -1030,7 +1030,7 @@ The following properties cover both Phase 2 carry-forward properties (adapted fo
 
 ### Property 15: DTN EID Station Identification
 
-*For any* bundle transmitted through the CLA, the bundle SHALL contain a valid source DTN EID (dtn://callsign-ssid) and a valid destination DTN EID embedding amateur radio callsigns for station identification.
+*For any* bundle transmitted through the CLA, the bundle SHALL contain a valid source DTN EID (dtn://callsign/service) and a valid destination DTN EID embedding amateur radio callsigns for station identification.
 
 **Validates: Requirements 12.1**
 
@@ -1281,7 +1281,7 @@ Key property tests (all C firmware, using theft):
 12. **Bundle retention without contact** (Property 12): Generate bundles with no matching contacts. Verify retention until contact added or lifetime expires.
 13. **No relay** (Property 13): Generate random bundles and contacts. Verify bundles only transmitted to contacts matching their destination.
 14. **End-to-end radio path round-trip** (Property 14): Generate random valid bundles. Push through full stack: BPv7 → LTP → KISS → IQ mod (GMSK/BPSK) → IQ demod → KISS → LTP → BPv7. Assert bundle equality.
-15. **DTN EID station identification** (Property 15): Generate random bundles. Transmit through CLA. Verify bundles contain valid source/dest DTN EIDs (dtn://callsign-ssid).
+15. **DTN EID station identification** (Property 15): Generate random bundles. Transmit through CLA. Verify bundles contain valid source/dest DTN EIDs (dtn://callsign/service).
 16. **LTP segmentation/reassembly** (Property 16): Generate random bundles of varying sizes (some exceeding single KISS frame). Segment via LTP, reassemble. Assert bundle equality.
 17. **No transmission after window end** (Property 17): Generate random contact windows and time sequences. Verify no transmission after end time.
 18. **Missed contact retains bundles** (Property 18): Generate random failed contacts (mock transceiver failure after 3 retries). Verify bundles retained and missed counter incremented.

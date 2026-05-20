@@ -272,7 +272,7 @@ This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C fir
   - [ ] 8.2 Implement CLA send/receive paths (`kissiq_send_segment`, `kissiq_recv_process`)
     - `kissiq_send_segment`: wrap LTP segment in KISS frame → modulate GFSK/G3RUH → stream IQ via DMA
     - `kissiq_recv_process`: demodulate IQ from DMA → extract KISS frames → deliver LTP segments to HDTN's LTP engine
-    - Station identification via callsign-embedded DTN EIDs (dtn://callsign-ssid) in every bundle
+    - Station identification via callsign-embedded DTN EIDs (dtn://callsign/service) in every bundle
     - LTP segmentation/reassembly handled by HDTN's LTP engine natively
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
@@ -282,7 +282,7 @@ This plan implements the Phase 2 CubeSat EM system in two parallel tracks: C fir
 
   - [ ]* 8.4 Write property test: DTN EID Callsign Validation (theft)
     - **Property 14: DTN EID Callsign Validation**
-    - Generate random bundles. Transmit through CLA. Verify output bundles carry valid DTN EIDs (dtn://callsign-ssid) with valid callsigns
+    - Generate random bundles. Transmit through CLA. Verify output bundles carry valid DTN EIDs (dtn://callsign/service) with valid callsigns
     - **Validates: Requirements 8.1**
 
   - [ ]* 8.5 Write property test: End-to-End Radio Path Round-Trip (theft)

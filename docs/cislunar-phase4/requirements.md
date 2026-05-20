@@ -201,11 +201,11 @@ Out of scope: relay functionality, X-band (future enhancement), optical communic
 
 ### Requirement 13: KISS CLA and LTP Convergence Layer (S-Band)
 
-**User Story:** As a regulatory compliance engineer, I want all DTN transmissions to use KISS framing with callsign-embedded DTN EIDs (dtn://callsign-ssid) over LTP via the S-band IQ baseband radio, so that every cislunar transmission complies with amateur radio regulations.
+**User Story:** As a regulatory compliance engineer, I want all DTN transmissions to use KISS framing with callsign-embedded DTN EIDs (dtn://callsign/service) over LTP via the S-band IQ baseband radio, so that every cislunar transmission complies with amateur radio regulations.
 
 #### Acceptance Criteria
 
-1. THE CLA SHALL encapsulate all bundle transmissions in KISS frames carrying LTP segments, with station identification provided by the callsign embedded in the DTN Endpoint Identifier (dtn://callsign-ssid) in every bundle's primary block
+1. THE CLA SHALL encapsulate all bundle transmissions in KISS frames carrying LTP segments, with station identification provided by the callsign embedded in the DTN Endpoint Identifier (dtn://callsign/service) in every bundle's primary block
 2. THE CLA SHALL run LTP sessions directly over KISS frames, providing reliable transfer with deferred acknowledgment for all bundle delivery
 3. THE CLA SHALL perform LTP segmentation for bundles that exceed a single KISS frame size, and reassemble received LTP segments into complete bundles
 4. THE CLA SHALL interface with the Flight_Transceiver IQ path (OBC DMA → DAC/ADC or SPI → Flight_Transceiver) as the physical transport at S-band 2.2 GHz
