@@ -10,8 +10,8 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Feature: hdtn-migration, Property 7: Contact plan validation
-// **Validates: Requirements 3.1, 3.2**
+// Feature: test-framework-srs-sdd, Property 10: Contact Plan Validation Correctness
+// **Validates: SRS-TF-010 (Requirements 10.1, 10.2)**
 //
 // For any collection of contact entries, validation SHALL accept the collection if and only if:
 // every contact has RateBitsPerSec > 0, every contact has StartTime < EndTime, and the total
@@ -77,8 +77,8 @@ func TestProperty7_ContactPlanValidation(t *testing.T) {
 	})
 }
 
-// Feature: hdtn-migration, Property 8: Active contacts filtering correctness
-// **Validates: Requirements 3.6**
+// Feature: test-framework-srs-sdd, Property 11: Active Contacts Filtering Correctness
+// **Validates: SRS-TF-011 (Requirements 11.1, 11.2)**
 //
 // For any set of contacts and any query time T, GetActiveContacts(T) SHALL return exactly
 // those contacts where StartTime ≤ T < EndTime, and no others.
@@ -144,8 +144,8 @@ func TestProperty8_ActiveContactsFiltering(t *testing.T) {
 	})
 }
 
-// Feature: hdtn-migration, Property 9: Contact removal from local state
-// **Validates: Requirements 3.5**
+// Feature: test-framework-srs-sdd, Property 12: Contact Removal Correctness
+// **Validates: SRS-TF-012 (Requirements 12.1, 12.2, 12.3, 12.4)**
 //
 // For any contact plan containing at least one contact, removing a contact by its
 // (source, dest, startTime) key SHALL result in a local plan that no longer contains
@@ -220,8 +220,8 @@ func TestProperty9_ContactRemovalFromLocalState(t *testing.T) {
 	})
 }
 
-// Feature: hdtn-migration, Property 10: API error preserves local state
-// **Validates: Requirements 3.7**
+// Feature: test-framework-srs-sdd, Property 13: API Error State Preservation
+// **Validates: SRS-TF-013 (Requirements 13.1, 13.2)**
 //
 // For any contact plan manager with existing local state, if an API operation (add, remove, apply)
 // fails due to an API error, the local plan state SHALL be identical to the state before the

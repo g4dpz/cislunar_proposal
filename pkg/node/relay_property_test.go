@@ -12,13 +12,13 @@ import (
 	"terrestrial-dtn/pkg/store"
 )
 
-// TestProperty_NoRelayDirectDeliveryOnly validates Property 10:
+// Feature: test-framework-srs-sdd, Property 16: No-Relay Direct Delivery Enforcement
 // For any bundle transmitted during any contact window on any node, the contact's
 // remote node SHALL match the bundle's final destination endpoint. No bundle SHALL
 // be forwarded on behalf of other nodes, and all route lookups SHALL return
 // single-hop direct contacts only.
 //
-// **Validates: Requirements 6.1, 6.2, 13.5**
+// **Validates: SRS-TF-016 (Requirements 6.1, 6.2, 13.5)**
 func TestProperty_NoRelayDirectDeliveryOnly(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100

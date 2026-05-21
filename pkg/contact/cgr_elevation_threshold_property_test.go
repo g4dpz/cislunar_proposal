@@ -9,11 +9,11 @@ import (
 	"github.com/leanovate/gopter/prop"
 )
 
-// TestProperty_CGRElevationThreshold validates Property 15:
+// Feature: test-framework-srs-sdd, Property 15: CGR Elevation Threshold
 // For any CGR-predicted contact, the maximum elevation angle SHALL meet or
 // exceed the corresponding ground station's minimum elevation threshold.
 //
-// **Validates: Requirement 8.2**
+// **Validates: SRS-TF-014 (Requirement 14.5)**
 func TestProperty_CGRElevationThreshold(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 50 // Reduced for computationally expensive tests

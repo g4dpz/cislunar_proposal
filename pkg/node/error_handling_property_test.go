@@ -11,10 +11,11 @@ import (
 	"terrestrial-dtn/pkg/store"
 )
 
-// Property 18: No Transmission After Window End
-// **Validates: Requirement 9.2**
+// Feature: test-framework-srs-sdd, Property 17: No Transmission After Window End
 // For any contact window and transmission attempt, no transmission SHALL occur
 // after the contact window's end time has been reached.
+//
+// **Validates: SRS-TF-017 (Requirements 17.1, 17.2)**
 
 func TestProperty_NoTransmissionAfterWindowEnd(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
@@ -82,11 +83,12 @@ func TestProperty_NoTransmissionAfterWindowEnd(t *testing.T) {
 	})
 }
 
-// Property 19: Missed Contact Retains Bundles
-// **Validates: Requirement 9.4**
+// Feature: test-framework-srs-sdd, Property 18: Missed Contact Retains Bundles
 // For any scheduled contact window where the CLA fails to establish a link,
 // all bundles queued for that contact's destination SHALL remain in the Bundle_Store,
 // and the contacts-missed counter SHALL be incremented.
+//
+// **Validates: SRS-TF-018 (Requirements 18.1, 18.2)**
 
 func TestProperty_MissedContactRetainsBundles(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
@@ -160,10 +162,11 @@ func TestProperty_MissedContactRetainsBundles(t *testing.T) {
 	})
 }
 
-// Property 25: Bundles Retained When No Contact Available
-// **Validates: Requirements 17.5, 5.5**
+// Feature: test-framework-srs-sdd, Property 19: Bundles Retained When No Contact Available
 // For any bundle whose destination has no direct contact window in the current contact plan,
 // the Bundle_Store SHALL retain the bundle until the contact plan is updated or the bundle's lifetime expires.
+//
+// **Validates: SRS-TF-019 (Requirements 19.1, 19.2)**
 
 func TestProperty_BundlesRetainedWhenNoContactAvailable(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {

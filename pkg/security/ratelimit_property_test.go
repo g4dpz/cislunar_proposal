@@ -7,10 +7,11 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Property 24: Rate Limiting
-// **Validates: Requirement 16.4**
+// Feature: test-framework-srs-sdd, Property 20: Rate Limiting
 // For any sequence of rapid bundle submissions exceeding the configured acceptance rate,
 // the BPA SHALL reject bundles beyond the rate limit while accepting bundles within the limit.
+//
+// **Validates: SRS-TF-020 (Requirements 20.1, 20.2, 20.3)**
 
 func TestProperty_RateLimiting(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
@@ -53,6 +54,8 @@ func TestProperty_RateLimiting(t *testing.T) {
 	})
 }
 
+// Feature: test-framework-srs-sdd, Property 20: Rate Limiting (Within Window)
+// **Validates: SRS-TF-020 (Requirement 20.4)**
 func TestProperty_RateLimitingWithinWindow(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		// Generate a rate limit
@@ -75,6 +78,8 @@ func TestProperty_RateLimitingWithinWindow(t *testing.T) {
 	})
 }
 
+// Feature: test-framework-srs-sdd, Property 20: Rate Limiting (Window Reset)
+// **Validates: SRS-TF-020 (Requirement 20.5)**
 func TestProperty_RateLimitingWindowReset(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		// Generate a rate limit
@@ -105,6 +110,8 @@ func TestProperty_RateLimitingWindowReset(t *testing.T) {
 	})
 }
 
+// Feature: test-framework-srs-sdd, Property 20: Rate Limiting (Monotonicity)
+// **Validates: SRS-TF-020 (Requirement 20.6)**
 func TestProperty_RateLimitingMonotonicity(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		// Generate a rate limit

@@ -245,6 +245,11 @@ const documentation: DocumentationLinks = {
   ],
   externalRefs: [
     {
+      title: "NASA Glenn: High-Rate Delay Tolerant Networking",
+      url: "https://www.nasa.gov/glenn/glenn-expertise-space-exploration/scan/high-rate-delay-tolerant-networking/",
+      description: "NASA Glenn Research Center's HDTN programme — the foundation software stack used by RADIANT.",
+    },
+    {
       title: "RFC 9171: Bundle Protocol Version 7",
       url: "https://www.rfc-editor.org/rfc/rfc9171.html",
       description: "The core Bundle Protocol specification for DTN.",
@@ -384,6 +389,11 @@ const conops: ConOpsContent = {
     "A clearer roadmap toward a cislunar payload demonstration of DTN-enabled networking",
   ],
   nasaReferences: [
+    {
+      title: "NASA Glenn: High-Rate Delay Tolerant Networking",
+      url: "https://www.nasa.gov/glenn/glenn-expertise-space-exploration/scan/high-rate-delay-tolerant-networking/",
+      description: "NASA Glenn Research Center's HDTN programme page — architecture overview, capabilities, and mission context.",
+    },
     {
       title: "Delay/Disruption Tolerant Networking Tutorial",
       url: "https://www.nasa.gov/dtn-tutorial",

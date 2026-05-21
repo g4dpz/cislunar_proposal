@@ -8,11 +8,11 @@ import (
 	"github.com/leanovate/gopter/prop"
 )
 
-// Property 26: Link Margin Monotonically Decreasing with Distance
+// Feature: test-framework-srs-sdd, Property 21: Link Margin Monotonically Decreasing with Distance
 // For any two distances d1 < d2 with identical transmit parameters, the computed
 // link margin at d1 SHALL be strictly greater than the link margin at d2.
 //
-// **Validates: Requirement 18.3**
+// **Validates: SRS-TF-021 (Requirements 21.1, 21.6)**
 func TestProperty_LinkMarginMonotonicallyDecreasingWithDistance(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100
@@ -103,11 +103,11 @@ func TestProperty_LinkMarginMonotonicallyDecreasingWithDistance(t *testing.T) {
 	properties.TestingRun(t)
 }
 
-// Property 26 (variant): FSPL increases with distance
+// Feature: test-framework-srs-sdd, Property 21 (variant): FSPL increases with distance
 // For any two distances d1 < d2 with the same frequency, FSPL at d1 SHALL be
 // less than FSPL at d2
 //
-// **Validates: Requirement 18.3**
+// **Validates: SRS-TF-021 (Requirement 21.1)**
 func TestProperty_FSPLIncreasesWithDistance(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100
@@ -168,11 +168,11 @@ func TestProperty_FSPLIncreasesWithDistance(t *testing.T) {
 	properties.TestingRun(t)
 }
 
-// Property 26 (variant): Link margin decreases by approximately 6 dB per doubling of distance
+// Feature: test-framework-srs-sdd, Property 22: Link margin decreases by approximately 6 dB per doubling of distance
 // For any distance d, the link margin at 2*d should be approximately 6 dB less
 // (due to 20*log10(2) ≈ 6 dB increase in FSPL)
 //
-// **Validates: Requirement 18.3**
+// **Validates: SRS-TF-021 (Requirement 21.6)**
 func TestProperty_LinkMarginDecreasesBy6dBPerDoubling(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100
@@ -243,10 +243,10 @@ func TestProperty_LinkMarginDecreasesBy6dBPerDoubling(t *testing.T) {
 	properties.TestingRun(t)
 }
 
-// Property 26 (variant): Link margin is strictly monotonic across multiple distances
+// Feature: test-framework-srs-sdd, Property 21 (variant): Link margin is strictly monotonic across multiple distances
 // For any sequence of increasing distances, link margins SHALL be strictly decreasing
 //
-// **Validates: Requirement 18.3**
+// **Validates: SRS-TF-021 (Requirement 21.1)**
 func TestProperty_LinkMarginStrictlyMonotonicAcrossSequence(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 50

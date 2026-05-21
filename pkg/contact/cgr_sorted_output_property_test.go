@@ -9,11 +9,11 @@ import (
 	"github.com/leanovate/gopter/prop"
 )
 
-// TestProperty_CGRSortedOutput validates Property 16:
+// Feature: test-framework-srs-sdd, Property 16: CGR Sorted Output
 // For any set of CGR-predicted contacts, the results SHALL be sorted by
 // start time in ascending order.
 //
-// **Validates: Requirement 8.3**
+// **Validates: SRS-TF-014 (Requirement 14.1)**
 func TestProperty_CGRSortedOutput(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 50 // Reduced for computationally expensive tests

@@ -10,8 +10,8 @@ import (
 	"pgregory.net/rapid"
 )
 
-// Feature: hdtn-migration, Property 5: Telemetry parsing preserves all statistics
-// **Validates: Requirements 2.1, 2.2, 2.3**
+// Feature: test-framework-srs-sdd, Property 8: Telemetry Parsing Fidelity
+// **Validates: SRS-TF-008 (Requirements 8.1, 8.2, 8.3, 8.4, 8.5)**
 func TestProperty_TelemetryParsingPreservesAllStatistics(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		// Generate arbitrary valid HDTN REST API JSON response with non-negative integer fields
@@ -106,8 +106,8 @@ func TestProperty_TelemetryParsingPreservesAllStatistics(t *testing.T) {
 	})
 }
 
-// Feature: hdtn-migration, Property 6: Telemetry partial response zero-filling
-// **Validates: Requirements 2.8**
+// Feature: test-framework-srs-sdd, Property 9: Telemetry Partial Response Zero-Filling
+// **Validates: SRS-TF-009 (Requirements 9.1, 9.2, 9.3)**
 func TestProperty_TelemetryPartialResponseZeroFilling(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		// Generate HDTN REST API JSON with randomly omitted fields

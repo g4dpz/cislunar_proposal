@@ -12,7 +12,7 @@
 - Introduce RADIANT (Radio Amateur Delay-tolerant Interplanetary Networking Testbed)
 - Core ambition: place an amateur-operated DTN node in cislunar space — the first amateur interplanetary-style communication system
 - The CubeSat and cislunar missions are the destination; earlier phases build the validated foundation to get there
-- Built on NASA Glenn's HDTN (High-rate Delay Tolerant Networking), implementing Bundle Protocol v7 (RFC 9171) and Licklider Transmission Protocol (RFC 5326)
+- Built on NASA Glenn's HDTN (High-rate Delay Tolerant Networking) (https://www.nasa.gov/glenn/glenn-expertise-space-exploration/scan/high-rate-delay-tolerant-networking/), implementing Bundle Protocol v7 (RFC 9171) and Licklider Transmission Protocol (RFC 5326)
 - Supported by AMSAT-UK, AMSAT-DL, and Goonhilly Earth Station
 - Open-source, community-driven, MIT-licensed
 
@@ -32,7 +32,7 @@
 ## 3. The CubeSat Mission — LEO DTN Payload (200 words)
 
 - **Primary goal**: demonstrate ground-to-space DTN ping and store-and-forward messaging from orbit
-- **OBC**: STM32U585 ultra-low-power ARM Cortex-M33 (160 MHz, 2 MB flash, 786 KB SRAM, hardware crypto, TrustZone)
+- **OBC**: STM32U585 ultra-low-power ARM Cortex-M33 (160 MHz, 2 MB flash, 786 KB SRAM)
 - **RF**: Flight-qualified IQ transceiver IC interfacing directly with STM32U585 via DAC/ADC
 - **Frequency**: UHF 437 MHz, 9.6 kbps GMSK/BPSK — accessible to amateur ground stations worldwide
 - **Link budget**: 2W TX, omnidirectional satellite antenna, 12 dBi ground Yagi → ~31 dB margin
@@ -70,7 +70,7 @@ Each earlier phase validates critical elements needed for the CubeSat and cislun
 - Raspberry Pi + Mobilinkd TNC4 + Yaesu FT-817 at 9600 baud G3RUH
 - Validates the complete software stack: HDTN, LTP-over-KISS, callsign EIDs
 - Proves store-and-forward and DTN ping over real amateur radio links
-- Two-node testing between G4DPZ and M0XER
+- Two-node testing by G4DPZ
 
 **Phase 1.5 — QO-100 GEO Satellite (Planned):**
 - First space-based DTN demonstration via Es'hail-2 (25.9°E, always visible)
@@ -108,7 +108,7 @@ Each earlier phase validates critical elements needed for the CubeSat and cislun
 - Every bundle carries operator callsign in source EID — satisfies identification requirement
 - Periodic beacon bundles every 10 minutes for additional compliance
 - Beacon payload is plaintext (CALLSIGN, NODE, EID, TIME, GRID) — any station demodulating the signal can identify the transmitter even when the wire format carries opaque numeric `ipn://` EIDs
-- No encryption — fully compliant with amateur radio regulations
+- Fully compliant with amateur radio regulations
 - Dual EID scheme: `ipn://` for compact CGR routing on space links, `dtn://` for callsign metadata
 
 **Protocol definition release:**

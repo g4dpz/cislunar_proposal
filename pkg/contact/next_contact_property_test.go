@@ -10,14 +10,14 @@ import (
 	"github.com/leanovate/gopter/prop"
 )
 
-// TestProperty_NextContactLookupCorrectness validates Property 12:
+// Feature: test-framework-srs-sdd, Property 12: Next Contact Lookup Correctness
 // For any contact plan, destination node D, and query time T:
 // - GetNextContact(D, T) should return the earliest contact with D where StartTime ≥ T
 // - If multiple contacts exist with D, return the one with the earliest StartTime
 // - If no future contacts exist with D, return an error
 // - The returned contact must have StartTime ≥ T
 //
-// **Validates: Requirement 7.3**
+// **Validates: SRS-TF-015 (Requirements 15.1, 15.2, 15.3, 15.4)**
 func TestProperty_NextContactLookupCorrectness(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100

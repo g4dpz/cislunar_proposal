@@ -10,13 +10,13 @@ import (
 	"github.com/leanovate/gopter/prop"
 )
 
-// TestProperty_ActiveContactsQueryCorrectness validates Property 11:
+// Feature: test-framework-srs-sdd, Property 11: Active Contacts Query Correctness
 // For any contact plan and query time T, GetActiveContacts(T) SHALL return
 // ALL and ONLY contacts where StartTime ≤ T < EndTime. No contacts outside
 // this time range should be returned, and all contacts within this time range
 // should be returned.
 //
-// **Validates: Requirement 7.2**
+// **Validates: SRS-TF-014 (Requirements 11.1, 11.2, 11.3)**
 func TestProperty_ActiveContactsQueryCorrectness(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100

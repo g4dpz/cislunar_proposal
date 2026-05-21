@@ -9,12 +9,12 @@ import (
 	"github.com/leanovate/gopter/prop"
 )
 
-// TestProperty_CGRConfidenceMonotonicity validates Property 17:
+// Feature: test-framework-srs-sdd, Property 17: CGR Confidence Monotonicity
 // For any two CGR-predicted contacts from the same prediction run, the contact
 // whose start time is further from the orbital parameter epoch SHALL have a
 // confidence value less than or equal to the contact closer to the epoch.
 //
-// **Validates: Requirement 8.4**
+// **Validates: SRS-TF-015 (Requirement 14.1)**
 func TestProperty_CGRConfidenceMonotonicity(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 50 // Reduced for computationally expensive tests

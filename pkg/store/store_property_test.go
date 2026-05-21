@@ -9,10 +9,10 @@ import (
 	"terrestrial-dtn/pkg/bpa"
 )
 
-// Property 1: Bundle Store/Retrieve Round-Trip
+// Feature: test-framework-srs-sdd, Property 3: Bundle Store Round-Trip Integrity
 // For any valid BPv7 bundle, storing it and then retrieving it by its ID
 // SHALL produce a bundle identical to the original.
-// Validates: Requirement 2.2
+// **Validates: SRS-TF-003 (Requirement 2.2)**
 func TestProperty_BundleStoreRetrieveRoundTrip(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100
@@ -101,10 +101,10 @@ func TestProperty_BundleStoreRetrieveRoundTrip(t *testing.T) {
 	properties.TestingRun(t)
 }
 
-// Property 5: Store Capacity Bound
+// Feature: test-framework-srs-sdd, Property 4: Store Capacity Invariant
 // For any sequence of store and delete operations, the total stored bytes
 // SHALL never exceed the configured maximum storage capacity.
-// Validates: Requirement 2.6
+// **Validates: SRS-TF-004 (Requirement 2.6)**
 func TestProperty_StoreCapacityBound(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100
@@ -180,10 +180,10 @@ func TestProperty_StoreCapacityBound(t *testing.T) {
 	properties.TestingRun(t)
 }
 
-// Property 3: Priority Ordering Invariant
+// Feature: test-framework-srs-sdd, Property 5: Priority Ordering Invariant
 // For any set of bundles stored, listing them by priority SHALL produce a sequence
 // where each bundle's priority is greater than or equal to the next.
-// Validates: Requirements 2.3, 5.3
+// **Validates: SRS-TF-005 (Requirements 2.3, 5.3)**
 func TestProperty_PriorityOrderingInvariant(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100
@@ -243,11 +243,11 @@ func TestProperty_PriorityOrderingInvariant(t *testing.T) {
 	properties.TestingRun(t)
 }
 
-// Property 4: Eviction Policy Ordering
+// Feature: test-framework-srs-sdd, Property 6: Eviction Policy Correctness
 // When eviction is triggered, expired bundles SHALL be evicted first,
 // then lowest-priority bundles, and critical-priority bundles SHALL be
 // preserved until all lower-priority bundles have been evicted.
-// Validates: Requirements 2.4, 2.5
+// **Validates: SRS-TF-006 (Requirements 2.4, 2.5)**
 func TestProperty_EvictionPolicyOrdering(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100
@@ -389,10 +389,10 @@ func TestProperty_EvictionPolicyOrdering(t *testing.T) {
 	properties.TestingRun(t)
 }
 
-// Property 6: Bundle Lifetime Enforcement
+// Feature: test-framework-srs-sdd, Property 7: Bundle Lifetime Enforcement
 // For any set of bundles after a cleanup cycle, zero bundles SHALL have
 // a creation timestamp plus lifetime less than or equal to the current time.
-// Validates: Requirements 3.1, 3.2
+// **Validates: SRS-TF-007 (Requirements 3.1, 3.2)**
 func TestProperty_BundleLifetimeEnforcement(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100

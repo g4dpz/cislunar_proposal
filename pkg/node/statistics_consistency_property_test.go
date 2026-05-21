@@ -14,12 +14,12 @@ type operation struct {
 	BundleSize int
 }
 
-// Property 23: Statistics Consistency
+// Feature: test-framework-srs-sdd, Property 23: Statistics Consistency
 // For any sequence of node operations, the cumulative statistics (total bundles
 // received, sent, bytes received, bytes sent) SHALL be monotonically non-decreasing
 // and consistent with the individual operations performed.
 //
-// **Validates: Requirement 15.3**
+// **Validates: SRS-TF-023 (Requirement 15.3)**
 func TestProperty_StatisticsConsistency(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100
@@ -156,11 +156,11 @@ func TestProperty_StatisticsConsistency(t *testing.T) {
 	properties.TestingRun(t)
 }
 
-// Property 23 (variant): Byte counts are consistent with bundle counts
+// Feature: test-framework-srs-sdd, Property 23 (variant): Byte counts are consistent with bundle counts
 // For any sequence of operations, total bytes SHALL be consistent with
 // the sum of individual bundle sizes
 //
-// **Validates: Requirement 15.3**
+// **Validates: SRS-TF-023 (Requirement 15.3)**
 func TestProperty_StatisticsByteCountConsistency(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100
@@ -208,11 +208,11 @@ func TestProperty_StatisticsByteCountConsistency(t *testing.T) {
 	properties.TestingRun(t)
 }
 
-// Property 23 (variant): Contact statistics are non-negative
+// Feature: test-framework-srs-sdd, Property 23 (variant): Contact statistics are non-negative
 // For any sequence of contact operations, completed and missed counts
 // SHALL be non-negative and their sum SHALL equal total contact attempts
 //
-// **Validates: Requirement 15.3**
+// **Validates: SRS-TF-023 (Requirement 15.3)**
 func TestProperty_StatisticsContactCountsNonNegative(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100

@@ -9,13 +9,13 @@ import (
 	"github.com/leanovate/gopter/prop"
 )
 
-// TestProperty_CGRPredictionValidity validates Property 14:
+// Feature: test-framework-srs-sdd, Property 14: CGR Prediction Time Horizon Compliance
 // For any valid orbital parameters, ground station list, and time horizon,
 // all CGR-predicted contact windows SHALL fall within the requested time
 // horizon boundaries, and no two predicted windows for the same ground
 // station SHALL overlap in time.
 //
-// **Validates: Requirements 8.1, 8.6, 8.7**
+// **Validates: SRS-TF-014 (Requirements 14.1, 14.2, 14.3, 14.4)**
 func TestProperty_CGRPredictionValidity(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 50 // Reduced for computationally expensive tests

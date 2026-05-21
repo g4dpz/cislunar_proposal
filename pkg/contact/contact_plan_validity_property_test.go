@@ -9,12 +9,12 @@ import (
 	"github.com/leanovate/gopter/prop"
 )
 
-// TestProperty_ContactPlanValidityInvariants validates Property 13:
+// Feature: test-framework-srs-sdd, Property 13: Contact Plan Validity Invariants
 // For any valid contact plan, all contact windows SHALL fall within the plan's
 // valid-from and valid-to time range, and no two contacts on the same link for
 // a given node SHALL overlap in time.
 //
-// **Validates: Requirements 7.4, 7.5**
+// **Validates: SRS-TF-014 (Requirements 10.1, 10.2)**
 func TestProperty_ContactPlanValidityInvariants(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100

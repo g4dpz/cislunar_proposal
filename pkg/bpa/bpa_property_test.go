@@ -8,11 +8,11 @@ import (
 	"github.com/leanovate/gopter/prop"
 )
 
-// Property 2: Bundle Validation Correctness
+// Feature: test-framework-srs-sdd, Property 1: BPA Validation Correctness
 // For any bundle, the BPA validation function SHALL accept the bundle if and only if
 // its destination is valid, its lifetime is greater than zero, its creation timestamp
 // does not exceed the current time, and it is not expired.
-// Validates: Requirements 1.1, 1.2, 1.3
+// **Validates: SRS-TF-001 (Requirements 1.1, 1.2, 1.3)**
 func TestProperty_BundleValidationCorrectness(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100
@@ -174,10 +174,10 @@ func TestProperty_BundleValidationCorrectness(t *testing.T) {
 	properties.TestingRun(t)
 }
 
-// Property 7: Ping Echo Correctness
+// Feature: test-framework-srs-sdd, Property 2: Ping Echo Response Correctness
 // For any ping request bundle, exactly one ping response bundle SHALL be generated
 // with its destination set to the original sender's endpoint.
-// Validates: Requirements 4.1, 4.2
+// **Validates: SRS-TF-002 (Requirements 4.1, 4.2)**
 func TestProperty_PingEchoCorrectness(t *testing.T) {
 	parameters := gopter.DefaultTestParameters()
 	parameters.MinSuccessfulTests = 100
