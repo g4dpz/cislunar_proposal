@@ -498,6 +498,27 @@ const futureEnhancements: FutureEnhancement[] = [
     ],
     specPath: ".kiro/specs/test-framework-srs-sdd/requirements.md",
   },
+  {
+    id: "multi-node-contact-graph",
+    name: "Multi-Node Contact Graph — Distributed Routing and Plan Distribution",
+    status: "planned",
+    summary:
+      "A multi-node contact graph generator with time-dependent routing, enabling distributed " +
+      "ground station networks to route bundles through multiple intermediate nodes (ground relays, " +
+      "LEO satellites, GEO transponders, cislunar payloads) using store-and-forward semantics.",
+    highlights: [
+      "Pairwise contact generation — automatic contact windows for terrestrial, GEO, LEO, and cislunar links",
+      "Time-dependent Dijkstra routing — optimal multi-hop paths minimizing delivery time",
+      "Four relay scenarios — ground relay, satellite relay, GEO backbone, multi-station coverage",
+      "Storage-constrained routing — respects relay node buffer limits with priority preemption",
+      "REST API distribution — ground stations receive plans via API with webhook push notifications",
+      "OTA distribution — space nodes receive plan updates as administrative DTN bundles (≤5KB)",
+      "Bootstrap plans — pre-loaded from initial TLE; converges to operational plan on first OTA update",
+      "Plan versioning — monotonic versions with latest-wins conflict resolution",
+      "HDTN-compatible export — local node view in NASA HDTN JSON format",
+    ],
+    specPath: ".kiro/specs/multi-node-contact-graph/requirements.md",
+  },
 ];
 
 // ─── Exported Site Content ────────────────────────────────────────────────────
