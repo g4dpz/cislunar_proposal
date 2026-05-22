@@ -163,6 +163,8 @@ const overview: OverviewContent = {
     "Demonstrated Earth-Moon (1.3s) and Earth-Mars (3-12 min) DTN store-and-forward",
     "LTP-over-KISS with callsign-embedded DTN Endpoint Identifiers (amateur radio compliance)",
     "Contact Graph Routing (CGR) computing multi-hop paths through relay nodes",
+    "Multi-node contact graph with time-dependent routing across ground stations, LEO, GEO, and cislunar nodes",
+    "Automated contact plan distribution: REST API for ground stations, OTA bundles for spacecraft",
     "No encryption or cryptography (amateur radio regulatory compliance)",
     "Priority-based bundle handling (critical, expedited, normal, bulk)",
     "Persistent bundle storage surviving power cycles",
@@ -395,6 +397,8 @@ const conops: ConOpsContent = {
   expectedOutcomes: [
     "A credible terrestrial analogue for cislunar DTN operations",
     "Operational evidence to support a flight experiment case",
+    "Multi-node contact graph enabling distributed ground station routing and store-and-forward relay via LEO/GEO",
+    "Automated contact plan distribution to all network nodes (API for ground, OTA bundles for space)",
     "Stronger links between space networking and specialist amateur-radio communities",
     "A clearer roadmap toward a cislunar payload demonstration of DTN-enabled networking",
   ],

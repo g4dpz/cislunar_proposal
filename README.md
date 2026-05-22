@@ -153,6 +153,40 @@ Edit `configs/simulation/` JSON files to change:
 
 ---
 
+## Multi-Node Contact Graph and Distribution
+
+As RADIANT scales from a two-node terrestrial testbed to a distributed ground station network serving LEO and cislunar spacecraft, the system requires a **multi-node contact graph** — a unified model of all communication opportunities across all nodes over time.
+
+### Contact Graph Generation
+
+The contact graph generator computes pairwise contact windows for all node pairs in the network:
+
+| Link Class | Availability | Latency | Bandwidth |
+|-----------|-------------|---------|-----------|
+| Ground ↔ Ground (terrestrial) | Always-on | ~ms | 9600 bps+ |
+| Ground ↔ Ground (via QO-100) | Always-on (within footprint) | ~250ms | 2400 bps |
+| Ground ↔ LEO | 5-10 min passes, 4-6x/day | ~5ms | 9600 bps |
+| Ground ↔ Cislunar | Hours-long windows | 1.3s one-way | 500 bps |
+
+A **time-dependent Dijkstra algorithm** (Contact Graph Routing) computes optimal multi-hop paths that minimize end-to-end delivery time while respecting storage constraints at relay nodes. This enables scenarios like:
+
+- **Ground relay**: Bundle routed via a ground station with an earlier LEO pass
+- **Satellite relay**: LEO satellite carries bundles between ground coverage areas
+- **GEO backbone**: QO-100 connects ground stations that then service LEO passes
+- **Multi-station coverage**: CubeSat downloads to whichever station has the best pass
+
+### Contact Plan Distribution
+
+Each node needs a local view of the contact graph to make routing decisions:
+
+- **Ground stations** receive their plan via a REST API from a central planning service (`GET /api/contact-plan/{nodeID}`), with webhook push notifications on plan changes
+- **Space nodes** receive plan updates as administrative DTN bundles (≤5KB, expedited priority) transmitted OTA during contact windows
+- **Bootstrap plans** are pre-loaded before launch from initial TLE data, providing enough routing information to receive the first OTA update
+
+Plan versioning uses monotonically increasing integers — spacecraft always accept the latest version and discard stale updates, ensuring convergence even when multiple ground stations attempt uploads during overlapping passes.
+
+---
+
 ## Project Structure
 
 ```
