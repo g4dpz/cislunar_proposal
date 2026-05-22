@@ -104,9 +104,19 @@ export interface PageData {
   } | null;
 }
 
+export interface FutureEnhancement {
+  id: string;
+  name: string;
+  status: "planned" | "in-progress" | "complete";
+  summary: string;
+  highlights: string[];
+  specPath: string;
+}
+
 export interface SiteContent {
   overview: OverviewContent;
   roadmap: RoadmapPhase[];
+  futureEnhancements: FutureEnhancement[];
   documentation: DocumentationLinks;
   contact: ContactContent;
   privacy: PrivacyContent;
@@ -431,11 +441,67 @@ const nav: NavItem[] = [
   { label: "Privacy", href: "/privacy", active: false },
 ];
 
+const futureEnhancements: FutureEnhancement[] = [
+  {
+    id: "contact-log",
+    name: "Contact Log — Versioned Contact-Plan and Run-Evidence Logging",
+    status: "planned",
+    summary:
+      "A structured logging system that captures both planned (expected) and actual (observed) " +
+      "contact behavior for every DTN session. Enables cross-phase comparison of DTN performance " +
+      "across terrestrial, QO-100, LEO, and cislunar links.",
+    highlights: [
+      "Versioned log entries — immutable, schema-versioned JSON records per session",
+      "Cross-phase comparison — normalized goodput, plan adherence, and delivery success metrics",
+      "Planned vs. actual — contact plan snapshot alongside observed timing and throughput",
+      "Phase-aware metadata — link type, frequency band, OWLT, orbital parameters per session",
+      "Integrates with Contact Plan Manager and HDTN telemetry automatically",
+      "Machine-readable and human-readable — queryable by phase, time range, node pair, and outcome",
+    ],
+    specPath: ".kiro/specs/contact-log/requirements.md",
+  },
+  {
+    id: "station-identification-beacon",
+    name: "Station Identification Beacon — Amateur Radio Compliance",
+    status: "planned",
+    summary:
+      "Periodic BPv7 beacon bundles containing the operator's callsign and station metadata " +
+      "in plaintext, ensuring compliance with amateur radio regulations requiring station " +
+      "identification at least every 10 minutes.",
+    highlights: [
+      "Regulatory compliance — plaintext callsign readable by any demodulating third party",
+      "Analogous to FT8/WSPR — callsign in payload via well-known beacon service number (2048)",
+      "Independent of data traffic — configurable timer (default 10 min) via HDTN infrastructure",
+      "Includes station metadata — callsign, Maidenhead grid square, and node type",
+      "Cross-phase — required for all phases from terrestrial through cislunar",
+    ],
+    specPath: ".kiro/specs/station-identification-beacon/requirements.md",
+  },
+  {
+    id: "test-framework",
+    name: "Test Framework — Requirements-Based Verification (NASA TM Methodology)",
+    status: "planned",
+    summary:
+      "A property-based test framework modeled after NASA Glenn's HDTN Test Framework " +
+      "(TM-20240014467 / LEW-20818-1), providing automated verification across all mission phases.",
+    highlights: [
+      "Property-based testing — correctness properties verified for all inputs via randomized generation",
+      "Requirements traceability — each test traces to system requirements for flight proposals",
+      "Cross-phase coverage — validates BPv7 → LTP → KISS → G3RUH across all configurations",
+      "NASA methodology — follows Glenn Research Center's published test framework approach",
+      "CI integration — automated execution in the continuous integration pipeline",
+      "Supports flight proposals — verification evidence for regulatory and ESA ARTES submissions",
+    ],
+    specPath: ".kiro/specs/test-framework-srs-sdd/requirements.md",
+  },
+];
+
 // ─── Exported Site Content ────────────────────────────────────────────────────
 
 export const siteContent: SiteContent = {
   overview,
   roadmap,
+  futureEnhancements,
   documentation,
   contact,
   privacy,

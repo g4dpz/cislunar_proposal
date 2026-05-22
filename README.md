@@ -206,6 +206,48 @@ go build ./...
 
 ---
 
+## Future Enhancements
+
+### Contact Log — Versioned Contact-Plan and Run-Evidence Logging
+
+A structured logging system that captures both planned (expected) and actual (observed) contact behavior for every DTN session. Designed to enable cross-phase comparison of DTN performance across all mission phases:
+
+- **Versioned log entries** — Each session produces an immutable, schema-versioned JSON record containing the contact plan snapshot, phase metadata, and run evidence
+- **Cross-phase comparison** — Normalized metrics (goodput, plan adherence, delivery success ratio) allow direct comparison across terrestrial, QO-100, LEO, and cislunar links
+- **Planned vs. actual** — Captures expected contact window parameters alongside observed timing, throughput, and delivery outcomes
+- **Phase-aware metadata** — Records link type, frequency band, OWLT, orbital parameters, and modulation for each session's environment
+- **Integrates with existing systems** — Pulls contact plan state from the Contact Plan Manager and telemetry from the HDTN REST API automatically
+- **Machine-readable and human-readable** — JSON with consistent field ordering; queryable by phase, time range, node pair, and outcome
+
+See [`.kiro/specs/contact-log/requirements.md`](.kiro/specs/contact-log/requirements.md) for the full requirements specification.
+
+### Station Identification Beacon — Amateur Radio Compliance
+
+Periodic transmission of BPv7 bundles containing the operator's callsign and station metadata in plaintext, ensuring compliance with amateur radio regulations requiring station identification at least every 10 minutes:
+
+- **Regulatory compliance** — Transmits callsign in plaintext so any third party demodulating the signal can identify the station, even when wire format only carries opaque numeric ipn:// EIDs
+- **Analogous to FT8/WSPR** — Embeds callsign in message payloads using a well-known beacon service number (2048)
+- **Independent of data traffic** — Operates on a configurable timer (default 10 minutes) via existing HDTN infrastructure
+- **Includes station metadata** — Callsign, Maidenhead grid square, and node type in human-readable payload
+- **Cross-phase** — Required for all phases from terrestrial through cislunar
+
+See [`.kiro/specs/station-identification-beacon/requirements.md`](.kiro/specs/station-identification-beacon/requirements.md) for the full requirements specification.
+
+### Test Framework — Requirements-Based Verification (NASA TM Methodology)
+
+A property-based test framework modeled after NASA Glenn's HDTN Test Framework (TM-20240014467 / LEW-20818-1), providing automated verification across all mission phases:
+
+- **Property-based testing** — Verifies correctness properties hold for all inputs within defined domains using randomized generation (gopter/rapid)
+- **Requirements traceability** — Each property test traces to one or more system requirements, enabling requirements-based verification for flight proposals
+- **Cross-phase coverage** — Validates the full protocol stack (BPv7 → LTP → KISS → G3RUH) across terrestrial, QO-100, EM, LEO, and cislunar configurations
+- **NASA methodology** — Follows NASA Glenn Research Center's published test framework approach
+- **CI integration** — Automated test execution in the continuous integration pipeline
+- **Supports flight proposals** — Provides verification evidence suitable for regulatory submissions and ESA ARTES proposals
+
+See [`.kiro/specs/test-framework-srs-sdd/requirements.md`](.kiro/specs/test-framework-srs-sdd/requirements.md) for the full requirements specification.
+
+---
+
 ## Documentation
 
 - [LTP-over-KISS Architecture](docs/LTP-KISS-ARCHITECTURE.md)

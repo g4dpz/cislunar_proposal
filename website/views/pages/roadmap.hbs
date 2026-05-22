@@ -20,5 +20,29 @@
         {{/each}}
       </div>
     </div>
+
+    {{#if futureEnhancements}}
+    <div class="row mt-5">
+      <div class="col-12">
+        <h2>Future Enhancements</h2>
+        <p class="text-muted">Cross-cutting capabilities planned to support all mission phases.</p>
+      </div>
+      {{#each futureEnhancements}}
+      <div class="col-lg-12 mb-3">
+        <div class="card">
+          <div class="card-body">
+            <h3 class="h5 card-title">{{name}} <span class="badge bg-secondary">{{status}}</span></h3>
+            <p class="card-text">{{summary}}</p>
+            <ul class="list-unstyled mb-0">
+              {{#each highlights}}
+              <li class="mb-1"><small>• {{this}}</small></li>
+              {{/each}}
+            </ul>
+          </div>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
   </div>
 </section>

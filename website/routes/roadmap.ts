@@ -30,6 +30,7 @@ export function roadmapHandler(engine: HandlebarsEngine) {
     const dataWithRoadmap = {
       ...pageData,
       roadmap: siteContent.roadmap,
+      futureEnhancements: siteContent.futureEnhancements,
     };
 
     const html = renderPage(engine, "roadmap", dataWithRoadmap as unknown as PageData);
