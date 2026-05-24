@@ -147,7 +147,7 @@ Edit `configs/simulation/` JSON files to change:
 |-------|--------|------|-------------|
 | **Phase 1: Terrestrial** | 🔄 In Progress | VHF/UHF 9600 baud | Ground validation with TNC4 + FT-817 |
 | **Phase 1.5: QO-100** | 📋 Planned | 2.4/10 GHz | GEO satellite DTN via Es'hail-2 |
-| **Phase 2: EM** | 📋 Planned | UHF/S-band | CubeSat flatsat with STM32U585 + B200mini |
+| **Phase 2: EM** | 📋 Planned | UHF/S-band | CubeSat flatsat with STM32U585 + SDR |
 | **Phase 3: LEO** | 📋 Planned | UHF 437 MHz | Orbital CubeSat flight |
 | **Phase 4: Cislunar** | 📋 Planned | S-band 500 bps | Earth-Moon DTN (seeking ESA ARTES support) |
 
@@ -198,6 +198,7 @@ go build ./...
 ## Key Technologies
 
 - **HDTN** — NASA Glenn's High-rate Delay Tolerant Networking (C++17)
+- **µD3TN** — Lightweight, space-tested DTN implementation for microcontrollers and POSIX (candidate flight software)
 - **BPv7** — Bundle Protocol version 7 (RFC 9171)
 - **LTP** — Licklider Transmission Protocol (RFC 5326)
 - **CGR** — Contact Graph Routing for scheduled contacts

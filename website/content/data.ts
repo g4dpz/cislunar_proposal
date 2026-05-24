@@ -211,7 +211,7 @@ const roadmap: RoadmapPhase[] = [
     id: "phase-2",
     name: "Phase 2: CubeSat Engineering Model (EM)",
     status: "planned",
-    hardware: "STM32U585 OBC + Ettus B200mini SDR + External NVM",
+    hardware: "STM32U585 OBC + Software Defined Radio + External NVM",
     link: "UHF 437 MHz / S-band 2.2 GHz",
     purpose:
       "Ground-based flatsat with flight-representative hardware. " +
@@ -532,6 +532,7 @@ const futureEnhancements: FutureEnhancement[] = [
       "Plugin registry — adapters registered by name with factory functions for dynamic instantiation",
       "HDTN adapter — wraps existing HDTN integration via REST API lifecycle management",
       "ION-DTN adapter — interfaces with JPL's Interplanetary Overlay Network via bp library",
+      "µD3TN adapter — lightweight, space-tested implementation for microcontrollers (candidate flight software for CubeSat phases)",
       "ESA DTN adapter — integrates European Space Agency's DTN daemon",
       "YAML configuration — switch engines without code changes",
       "Contact plan abstraction — shared contact plans independent of engine implementation",
