@@ -270,7 +270,7 @@ The highest-level coordination component in the RADIANT architecture, sitting ab
 - **High-level delivery API** — Applications submit delivery requests with destination, priority, and QoS requirements (latency, confidence, hop count); the Orchestrator computes optimal paths and handles routing
 - **Path computation** — Contact Graph Routing (CGR) over time-varying topology, selecting paths that minimise delivery time while respecting capacity and QoS constraints, with alternative path support for expedited traffic
 - **Policy engine** — Service classes (Expedited, Standard, Bulk) with configurable bandwidth allocations and rule-based traffic classification for automatic QoS assignment
-- **Security and trust** — Ed25519 node authentication, trust levels (Trusted, Provisional, Untrusted, Revoked) affecting relay eligibility, and certificate management
+- **Node trust management** — Trust levels (Trusted, Provisional, Untrusted, Revoked) affecting relay eligibility, based on operator-assigned credentials and network behaviour observation
 - **Monitoring and telemetry** — Collects per-node and per-link performance metrics with rolling averages, delivery statistics, network utilisation tracking, and real-time visualisation data via WebSocket
 - **Integration** — Consumes contact plans from CPaaS (subscriptions, confidence levels, plan versions), executes routing via DTN Abstraction Layer Engine interface (SendBundle, Health, OnStateChange)
 - **Cislunar relevance** — Provides operational concepts applicable to future lunar and deep-space communication architectures

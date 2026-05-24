@@ -576,7 +576,7 @@ const futureEnhancements: FutureEnhancement[] = [
       "Delivery request API — high-level destination + QoS requirements, orchestrator handles routing",
       "CGR path computation — Contact Graph Routing with confidence, latency, and hop constraints",
       "Service classes — Expedited, Standard, Bulk with bandwidth allocation and traffic classification",
-      "Node authentication — Ed25519 cryptographic identities with trust level management",
+      "Node trust management — operator-assigned trust levels affecting relay eligibility",
       "Telemetry collection — node and link metrics with rolling averages and retention",
       "Delivery statistics — success rates, latency, utilisation, and per-service-class breakdown",
       "Network visualisation — REST + WebSocket for real-time network map rendering",
