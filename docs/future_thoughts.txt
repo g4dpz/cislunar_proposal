@@ -1,0 +1,228 @@
+Extending the RADIANT Vision: A Proposal for Future Development
+
+Introduction
+
+The RADIANT (Radio Amateur Delay-tolerant Interplanetary Networking Testbed) project was established to explore the practical application of Delay-Tolerant Networking (DTN) technologies within the amateur radio community. The current project phases remain focused on validating core DTN concepts, integrating emerging standards such as Bundle Protocol Version 7 (BPv7), and demonstrating how amateur radio infrastructure can participate in future space networking architectures.
+
+As the project progresses through its planned development stages, it is appropriate to begin considering how the architecture might evolve beyond the initial implementation objectives.
+
+This paper does not propose a change in direction for RADIANT. Rather, it outlines a possible future extension that builds upon the project’s existing goals and achievements.
+
+
+The Current RADIANT Vision
+
+The current RADIANT architecture is focused on demonstrating and evaluating DTN technologies in an amateur radio environment.
+
+At a high level, the architecture can be represented as:
+
+Applications
+      │
+      ▼
+DTN Node
+      │
+      ▼
+Amateur Radio Network
+The current objectives include:
+
+Evaluating BPv7 operation over amateur radio links.
+Investigating store-and-forward networking techniques.
+Exploring scheduled-contact communications.
+Providing an educational platform for DTN experimentation.
+Developing experience relevant to future cislunar and deep-space communications.
+These objectives remain the primary focus of the project.
+
+
+Looking Beyond Individual DTN Implementations
+
+As RADIANT matures, an important architectural question emerges:
+
+Should RADIANT be tied to a specific DTN implementation, or should it evolve to support multiple implementations?
+
+Today, several DTN implementations exist, including:
+
+HDTN
+ION-DTN
+ESA DTN
+Each offers different strengths and operational characteristics.
+
+While selecting an initial implementation is necessary for practical development, future interoperability may become increasingly important as DTN adoption expands.
+
+This suggests that RADIANT could eventually benefit from an abstraction layer that separates RADIANT services from the underlying DTN engine.
+
+Conceptually:
+
+Applications
+      │
+      ▼
+RADIANT Services
+      │
+ ┌────┼────┐
+ │    │    │
+ ▼    ▼    ▼
+HDTN ION ESA DTN
+Such an approach would allow experimentation with multiple DTN implementations while preserving a consistent application environment.
+
+At present this should be viewed as a future architectural consideration rather than an immediate development objective.
+
+
+Contact Plans as a Shared Resource
+
+One of the recurring themes in DTN operations is the importance of contact information.
+
+DTN networks differ from conventional IP networks because connectivity opportunities are often predictable and scheduled.
+
+Examples include:
+
+Satellite passes.
+Ground station visibility windows.
+Scheduled relay opportunities.
+Future cislunar communications links.
+Today, contact plans are typically managed within individual DTN implementations.
+
+A possible future extension would be to treat contact information as a shared network resource managed independently of the DTN implementation itself.
+
+Under such a model:
+
+Mission Planning
+        │
+        ▼
+RADIANT Contact Service
+        │
+ ┌──────┼──────┐
+ │      │      │
+ ▼      ▼      ▼
+HDTN   ION   ESA DTN
+The contact service would become the authoritative source for network opportunities while individual DTN implementations remain responsible for forwarding bundles.
+
+This concept might be described as:
+
+Contact Plan as a Service (CPaaS)
+
+Although not currently part of the project roadmap, it represents an interesting area for future investigation.
+
+
+Lessons from Ground Station as a Service
+
+The amateur satellite community has already experienced a similar transition.
+
+Historically, operators interacted directly with individual ground stations.
+
+Projects such as the GENSO initiative and later commercial Ground Station as a Service (GSaaS) platforms demonstrated a different approach.
+
+Instead of requesting access to a specific antenna, users request a communication opportunity.
+
+The infrastructure then determines how that opportunity is fulfilled.
+
+A comparable approach could eventually be applied to DTN networks.
+
+Rather than focusing on individual links or nodes, applications could express requirements such as:
+
+destination: LunarNode1
+priority: High
+delivery_confidence: 95%
+The underlying network would then determine the most appropriate path and resources.
+
+While such capabilities are beyond the current scope of RADIANT, they illustrate a potential future direction.
+
+
+Towards a Network Orchestration Layer
+
+A longer-term extension of the Contact Plan as a Service concept would be the introduction of a RADIANT Network Orchestrator.
+
+Such a system could potentially manage:
+
+Contact Information
+
+Scheduled contacts
+Predicted visibility windows
+Link characteristics
+Network Topology
+
+Reachability information
+Network maps
+Relay relationships
+Policy Management
+
+Traffic priorities
+Service classes
+Resource allocation
+Security Services
+
+Node identities
+Trust relationships
+Authentication policies
+Monitoring and Telemetry
+
+Link performance
+Network utilisation
+Delivery statistics
+This would position RADIANT as more than a collection of DTN nodes and instead as a platform for coordinating DTN operations.
+
+Again, this should be viewed as a possible future evolution rather than a near-term objective.
+
+
+Potential Benefits
+
+Should such an extension eventually be pursued, several potential benefits could emerge.
+
+Interoperability
+
+Multiple DTN implementations could coexist within a common operational framework.
+
+Experimentation
+
+Researchers could compare implementations and routing strategies without modifying applications.
+
+Education
+
+Amateur operators would gain experience not only with DTN protocols but also with the operational concepts required for future space networks.
+
+Future Relevance
+
+The platform could provide a useful environment for investigating networking concepts likely to appear in future lunar and cislunar communications architectures.
+
+
+Relationship to the Existing Project
+
+It is important to emphasise that these ideas do not replace the current RADIANT objectives.
+
+The current development stages remain focused on:
+
+Building DTN capability within amateur radio.
+Evaluating standards-based networking technologies.
+Developing practical operational experience.
+Establishing a robust experimental platform.
+The concepts described in this paper should therefore be viewed as a potential future extension that builds upon successful completion of those goals.
+
+The proposed evolution can be summarised as:
+
+Current Vision
+--------------
+Amateur Radio + DTN
+
+Possible Future Vision
+----------------------
+Amateur Radio + DTN + Network Orchestration
+The latter depends entirely upon the success and lessons learned from the former.
+
+
+Conclusion
+
+RADIANT was conceived as a practical testbed for exploring Delay-Tolerant Networking within the amateur radio community and for gaining experience with technologies relevant to future space communications.
+
+As the project progresses, there is an opportunity to consider how the architecture might evolve beyond individual DTN implementations and towards a broader operational framework.
+
+Concepts such as:
+
+DTN implementation abstraction
+Contact Plan as a Service
+Shared network topology services
+Network orchestration
+may eventually provide a natural extension of the original vision.
+
+At present, these ideas should be viewed as exploratory proposals intended to stimulate discussion and inform future architectural decisions.
+
+The immediate focus remains the successful implementation of the current RADIANT programme. However, by considering these possibilities now, the project can be developed in a manner that preserves flexibility and supports future growth should such capabilities prove desirable.
+
+
+Sent from my iPhone

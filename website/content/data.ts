@@ -519,6 +519,71 @@ const futureEnhancements: FutureEnhancement[] = [
     ],
     specPath: ".kiro/specs/multi-node-contact-graph/requirements.md",
   },
+  {
+    id: "dtn-abstraction-layer",
+    name: "DTN Abstraction Layer — Multi-Engine Support",
+    status: "planned",
+    summary:
+      "An abstraction layer decoupling RADIANT services from any single DTN implementation, " +
+      "enabling support for multiple DTN engines (HDTN, ION-DTN, ESA DTN) through a common " +
+      "Go interface and plugin/adapter architecture.",
+    highlights: [
+      "Common Engine interface — unified API for bundle creation, sending, receiving, and status",
+      "Plugin registry — adapters registered by name with factory functions for dynamic instantiation",
+      "HDTN adapter — wraps existing HDTN integration via REST API lifecycle management",
+      "ION-DTN adapter — interfaces with JPL's Interplanetary Overlay Network via bp library",
+      "ESA DTN adapter — integrates European Space Agency's DTN daemon",
+      "YAML configuration — switch engines without code changes",
+      "Contact plan abstraction — shared contact plans independent of engine implementation",
+      "Bundle serialization — common model with round-trip marshal/unmarshal properties",
+      "Lifecycle events — state change callbacks for monitoring engine health",
+    ],
+    specPath: ".kiro/specs/dtn-abstraction-layer/requirements.md",
+  },
+  {
+    id: "contact-plan-as-a-service",
+    name: "Contact Plan as a Service (CPaaS) — Centralised Contact Management",
+    status: "planned",
+    summary:
+      "A centralised service treating contact plan information as a shared network resource, " +
+      "managed independently of the DTN implementation. Provides the authoritative source for " +
+      "network connectivity opportunities across all DTN engines.",
+    highlights: [
+      "Canonical contact model — time-bounded directed links with data rate, OWLT, and confidence",
+      "Node registry — typed nodes (ground station, LEO, GEO, cislunar) with capabilities",
+      "REST CRUD API — create, query, update, and delete contacts programmatically",
+      "Orbital prediction — automatic contact generation from TLE data with confidence decay",
+      "Conflict detection — configurable resolution policies for overlapping contacts",
+      "Multi-format export — HDTN JSON, ION commands, and canonical JSON serialization",
+      "Push subscriptions — webhook/websocket notifications on plan changes",
+      "OTA distribution — BPv7 plan update bundles for space nodes (≤5KB per bundle)",
+      "Plan versioning — per-node and global monotonic versions with diff queries",
+      "Role-based access control — admin, operator, and node roles with bearer token auth",
+    ],
+    specPath: ".kiro/specs/contact-plan-as-a-service/requirements.md",
+  },
+  {
+    id: "radiant-network-orchestrator",
+    name: "RADIANT Network Orchestrator — Coordinated DTN Operations",
+    status: "planned",
+    summary:
+      "The highest-level coordination component transforming RADIANT from a collection of " +
+      "independent DTN nodes into a platform for managing delay-tolerant network operations " +
+      "with topology discovery, policy-based routing, and delivery orchestration.",
+    highlights: [
+      "Topology discovery — automatic network graph from CPaaS node registry and contacts",
+      "Link state tracking — real-time Active/Scheduled/Degraded/Unavailable states",
+      "Delivery request API — high-level destination + QoS requirements, orchestrator handles routing",
+      "CGR path computation — Contact Graph Routing with confidence, latency, and hop constraints",
+      "Service classes — Expedited, Standard, Bulk with bandwidth allocation and traffic classification",
+      "Node authentication — Ed25519 cryptographic identities with trust level management",
+      "Telemetry collection — node and link metrics with rolling averages and retention",
+      "Delivery statistics — success rates, latency, utilisation, and per-service-class breakdown",
+      "Network visualisation — REST + WebSocket for real-time network map rendering",
+      "Integrates with DTN Abstraction Layer and CPaaS for end-to-end coordination",
+    ],
+    specPath: ".kiro/specs/radiant-network-orchestrator/requirements.md",
+  },
 ];
 
 // ─── Exported Site Content ────────────────────────────────────────────────────

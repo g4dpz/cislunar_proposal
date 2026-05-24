@@ -262,6 +262,21 @@ A multi-node contact graph generator with time-dependent routing, enabling distr
 
 See [`.kiro/specs/multi-node-contact-graph/requirements.md`](.kiro/specs/multi-node-contact-graph/requirements.md) for the full requirements specification.
 
+### Network Orchestrator — Coordinated DTN Operations Platform
+
+The highest-level coordination component in the RADIANT architecture, sitting above the DTN Abstraction Layer and Contact Plan as a Service. Transforms RADIANT from a collection of independent DTN nodes into a platform for coordinating DTN operations, drawing from the GSaaS model where applications express high-level requirements and the infrastructure determines fulfillment:
+
+- **Network topology discovery** — Automatically maintains a graph of all DTN nodes and links derived from CPaaS contacts, with real-time link state tracking (Active, Scheduled, Degraded, Unavailable) and reachability computation
+- **High-level delivery API** — Applications submit delivery requests with destination, priority, and QoS requirements (latency, confidence, hop count); the Orchestrator computes optimal paths and handles routing
+- **Path computation** — Contact Graph Routing (CGR) over time-varying topology, selecting paths that minimise delivery time while respecting capacity and QoS constraints, with alternative path support for expedited traffic
+- **Policy engine** — Service classes (Expedited, Standard, Bulk) with configurable bandwidth allocations and rule-based traffic classification for automatic QoS assignment
+- **Security and trust** — Ed25519 node authentication, trust levels (Trusted, Provisional, Untrusted, Revoked) affecting relay eligibility, and certificate management
+- **Monitoring and telemetry** — Collects per-node and per-link performance metrics with rolling averages, delivery statistics, network utilisation tracking, and real-time visualisation data via WebSocket
+- **Integration** — Consumes contact plans from CPaaS (subscriptions, confidence levels, plan versions), executes routing via DTN Abstraction Layer Engine interface (SendBundle, Health, OnStateChange)
+- **Cislunar relevance** — Provides operational concepts applicable to future lunar and deep-space communication architectures
+
+See [`.kiro/specs/radiant-network-orchestrator/requirements.md`](.kiro/specs/radiant-network-orchestrator/requirements.md) for the full requirements specification.
+
 ---
 
 ## Documentation
