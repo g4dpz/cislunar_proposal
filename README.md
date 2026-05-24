@@ -199,6 +199,7 @@ go build ./...
 
 - **HDTN** — NASA Glenn's High-rate Delay Tolerant Networking (C++17)
 - **µD3TN** — Lightweight, space-tested DTN implementation for microcontrollers and POSIX (candidate flight software)
+- **Hardy** — Modular Rust BPv7 implementation with `no_std` core libraries (candidate flight software)
 - **BPv7** — Bundle Protocol version 7 (RFC 9171)
 - **LTP** — Licklider Transmission Protocol (RFC 5326)
 - **CGR** — Contact Graph Routing for scheduled contacts

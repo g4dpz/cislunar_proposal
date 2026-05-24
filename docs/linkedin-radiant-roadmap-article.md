@@ -27,7 +27,7 @@ Alongside the phased hardware roadmap, several cross-cutting capabilities are in
 
 Looking further ahead, we're exploring how RADIANT could evolve beyond a single DTN implementation:
 
-**DTN Abstraction Layer** — A common interface supporting multiple DTN engines (HDTN, µD3TN, ION-DTN, ESA DTN). Swap engines via configuration. Compare performance. Applications remain unchanged. µD3TN is a particularly strong candidate for flight software given its microcontroller heritage and space-tested track record.
+**DTN Abstraction Layer** — A common interface supporting multiple DTN engines (HDTN, µD3TN, Hardy, ION-DTN, ESA DTN). Swap engines via configuration. Compare performance. Applications remain unchanged. µD3TN is a particularly strong candidate for flight software given its microcontroller heritage and space-tested track record. Hardy brings memory-safe Rust with `no_std` core libraries suitable for embedded targets.
 
 **Contact Plan as a Service (CPaaS)** — A centralised service treating contact information as a shared network resource. Orbital predictions, conflict resolution, multi-format export, and OTA distribution to spacecraft — all independent of which DTN engine each node runs.
 

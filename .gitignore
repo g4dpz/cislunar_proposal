@@ -60,3 +60,4 @@ website/data/*.db-wal
 # External project symlinks
 esa-competition-contestants
 esa-competition-teams
+/hardy

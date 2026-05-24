@@ -533,6 +533,7 @@ const futureEnhancements: FutureEnhancement[] = [
       "HDTN adapter — wraps existing HDTN integration via REST API lifecycle management",
       "ION-DTN adapter — interfaces with JPL's Interplanetary Overlay Network via bp library",
       "µD3TN adapter — lightweight, space-tested implementation for microcontrollers (candidate flight software for CubeSat phases)",
+      "Hardy adapter — modular Rust BPv7 implementation with no_std core libraries (candidate for memory-safe flight software)",
       "ESA DTN adapter — integrates European Space Agency's DTN daemon",
       "YAML configuration — switch engines without code changes",
       "Contact plan abstraction — shared contact plans independent of engine implementation",
