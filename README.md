@@ -14,7 +14,7 @@
 
 RADIANT brings Delay-Tolerant Networking (DTN) to amateur radio, enabling store-and-forward messaging across disrupted links from terrestrial ground stations to Low Earth Orbit (LEO) and ultimately to cislunar space.
 
-Built on NASA Glenn's **HDTN** (High-rate Delay Tolerant Networking), this project implements Bundle Protocol version 7 (BPv7) over amateur radio links using LTP wrapped directly in KISS framing, with callsign-embedded DTN Endpoint Identifiers for station identification.
+The project implements Bundle Protocol version 7 (BPv7) over amateur radio links using LTP wrapped directly in KISS framing, with callsign-embedded DTN Endpoint Identifiers for station identification. The architecture is **DTN-implementation-agnostic** — the abstraction layer supports multiple DTN engines (NASA Glenn's HDTN, JPL's ION-DTN, µD3TN, and Hardy) through a common interface, allowing operators to select the engine best suited to their platform and mission phase.
 
 **Supported by**: AMSAT-UK, AMSAT-DL, and Goonhilly Earth Station
 
@@ -197,9 +197,15 @@ go build ./...
 
 ## Key Technologies
 
+### Supported DTN Engines (implementation-agnostic)
+
 - **HDTN** — NASA Glenn's High-rate Delay Tolerant Networking (C++17)
+- **ION-DTN** — JPL's Interplanetary Overlay Network
 - **µD3TN** — Lightweight, space-tested DTN implementation for microcontrollers and POSIX (candidate flight software)
 - **Hardy** — Modular Rust BPv7 implementation with `no_std` core libraries (candidate flight software)
+
+### Protocols and Standards
+
 - **BPv7** — Bundle Protocol version 7 (RFC 9171)
 - **LTP** — Licklider Transmission Protocol (RFC 5326)
 - **CGR** — Contact Graph Routing for scheduled contacts

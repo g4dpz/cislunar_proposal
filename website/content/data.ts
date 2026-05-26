@@ -153,12 +153,16 @@ const overview: OverviewContent = {
     "store-and-forward messaging across disrupted links from terrestrial ground stations " +
     "to Low Earth Orbit (LEO) and ultimately to cislunar space.",
   missionSummary2:
-    "Built on NASA Glenn's HDTN (High-rate Delay Tolerant Networking), this project implements " +
-    "the Bundle Protocol version 7 (BPv7) over amateur radio links using LTP wrapped directly " +
-    "in KISS framing. Station identification is achieved through callsign-embedded DTN Endpoint " +
-    "Identifiers (e.g. dtn://g4dpz/spacecraft) carried in every bundle's metadata, ensuring " +
-    "regulatory compliance while using numeric ipn:// addresses for efficient routing.",
+    "The project implements Bundle Protocol version 7 (BPv7) over amateur radio links using " +
+    "LTP wrapped directly in KISS framing. The architecture is DTN-implementation-agnostic — " +
+    "a common abstraction layer supports multiple DTN engines (NASA Glenn's HDTN, JPL's ION-DTN, " +
+    "µD3TN, and Hardy) through a unified interface, allowing operators to select the engine " +
+    "best suited to their platform and mission phase. Station identification is achieved through " +
+    "callsign-embedded DTN Endpoint Identifiers (e.g. dtn://g4dpz/spacecraft) carried in every " +
+    "bundle's metadata, ensuring regulatory compliance while using numeric ipn:// addresses for " +
+    "efficient routing.",
   features: [
+    "DTN-implementation-agnostic — supports HDTN, ION-DTN, µD3TN, and Hardy via a common abstraction layer",
     "Working 3-node cislunar simulation with true packet-level propagation delay",
     "Demonstrated Earth-Moon (1.3s) and Earth-Mars (3-12 min) DTN store-and-forward",
     "LTP-over-KISS with callsign-embedded DTN Endpoint Identifiers (amateur radio compliance)",
