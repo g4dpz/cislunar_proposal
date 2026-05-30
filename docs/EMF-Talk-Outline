@@ -1,0 +1,442 @@
+An Internet for the Solar System
+EMF Camp 2026
+David Johnson, G4DPZ
+
+Duration: 40 minutes
+Audience: Hackers, makers, software engineers, network engineers, space enthusiasts, curious non-specialists
+
+Slide 1 — Title
+An Internet for the Solar System
+
+How do you build communications infrastructure beyond Earth?
+
+David Johnson, G4DPZ
+
+AMSAT-UK • Goonhilly Earth Station • Intuitive Machines
+
+Background image: Earthrise or Artemis-era Moon imagery.
+
+Slide 2 — Imagine It's 2055
+You Live on the Moon
+
+You open a browser.
+
+You click a link.
+
+Nothing happens.
+
+Not because the network is broken.
+
+Not because the bandwidth is low.
+
+Because physics is getting in the way.
+
+Slide 3 — The Real Question
+What Does the Internet Look Like Beyond Earth?
+
+We know how to:
+
+Build rockets
+Land spacecraft
+Put people into orbit
+
+But:
+
+How do you build infrastructure around another world?
+
+Slide 4 — We're Entering a Second Space Age
+
+Images:
+
+Artemis
+Lunar Gateway
+Intuitive Machines lander
+ESA Moonlight concept
+
+Talking points:
+
+Return to the Moon
+Commercial lunar missions
+Permanent lunar presence
+Cislunar economy
+
+The challenge is no longer reaching the Moon.
+
+It's staying there.
+
+Slide 5 — Infrastructure Creates Civilisation
+
+Show:
+
+Roads
+Railways
+Electricity
+Mobile networks
+Internet
+
+Question:
+
+Which came first?
+
+The city or the infrastructure?
+
+Infrastructure makes scale possible.
+
+Slide 6 — The Moon Needs Infrastructure Too
+
+Not just:
+
+Rockets
+Habitats
+Space suits
+
+Also:
+
+Communications
+Navigation
+Timing
+Data networks
+
+The boring stuff that makes everything else possible.
+
+Slide 7 — Why I'm Interested
+
+Photo:
+
+You at Goonhilly
+IM-1 / IM-2 mission imagery
+
+Talking points:
+
+Through my work with Goonhilly Earth Station and Intuitive Machines I've seen first-hand how rapidly lunar infrastructure is evolving.
+
+The question that kept occurring:
+
+If agencies and commercial companies are building communications systems around the Moon...
+
+Can amateurs experiment with the same ideas?
+
+Slide 8 — GPS Is the Most Successful Space System Ever Built
+
+Question:
+
+What is the most widely used space technology?
+
+Answer:
+
+GPS
+
+Billions of users.
+
+Every day.
+
+Slide 9 — GPS Doesn't Reach the Moon
+
+Show:
+
+Earth
+
+GPS constellation
+
+Moon
+
+Explain:
+
+GPS is Earth infrastructure.
+
+Galileo is Earth infrastructure.
+
+The Moon needs its own Positioning, Navigation and Timing systems.
+
+Slide 10 — ESA's Moonlight Programme
+
+Title:
+
+Galileo for the Moon
+
+Explain:
+
+ESA Moonlight aims to provide:
+
+Communications
+Navigation
+Timing
+
+for future lunar missions.
+
+Key point:
+
+We are already designing infrastructure beyond Earth.
+
+Slide 11 — The Internet Has the Same Problem
+
+The Internet assumes:
+
+Fast responses
+Continuous connections
+Stable routes
+
+Space provides:
+
+Long delays
+Intermittent links
+Orbital motion
+Slide 12 — Distances That Break Your Brain
+Destination	One-way Delay
+London–New York	~30 ms
+GEO Satellite	~120 ms
+Moon	~1.3 s
+Mars	3–22 min
+Jupiter	35–50 min
+
+Question:
+
+What does a Zoom call to Mars look like?
+
+Slide 13 — The Future Looks Weirdly Like the Past
+
+Images:
+
+Postal service
+Mail coach
+Packet radio BBS
+
+Explain:
+
+For most of history:
+
+Messages were stored.
+
+Transported.
+
+Forwarded later.
+
+Maybe the future works the same way.
+
+Slide 14 — A Solar System Postal Service
+
+Introduce:
+
+Delay-Tolerant Networking
+
+Simple explanation:
+
+Store
+
+Carry
+
+Forward
+
+Deliver
+
+No continuous connection required.
+
+Slide 15 — NASA and ESA Are Already Building It
+
+Introduce:
+
+DTN
+CCSDS standards
+NASA
+ESA
+
+Mention:
+
+ION-DTN (JPL)
+HDTN (NASA Glenn)
+
+Without going into protocol details.
+
+Slide 16 — The Solar System as a Network
+
+Simple graphic:
+
+Earth
+
+↓
+
+Moon
+
+↓
+
+Mars
+
+↓
+
+Deep Space Missions
+
+Talking point:
+
+Networks may eventually connect planets rather than computers.
+
+Slide 17 — Routing by Time
+
+Visual:
+
+Earth visible to relay 12:00–12:10
+
+Relay visible to Moon 12:30–12:40
+
+Explain:
+
+In space:
+
+You often know future connectivity.
+
+So you can plan transmissions ahead of time.
+
+Most people find this fascinating.
+
+Slide 18 — This Isn't Science Fiction
+
+Logos:
+
+ESA
+NASA
+Moonlight
+Lunar Gateway
+Intuitive Machines
+Goonhilly
+
+Message:
+
+Infrastructure is already being built.
+
+Slide 19 — Where Amateur Radio Fits
+
+Historical images:
+
+OSCAR 1
+Packet radio
+Early satellites
+
+Talking point:
+
+Amateurs have a long history of experimenting before technologies become mainstream.
+
+Slide 20 — Enter RADIANT
+Radio Amateur Delay-tolerant Interplanetary Networking Testbed
+
+Goal:
+
+Explore how amateur radio can participate in space networking research.
+
+Slide 21 — The Big Idea
+
+Question:
+
+If professional space agencies are building a Solar System network...
+
+What would an amateur version look like?
+
+That's RADIANT.
+
+Slide 22 — Building Blocks
+
+Simple roadmap:
+
+Phase 1
+Terrestrial Radio
+
+↓
+
+Phase 1.5
+QO-100
+
+↓
+
+Phase 2
+CubeSat Engineering Model
+
+↓
+
+Phase 3
+LEO DTN Payload
+
+↓
+
+Phase 4
+Cislunar DTN Node
+
+Slide 23 — The Partners
+
+Logos:
+
+AMSAT-UK
+AMSAT-DL
+Goonhilly
+
+Talking point:
+
+This isn't just one person with an interesting idea.
+
+It's a collaboration across amateur and professional communities.
+
+Slide 24 — Why Amateur Radio Matters
+
+Because amateur radio offers:
+
+Open experimentation
+Global participation
+Real RF links
+Low-cost access
+
+A place where new communications ideas can be explored.
+
+Slide 25 — What Comes Next?
+
+Future possibilities:
+
+Lunar relay experiments
+Amateur CubeSats
+Delay-tolerant messaging
+Cislunar communications
+
+Maybe one day:
+
+An amateur station sends a message via a node near the Moon.
+
+Slide 26 — Why This Matters
+
+This isn't really about amateur radio.
+
+It's about:
+
+Infrastructure
+Exploration
+Open systems
+The future of networking
+Slide 27 — Closing Thought
+
+Large Earth-Moon image.
+
+The first Internet connected universities.
+
+The next generation of networks may connect worlds.
+
+Slide 28 — Get Involved
+
+RADIANT
+
+radiant.amsat-uk.org
+
+David Johnson, G4DPZ
+
+Seeking:
+
+Developers
+SDR hackers
+Network engineers
+Space enthusiasts
+Ground station operators
+Speaker Notes
+
+The balance should be approximately:
+
+20% space exploration
+25% infrastructure (GPS, Moonlight, communications)
+25% networking concepts
+20% RADIANT
+10% call to action
+
+For EMF, the key is that the audience leaves talking about "building infrastructure beyond Earth", not about BPv7, AX.25, or protocol stacks. Those details can come out during questions or over a beer afterwards. The talk should make RADIANT feel like a tangible amateur contribution to the broader challenge of building a connected cislunar future.

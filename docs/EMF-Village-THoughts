@@ -1,0 +1,110 @@
+That actually strengthens the case for keeping the main EMF talk broad and accessible.
+
+I would treat them as two completely different events:
+
+Main EMF Talk
+
+"An Internet for the Solar System"
+
+Audience:
+
+Hackers
+Makers
+Network engineers
+Curious attendees
+People who have never touched a radio
+
+Focus:
+
+Why infrastructure matters
+GPS/Galileo and lunar PNT
+ESA Moonlight
+Why the Internet breaks in space
+DTN as a concept
+RADIANT as a practical amateur experiment
+
+Very little protocol detail.
+
+Very little amateur-radio jargon.
+
+The goal is:
+
+"Wow, I never thought about how the Internet would work beyond Earth."
+
+AMSAT Village Session
+
+"Building RADIANT: Amateur Delay-Tolerant Networking from Earth to Cislunar Space"
+
+Audience:
+
+Satellite operators
+SDR developers
+Packet radio people
+CubeSat builders
+RF experimenters
+
+Now you can get much more technical.
+
+Suggested structure:
+
+1. What is RADIANT? (10 mins)
+Goals
+Roadmap
+AMSAT-UK
+AMSAT-DL
+Goonhilly
+2. Why DTN? (10 mins)
+Store-and-forward
+BPv7
+LTP
+Contact Graph Routing
+
+Explain the engineering trade-offs.
+
+3. Hardy Demonstration (20 mins)
+
+This becomes the centrepiece.
+
+Show:
+
+Earth ↔ Moon
+Earth ↔ Mars
+
+Demonstrate:
+
+Latency
+LTP acknowledgements
+Store-and-forward behaviour
+
+This is the sort of thing the AMSAT Village crowd will love.
+
+4. Radio Integration (15 mins)
+KISS
+9600 baud packet
+Mobilinkd TNC4
+HDTN
+Your CLA work
+
+This is where you can discuss the removal of AX.25 if you want some lively debate.
+
+5. Future Plans (10 mins)
+QO-100
+CubeSat engineering model
+LEO payload
+Cislunar node
+6. Hack Session / Discussion
+
+Questions like:
+
+Who wants to run a node?
+Who has a QO-100 station?
+Who can help with SDR work?
+Who has CubeSat experience?
+
+In fact, I'd explicitly reference the AMSAT Village in the main talk:
+
+"If you're interested in the amateur-radio side of this, we'll be running a demonstration and discussion session in the AMSAT Village where we'll be showing some of the software and simulations behind the project."
+
+That way the main talk attracts people who are intrigued by the idea, and the AMSAT Village session becomes the place where the genuinely interested technical audience self-selects and comes to talk to you.
+
+That's a pattern that works very well at EMF: inspire in the talk, recruit in the village.

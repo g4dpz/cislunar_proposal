@@ -26,7 +26,7 @@ RADIANT uses the Licklider Transmission Protocol (LTP) beneath BPv7. LTP was des
 
 The first orbital target for RADIANT is a CubeSat-class DTN payload in Low Earth Orbit. The primary mission objective is straightforward but significant: demonstrate reliable ground-to-space DTN operation using amateur radio infrastructure.
 
-The planned payload uses an STM32U585 ultra-low-power ARM Cortex-M33 microcontroller operating at 160 MHz, with 2 MB of flash memory and 786 KB of SRAM. The device includes hardware cryptographic acceleration and ARM TrustZone support while maintaining extremely low power consumption.
+The planned payload uses an STM32U585 ultra-low-power ARM Cortex-M33 microcontroller operating at 160 MHz, with 2 MB of flash memory and 786 KB of SRAM, while maintaining extremely low power consumption.
 
 The RF subsystem centres on a flight-qualified IQ transceiver IC interfacing directly with the STM32 via DAC and ADC paths. Initial operations are planned on the 437 MHz amateur satellite band at 9.6 kbps using GMSK or BPSK modulation — intentionally chosen to remain accessible to existing amateur ground stations worldwide.
 
@@ -62,7 +62,7 @@ Phase 1, currently underway, uses Raspberry Pi systems with Mobilinkd TNC4 modem
 
 The terrestrial nodes implement the full operational feature set planned for the space missions. Bundles are stored persistently on the local filesystem, surviving power cycles and process restarts. A contact plan manager maintains scheduled communication windows between nodes, and the system transmits queued bundles in strict priority order (critical, expedited, normal, bulk) during each window. LTP provides reliable transfer with deferred acknowledgment, automatically retransmitting unacknowledged segments in subsequent contact windows. Rate limiting protects the bundle store from flooding, and expired bundles are automatically evicted.
 
-Current testing between G4DPZ and M0XER has demonstrated functional store-and-forward delivery and DTN ping operation. The system correctly handles link interruptions — if the TNC connection drops mid-contact, bundles are retained and retried during the next window. This behaviour directly mirrors what the CubeSat payload must do when a ground pass ends or a link degrades.
+Current testing by G4DPZ has demonstrated functional store-and-forward delivery and DTN ping operation. The system correctly handles link interruptions — if the TNC connection drops mid-contact, bundles are retained and retried during the next window. This behaviour directly mirrors what the CubeSat payload must do when a ground pass ends or a link degrades.
 
 The planned Phase 1.5 introduces QO-100 as the first genuine space-based DTN experiment. Using the Es'hail-2 narrowband transponder, the project will validate DTN operation over a real GEO satellite path with authentic 500 ms round-trip delay. This phase acts as a crucial bridge between terrestrial tests and orbital hardware.
 
@@ -86,7 +86,7 @@ One notable design choice is the elimination of AX.25 entirely. LTP packets are 
 
 Regulatory compliance remains central to the design. Station identification is achieved using callsign-based DTN Endpoint Identifiers such as `dtn://g4dpz-1`. Every transmitted bundle therefore contains explicit operator identification within the source EID. Additional plaintext beacon bundles transmitted every ten minutes include callsign, node name, EID, timestamp, and Maidenhead locator — ensuring that any station demodulating the signal can identify the transmitter, even when the wire format carries only opaque numeric `ipn://` routing addresses.
 
-The system does not use encryption and remains fully compliant with amateur radio regulations. The project plans to publish a formal protocol definition document describing the callsign EID convention, SSID allocation, service demultiplexing, and beacon formats. This follows the established precedent set by APRS, FT8, D-STAR, and Winlink, all of which rely on publicly documented protocol specifications with callsign identification defined within them.
+The system remains fully compliant with amateur radio regulations. The project plans to publish a formal protocol definition document describing the callsign EID convention, SSID allocation, service demultiplexing, and beacon formats. This follows the established precedent set by APRS, FT8, D-STAR, and Winlink, all of which rely on publicly documented protocol specifications with callsign identification defined within them.
 
 ## Getting Involved
 
