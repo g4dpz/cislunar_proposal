@@ -31,80 +31,433 @@ The goal is:
 
 "Wow, I never thought about how the Internet would work beyond Earth."
 
-AMSAT Village Session
+---
+
+AMSAT Village Session — 45 Minutes + Open Hack Time
 
 "Building RADIANT: Amateur Delay-Tolerant Networking from Earth to Cislunar Space"
 
-Audience:
+Audience (mixed — plan for this):
 
-Satellite operators
-SDR developers
-Packet radio people
-CubeSat builders
-RF experimenters
+From the main talk:
+  Software engineers who thought "I could help build that"
+  Network engineers curious about DTN routing
+  Makers who want to see real hardware
+  Space enthusiasts who want more depth
+  People who have never touched a radio but are intrigued
 
-Now you can get much more technical.
+From the AMSAT Village:
+  Satellite operators
+  SDR developers
+  Packet radio people
+  CubeSat builders
+  RF experimenters
 
-Suggested structure:
+The session must work for BOTH groups.
 
-1. What is RADIANT? (10 mins)
-Goals
-Roadmap
-AMSAT-UK
-AMSAT-DL
-Goonhilly
-2. Why DTN? (10 mins)
-Store-and-forward
-BPv7
-LTP
-Contact Graph Routing
+Don't assume amateur radio knowledge.
+Don't assume networking ignorance.
 
-Explain the engineering trade-offs.
+Explain radio concepts briefly when they come up (KISS, TNC, 9600 baud).
+Don't over-explain TCP, routing, or store-and-forward — the main talk covered that.
 
-3. Hardy Demonstration (20 mins)
+The tone is: "here's how we're actually building this, and here's how you can help."
 
-This becomes the centrepiece.
+---
+
+Session Structure (45 minutes)
+
+1. Welcome and Context (5 mins)
+
+Acknowledge the mixed audience:
+
+"Some of you are here because you saw the main talk and thought 'I want to know how that actually works.' Some of you live and breathe amateur radio and satellites. This session is for both of you."
+
+Brief recap for newcomers (2 mins max):
+
+The Internet breaks in space because of delay and disruption
+DTN solves this with store-carry-forward
+RADIANT is an amateur radio experiment to build and test this
+
+Then set expectations:
+
+"I'm going to show you the architecture, then we'll do two live demos — one simulating cislunar links, one over real radio hardware. After that, we'll open it up for hacking and discussion."
+
+For the radio newcomers, promise:
+
+"If I use a term you don't know, ask. There's no assumed knowledge here beyond 'I'm interested in networks.'"
+
+2. RADIANT Architecture Deep Dive (10 mins)
+
+Start with the "what" before the "how":
+
+"We're building a system that can send a message from a ground station, through a relay satellite, to a lander on the Moon — using amateur radio and open-source software."
+
+Then show the protocol stack:
+
+┌─────────────────────────────────────┐
+│   Application (bpsendfile, bping)   │
+├─────────────────────────────────────┤
+│   BPv7 (Bundle Protocol)            │  ← "Think of this as the envelope"
+│   EID: dtn://callsign/service       │
+├─────────────────────────────────────┤
+│   LTP (Licklider Transmission)      │  ← "Reliable delivery over huge delays"
+├─────────────────────────────────────┤
+│   KISS (TNC Serial Framing)         │  ← "How we talk to the radio hardware"
+├─────────────────────────────────────┤
+│   USB Serial (TNC4)                 │  ← "A £100 modem"
+├─────────────────────────────────────┤
+│   G3RUH GFSK (9600 baud)            │  ← "The actual radio signal"
+└─────────────────────────────────────┘
+
+For the software people, explain:
+
+BPv7 is like IP but for disrupted networks — bundles instead of packets
+LTP is like TCP but designed for links where a round-trip takes minutes
+KISS is just serial framing — bytes in, bytes out, no magic
+The whole thing is open source, written in Go, C++, and Rust
+
+Introduce Hardy (https://github.com/g4dpz/hardy):
+
+Hardy is a modular Rust BPv7 implementation that I'm extending to support LTP.
+It uses no_std core libraries — meaning it can run on bare-metal microcontrollers.
+This makes it a candidate for actual flight software on a CubeSat.
+"If you write Rust, this is where you can make a direct contribution to space hardware."
+
+For the radio people, explain:
+
+Why LTP over KISS directly (no AX.25) — AX.25 was designed for connected-mode links, DTN doesn't need that
+Why callsign-embedded EIDs solve station identification without a separate beacon
+Why the system is DTN-engine-agnostic (HDTN, ION, µD3TN, Hardy)
+  — HDTN for ground stations (high performance, C++)
+  — Hardy for flight software (Rust, no_std, memory-safe, runs on microcontrollers)
+  — The abstraction layer means you can swap engines via configuration
+
+Contact Graph Routing — for everyone:
+
+"You know the satellite will be overhead at 14:32 tomorrow.
+So you schedule the transmission now.
+It's like a train timetable for data."
+
+The "enforced openness" angle (this resonates with the EMF crowd):
+
+Amateur radio regulations mean no encryption of user data
+All protocols must be publicly documented
+Everything we build is transparent and auditable by design
+"This is a feature, not a limitation — it means anyone can inspect, verify, and contribute"
+
+3. Demo 1: Cislunar Simulation — Live (15 mins)
+
+This is the centrepiece.
+
+Setup:
+
+Laptop running the 3-node HDTN simulation
+Terminal windows showing all three nodes
+Projector or large screen
+
+The simulation:
+
+Ground Station (Earth) → Lunar Orbiter (relay) → Lunar Lander
+     nodeId=10              nodeId=20              nodeId=30
+
+Live demonstration sequence:
+
+a) Earth-Moon (1.3s one-way light time)
+
+Send a file from Earth to the Lander:
+
+  echo 'Hello Moon from EMF Camp!' > /tmp/hdtn-send/emf.dat
+  bpsendfile --my-uri-eid=ipn:1.1 --dest-uri-eid=ipn:3.1 ...
 
 Show:
 
-Earth ↔ Moon
-Earth ↔ Mars
+The bundle leaving Earth
+The 1.3-second propagation delay (real, via udp-delay-sim)
+The bundle arriving at the orbiter relay
+Store-and-forward at the relay
+The bundle arriving at the lander
+LTP acknowledgement returning 2.6 seconds later
 
-Demonstrate:
+Narrate what's happening at each stage. The audience can see the delay in real time.
 
-Latency
-LTP acknowledgements
-Store-and-forward behaviour
+b) Mars scenario (3-minute one-way)
 
-This is the sort of thing the AMSAT Village crowd will love.
+Switch to Mars contact plan configuration.
 
-4. Radio Integration (15 mins)
-KISS
-9600 baud packet
-Mobilinkd TNC4
-HDTN
-Your CLA work
+Send a bundle and explain:
 
-This is where you can discuss the removal of AX.25 if you want some lively debate.
+"This bundle is now in flight. It won't arrive for 3 minutes.
+The sending node is responsible for it until the relay confirms receipt.
+If we don't get an acknowledgement, it retransmits."
 
-5. Future Plans (10 mins)
-QO-100
-CubeSat engineering model
-LEO payload
-Cislunar node
-6. Hack Session / Discussion
+You don't need to wait the full 3 minutes — explain the principle, show the timer counting, then skip ahead to the received file.
 
-Questions like:
+c) Contact window demonstration
 
-Who wants to run a node?
-Who has a QO-100 station?
-Who can help with SDR work?
-Who has CubeSat experience?
+Show what happens when a contact window closes mid-transfer:
 
-In fact, I'd explicitly reference the AMSAT Village in the main talk:
+Bundle gets stored at the relay
+Relay holds it until the next contact window opens
+Then forwards it onward
 
-"If you're interested in the amateur-radio side of this, we'll be running a demonstration and discussion session in the AMSAT Village where we'll be showing some of the software and simulations behind the project."
+This demonstrates the "postal service" model in action.
 
-That way the main talk attracts people who are intrigued by the idea, and the AMSAT Village session becomes the place where the genuinely interested technical audience self-selects and comes to talk to you.
+4. Demo 2: Radio Integration — Live or Prepared (10 mins)
 
-That's a pattern that works very well at EMF: inspire in the talk, recruit in the village.
+Option A: Live RF demo (if equipment available)
+
+Equipment:
+
+Two laptops
+Two Mobilinkd TNC4 units
+Two handheld radios (Baofeng/FT-817) on a simplex frequency
+Short antenna (rubber duck is fine indoors)
+
+Show:
+
+Send a DTN bundle from laptop A → TNC → radio → radio → TNC → laptop B
+The KISS framing on the wire
+The callsign appearing in the bundle metadata
+The bundle arriving at the destination
+
+This proves it works over real RF, not just simulation.
+
+Option B: Pre-recorded RF demo (safer for timing)
+
+Screen recording of the above, with audio of the 9600 baud modem tones.
+
+Play the recording and narrate:
+
+"This is what 9600 baud G3RUH sounds like"
+"Here's the KISS frame being sent to the TNC"
+"And here's the bundle arriving at the other end"
+
+Even the audio of the modem tones is compelling for this audience.
+
+Option C: Loopback with real TNC hardware
+
+If RF is impractical in the venue:
+
+Connect two TNCs back-to-back via audio cable
+Same demo without radiating
+Still shows the real hardware path
+
+5. Roadmap and What's Next (5 mins)
+
+Phase 1 — Terrestrial Radio (now)
+  DTN over amateur packet radio links
+  What we've demonstrated today
+
+Phase 1.5 — QO-100
+  DTN via geostationary amateur satellite (Es'hail-2)
+  2.4 GHz up / 10 GHz down
+  Real 240ms GEO delay
+  "Who here has a QO-100 station?"
+
+Phase 2 — CubeSat Engineering Model
+  Flight-representative hardware on the ground
+  STM32U585 + SDR
+  µD3TN or Hardy as flight software
+  Hardy is the Rust option — no_std, memory-safe, LTP support being added now
+  "This is where the code you write today could end up in orbit"
+
+Phase 3 — LEO DTN Payload
+  First amateur DTN node in orbit
+  437 MHz UHF
+  Store-and-forward from orbit
+
+Phase 4 — Cislunar DTN Node
+  Amateur relay near the Moon
+  S-band 500 bps
+  The long-term goal
+
+Show the multi-node contact graph:
+
+Multiple ground stations
+LEO satellite passes
+GEO backbone via QO-100
+Cislunar link
+
+---
+
+Open Hack Session (after the 45-minute talk)
+
+This is where the real recruitment happens.
+
+Format: Informal, no fixed end time. People come and go.
+
+Activities:
+
+a) "Run a node" workshop
+
+Bring 2-3 Raspberry Pis pre-configured with HDTN
+Let people send bundles between them
+Provide a one-page quickstart guide
+QR code to the GitHub repo
+
+b) Hands-on hardware
+
+Mobilinkd TNC4 units people can handle
+Show the KISS framing on an oscilloscope or logic analyser
+Let people plug in and send a bundle
+
+c) Architecture walkthrough
+
+Print or display the system architecture diagram
+Walk interested people through the code structure
+Show the Go orchestrator, the C++ KISS CLA plugin, the configs
+
+Hardy deep-dive for Rust developers:
+
+Show the Hardy repo (https://github.com/g4dpz/hardy)
+Explain the no_std architecture — core libraries compile for bare metal
+Walk through the LTP implementation work in progress
+Show how it targets STM32U585 (the CubeSat flight processor)
+"This is real flight software. If you contribute here, your code could orbit Earth."
+
+Good first issues for Rust contributors:
+  LTP session management
+  KISS framing integration
+  Bundle serialisation optimisation
+  no_std testing on embedded targets
+
+d) Recruitment board
+
+Physical sign-up sheet or digital form (QR code).
+
+Explicitly list roles for BOTH audiences:
+
+Software people:
+  "I can write Go"
+  "I can write C++"
+  "I can write Rust" (Hardy — flight software, LTP, no_std)
+  "I can help with CI/CD and testing"
+  "I can build a web dashboard"
+  "I want to work on the contact graph routing"
+  "I want to contribute but don't know where to start"
+
+Radio/hardware people:
+  "I have a QO-100 station"
+  "I have SDR experience"
+  "I have CubeSat experience"
+  "I can run a ground station node"
+  "I can help with RF design"
+  "I have a ham licence and want to get involved"
+
+No licence required for most contributions:
+  "You don't need a radio licence to write code, build simulations, or design protocols. You only need one to transmit."
+
+Capture names, callsigns (if any), email addresses, GitHub handles.
+
+e) Discussion topics to seed
+
+"Should we keep AX.25 or go pure KISS?"
+"What's the minimum viable QO-100 ground station for DTN?"
+"How do we handle authentication without encryption?"
+"What would you build on top of a delay-tolerant network?"
+  — Lunar BBS?
+  — Sensor networks?
+  — DTN messaging app?
+  — Space weather data relay?
+
+f) Lightning talks (if time/interest)
+
+Offer 5-minute slots for anyone who's done related work:
+
+Packet radio operators
+LoRa mesh experimenters
+Satellite ground station builders
+Anyone who's played with HDTN or ION
+
+---
+
+Equipment Checklist
+
+For the talk:
+
+[ ] Laptop with HDTN simulation pre-configured and tested
+[ ] Backup laptop or USB stick with simulation
+[ ] HDMI/USB-C adapter for projector
+[ ] Pre-recorded demo videos as backup (in case live demo fails)
+[ ] Slide deck (if using any slides for the architecture section)
+
+For Demo 2 (RF):
+
+[ ] 2x Mobilinkd TNC4
+[ ] 2x Handheld radio (programmed to agreed simplex frequency)
+[ ] 2x USB cables
+[ ] 2x Laptops with HDTN + KISS CLA
+[ ] Audio patch cable (for loopback fallback)
+[ ] Short rubber duck antennas
+
+For the hack session:
+
+[ ] 2-3x Raspberry Pi with HDTN pre-installed
+[ ] Ethernet switch or WiFi AP for local network
+[ ] Power strips
+[ ] Printed one-page quickstart guides (20 copies)
+[ ] QR code cards (GitHub, website, sign-up form)
+[ ] Sign-up sheet / tablet with form
+[ ] Whiteboard or flip chart for architecture diagrams
+
+---
+
+Timing and Scheduling
+
+Schedule the village session the day AFTER the main talk.
+
+Reasoning:
+
+People inspired by the main talk have time to find you
+Word of mouth spreads overnight
+The AMSAT Village crowd will already know about it
+
+Ideal slot: afternoon or early evening.
+
+Evening works well because:
+
+People are more relaxed
+Willing to stay for discussion
+The hack session can run into the night naturally
+
+---
+
+Cross-promotion
+
+In the main talk (slide 22):
+
+"If you're interested in the amateur-radio side of this, come find us at the AMSAT Village tomorrow — we'll be running live demonstrations and a hack session where you can send your own DTN bundles."
+
+In the AMSAT Village schedule:
+
+"Following on from 'An Internet for the Solar System' in the main programme — this session goes deep on the engineering, with live demos of delay-tolerant networking over simulated cislunar links and real amateur radio hardware."
+
+On the AMSAT Village whiteboard:
+
+Time, location, "bring a laptop if you want to run a node"
+
+---
+
+Success Criteria
+
+The session is a success if:
+
+1. At least 5 people sign up to contribute in some capacity
+2. Someone without a radio licence asks "how do I get involved?"
+3. Someone asks "can I run a node from home?"
+4. The live demo works without crashing (have backups!)
+5. At least one good technical discussion happens organically
+6. Someone with QO-100 experience offers to help with Phase 1.5
+7. People are still hanging around the hack session an hour after the talk ends
+8. A software person and a radio person start talking to each other about the project
+
+---
+
+Pattern: Inspire in the talk, recruit in the village.
+
+The main talk attracts people who are intrigued by the idea.
+
+The AMSAT Village session is where the genuinely interested technical audience self-selects and comes to talk to you.
+
+That's a pattern that works very well at EMF.
