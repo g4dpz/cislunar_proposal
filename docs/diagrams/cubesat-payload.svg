@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 400" font-family="Arial, sans-serif">
+  <!-- Background -->
+  <rect width="700" height="400" fill="#1a1a2e"/>
+  
+  <!-- Title -->
+  <text x="350" y="30" text-anchor="middle" fill="#e0e0e0" font-size="16" font-weight="bold">CubeSat DTN Payload Block Diagram</text>
+  
+  <!-- Main MCU -->
+  <rect x="250" y="130" width="180" height="100" rx="8" fill="#16213e" stroke="#f39c12" stroke-width="2"/>
+  <text x="340" y="160" text-anchor="middle" fill="#f1c40f" font-size="12" font-weight="bold">STM32U585</text>
+  <text x="340" y="178" text-anchor="middle" fill="#bdc3c7" font-size="9">ARM Cortex-M33</text>
+  <text x="340" y="192" text-anchor="middle" fill="#bdc3c7" font-size="9">160 MHz</text>
+  <text x="340" y="206" text-anchor="middle" fill="#bdc3c7" font-size="9">2 MB Flash / 786 KB SRAM</text>
+  <text x="340" y="220" text-anchor="middle" fill="#7f8c8d" font-size="8">Stop 2: ~16 µA sleep</text>
+  
+  <!-- IQ Transceiver -->
+  <rect x="500" y="140" width="150" height="70" rx="6" fill="#16213e" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="575" y="168" text-anchor="middle" fill="#e74c3c" font-size="11" font-weight="bold">IQ Transceiver</text>
+  <text x="575" y="185" text-anchor="middle" fill="#bdc3c7" font-size="9">Flight-qualified IC</text>
+  <text x="575" y="200" text-anchor="middle" fill="#7f8c8d" font-size="8">DAC/ADC interface</text>
+  
+  <!-- Connection MCU to Transceiver -->
+  <line x1="430" y1="170" x2="500" y2="170" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="465" y="163" text-anchor="middle" fill="#e67e22" font-size="8">DAC</text>
+  <line x1="430" y1="185" x2="500" y2="185" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="465" y="198" text-anchor="middle" fill="#e67e22" font-size="8">ADC</text>
+  
+  <!-- PA -->
+  <rect x="530" y="240" width="90" height="45" rx="6" fill="#16213e" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="575" y="262" text-anchor="middle" fill="#e74c3c" font-size="10">PA</text>
+  <text x="575" y="277" text-anchor="middle" fill="#bdc3c7" font-size="9">2 W</text>
+  
+  <!-- Connection Transceiver to PA -->
+  <line x1="575" y1="210" x2="575" y2="240" stroke="#e74c3c" stroke-width="1.5"/>
+  
+  <!-- Antenna -->
+  <line x1="575" y1="285" x2="575" y2="310" stroke="#e74c3c" stroke-width="1.5"/>
+  <line x1="555" y1="310" x2="595" y2="310" stroke="#e74c3c" stroke-width="2"/>
+  <line x1="555" y1="310" x2="545" y2="330" stroke="#e74c3c" stroke-width="1.5"/>
+  <line x1="575" y1="310" x2="575" y2="335" stroke="#e74c3c" stroke-width="1.5"/>
+  <line x1="595" y1="310" x2="605" y2="330" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="575" y="352" text-anchor="middle" fill="#bdc3c7" font-size="9">Omni Antenna</text>
+  <text x="575" y="365" text-anchor="middle" fill="#7f8c8d" font-size="8">437 MHz</text>
+  
+  <!-- NVM Storage -->
+  <rect x="250" y="270" width="130" height="55" rx="6" fill="#16213e" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="315" y="295" text-anchor="middle" fill="#9b59b6" font-size="11" font-weight="bold">NVM Storage</text>
+  <text x="315" y="312" text-anchor="middle" fill="#bdc3c7" font-size="9">64–256 MB</text>
+  <text x="315" y="325" text-anchor="middle" fill="#7f8c8d" font-size="8">Bundle persistence</text>
+  
+  <!-- Connection MCU to NVM -->
+  <line x1="315" y1="230" x2="315" y2="270" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="335" y="252" fill="#9b59b6" font-size="8">SPI/QSPI</text>
+  
+  <!-- Power subsystem -->
+  <rect x="60" y="160" width="140" height="70" rx="6" fill="#16213e" stroke="#2ecc71" stroke-width="1.5"/>
+  <text x="130" y="185" text-anchor="middle" fill="#2ecc71" font-size="11" font-weight="bold">Power System</text>
+  <text x="130" y="202" text-anchor="middle" fill="#bdc3c7" font-size="9">5–10 W average</text>
+  <text x="130" y="218" text-anchor="middle" fill="#7f8c8d" font-size="8">Solar + Battery</text>
+  
+  <!-- Connection Power to MCU -->
+  <line x1="200" y1="180" x2="250" y2="180" stroke="#2ecc71" stroke-width="1.5"/>
+  <text x="225" y="173" text-anchor="middle" fill="#2ecc71" font-size="8">VDD</text>
+  
+  <!-- Software stack label inside MCU area -->
+  <rect x="255" y="80" width="170" height="40" rx="4" fill="none" stroke="#f39c12" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="340" y="97" text-anchor="middle" fill="#f39c12" font-size="9">BPv7 → LTP → KISS</text>
+  <text x="340" y="112" text-anchor="middle" fill="#7f8c8d" font-size="8">CGR + Contact Plan Manager</text>
+  <line x1="340" y1="120" x2="340" y2="130" stroke="#f39c12" stroke-width="1" stroke-dasharray="2,2"/>
+  
+  <!-- Modulation label -->
+  <rect x="470" y="80" width="120" height="30" rx="4" fill="none" stroke="#e74c3c" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="530" y="100" text-anchor="middle" fill="#e74c3c" font-size="9">GMSK / BPSK</text>
+  <text x="530" y="112" text-anchor="middle" fill="#7f8c8d" font-size="8">9.6 kbps</text>
+</svg>

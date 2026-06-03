@@ -93,6 +93,10 @@ Start with the "what" before the "how":
 
 "We're building a system that can send a message from a ground station, through a relay satellite, to a lander on the Moon — using amateur radio and open-source software."
 
+Position RADIANT in the bigger picture:
+
+"In 2023, the Internet Society's Interplanetary Chapter — IPNSIG — published a framework for the Solar System Internet. Co-authored by Vint Cerf. Their recommendation: BPv7, LTP, and Contact Graph Routing as the basis for all communications beyond Earth. RADIANT implements exactly this architecture. We're not inventing a protocol stack; we're implementing the one that NASA, ESA, and the Internet Society have agreed on."
+
 Then show the protocol stack:
 
 ┌─────────────────────────────────────┐
@@ -128,10 +132,14 @@ For the radio people, explain:
 
 Why LTP over KISS directly (no AX.25) — AX.25 was designed for connected-mode links, DTN doesn't need that
 Why callsign-embedded EIDs solve station identification without a separate beacon
+  — The SSI report discusses BP identifier allocation (managed by IANA/SANA)
+  — Amateur radio's existing callsign system is already globally unique and regulated
+  — We've solved the "identifier governance" problem by leveraging what already exists
 Why the system is DTN-engine-agnostic (HDTN, ION, µD3TN, Hardy)
   — HDTN for ground stations (high performance, C++)
   — Hardy for flight software (Rust, no_std, memory-safe, runs on microcontrollers)
   — The abstraction layer means you can swap engines via configuration
+  — The SSI report emphasises interoperability between implementations — this is how we achieve it
 
 Contact Graph Routing — for everyone:
 
@@ -145,6 +153,14 @@ Amateur radio regulations mean no encryption of user data
 All protocols must be publicly documented
 Everything we build is transparent and auditable by design
 "This is a feature, not a limitation — it means anyone can inspect, verify, and contribute"
+
+Link to the SSI security model:
+
+The SSI report discusses BPSec — integrity and authenticity for bundles
+For amateur radio, we use integrity protection (HMAC) without payload encryption
+"We can prove who sent a bundle and that it hasn't been tampered with — we just can't hide what's inside it"
+This aligns with the SSI report's recommendation: "authenticity of the bundle source can be provided by digital signatures" — we do exactly that
+The report also notes that security policies should be transparent and published — amateur radio regulations already enforce this
 
 3. Demo 1: Cislunar Simulation — Live (15 mins)
 
@@ -245,6 +261,14 @@ Still shows the real hardware path
 
 5. Roadmap and What's Next (5 mins)
 
+The SSI report describes an evolution:
+
+Today: Space agency point-to-point links
+Transitional: Commercial and amateur networks emerge alongside agency backbones
+Future: Multiple interconnected networks, peering like ISPs on Earth
+
+RADIANT sits in the "transitional" phase — we're building an amateur SSI node before the commercial ones exist. The report calls for multistakeholder governance. Amateur radio operators are a stakeholder. RADIANT is how we earn our seat at that table.
+
 Phase 1 — Terrestrial Radio (now)
   DTN over amateur packet radio links
   What we've demonstrated today
@@ -271,6 +295,7 @@ Phase 4 — Cislunar DTN Node
   Amateur relay near the Moon
   S-band 500 bps
   The long-term goal
+  The SSI report: "The infrastructure built in cislunar will become the scaffold for humans and robots to extend even farther"
 
 Show the multi-node contact graph:
 
@@ -278,6 +303,10 @@ Multiple ground stations
 LEO satellite passes
 GEO backbone via QO-100
 Cislunar link
+
+The SSI vision: a "network of networks" in space.
+RADIANT could be one of those networks — an amateur DTN network that peers with agency networks via standard BP/LTP.
+Like early ISPs peering with university networks in the 1990s.
 
 ---
 
@@ -354,12 +383,15 @@ e) Discussion topics to seed
 
 "Should we keep AX.25 or go pure KISS?"
 "What's the minimum viable QO-100 ground station for DTN?"
-"How do we handle authentication without encryption?"
+"How do we handle authentication without encryption?" (link to BPSec and the SSI security model)
 "What would you build on top of a delay-tolerant network?"
   — Lunar BBS?
   — Sensor networks?
   — DTN messaging app?
   — Space weather data relay?
+"How should amateur DTN nodes peer with agency networks?" (the SSI report's interconnection model)
+"What governance model should an amateur SSI network use?" (multistakeholder, open standards, transparent policies)
+"How do we handle time synchronisation for contact plans across multiple ground stations?" (the SSI report's time standards discussion)
 
 f) Lightning talks (if time/interest)
 
@@ -461,3 +493,45 @@ The main talk attracts people who are intrigued by the idea.
 The AMSAT Village session is where the genuinely interested technical audience self-selects and comes to talk to you.
 
 That's a pattern that works very well at EMF.
+
+---
+
+Key References
+
+Solar System Internet:
+
+- IPNSIG, "Solar System Internet Architecture and Governance", September 2023
+  Co-authored by Vint Cerf, Scott Burleigh, Scott Pace, et al.
+  https://www.ipnsig.org/
+  Key points: BPv7+LTP recommended, multistakeholder governance, network-of-networks vision,
+  evolutionary model (agency → public-private → commercial), identifier allocation, security architecture
+
+Standards:
+
+- RFC 9171 — Bundle Protocol Version 7 (BPv7)
+- RFC 5326 — Licklider Transmission Protocol (LTP)
+- RFC 9172 — Bundle Protocol Security (BPSec)
+- CCSDS 730.1-G-1 — Solar System Internetwork Architecture
+- CCSDS 734.1-B-1 — Licklider Transmission Protocol (space profile)
+
+NASA/ESA programmes:
+
+- LunaNet Interoperability Specification (NASA/TP-20210021073/Rev.4)
+- NASA HDTN — https://github.com/nasa/HDTN
+- ESA Moonlight — https://www.esa.int/Applications/Connectivity_and_Secure_Communications/Moonlight
+- KPLO (Korea Pathfinder Lunar Orbiter) — BP flying at the Moon today
+
+RADIANT:
+
+- Website: https://radiant.amsat-uk.org
+- Source: https://github.com/g4dpz/cislunar_proposal
+- Hardy (Rust BPv7 + LTP): https://github.com/g4dpz/hardy
+
+Governance and coordination:
+
+- IPNSIG (Internet Society Interplanetary Chapter): https://www.ipnsig.org/
+- CCSDS (Consultative Committee for Space Data Systems): https://public.ccsds.org/
+- IETF DTN Working Group: https://datatracker.ietf.org/wg/dtn/about/
+- IETF TVR Working Group (Time-Variant Routing): https://datatracker.ietf.org/wg/tvr/about/
+- IOAG (Interagency Operations Advisory Group): https://www.ioag.org/
+- SANA (Space Assigned Numbers Authority): https://sanaregistry.org/

@@ -151,7 +151,9 @@ const overview: OverviewContent = {
   missionSummary:
     "RADIANT brings Delay-Tolerant Networking (DTN) to amateur radio, enabling " +
     "store-and-forward messaging across disrupted links from terrestrial ground stations " +
-    "to Low Earth Orbit (LEO) and ultimately to cislunar space.",
+    "to Low Earth Orbit (LEO) and ultimately to cislunar space. Current status: two-node " +
+    "terrestrial DTN operational (Raspberry Pi, Mobilinkd TNC4, Yaesu FT-817, 9600 baud " +
+    "G3RUH GFSK over VHF/UHF). All subsequent phases are in design or planning.",
   missionSummary2:
     "The project implements Bundle Protocol version 7 (BPv7) over amateur radio links using " +
     "LTP wrapped directly in KISS framing. The architecture is DTN-implementation-agnostic — " +
@@ -164,7 +166,7 @@ const overview: OverviewContent = {
   features: [
     "DTN-implementation-agnostic — supports HDTN, ION-DTN, µD3TN, and Hardy via a common abstraction layer",
     "Working 3-node cislunar simulation with true packet-level propagation delay",
-    "Demonstrated Earth-Moon (1.3s) and Earth-Mars (3-12 min) DTN store-and-forward",
+    "Validated DTN store-and-forward with simulated cislunar (1.3s) and interplanetary (3–12 min) propagation delays",
     "LTP-over-KISS with callsign-embedded DTN Endpoint Identifiers (amateur radio compliance)",
     "Contact Graph Routing (CGR) computing multi-hop paths through relay nodes",
     "Multi-node contact graph with time-dependent routing across ground stations, LEO, GEO, and cislunar nodes",
@@ -180,7 +182,7 @@ const overview: OverviewContent = {
     "LTP (Licklider Transmission)",
     "KISS (TNC Serial Framing)",
     "USB Serial (TNC4)",
-    "G3RUH GFSK (9600 baud)",
+    "G3RUH GFSK (9600 baud) — Phase 1 baseline; adaptive modulation (4FSK, QPSK) and FEC planned for Phase 2+",
   ],
   license: "MIT",
   collaborators,
@@ -284,18 +286,18 @@ const documentation: DocumentationLinks = {
   packages: [
     {
       title: "HDTN Wrapper",
-      url: "https://github.com/g4dpz/cislunar_proposal/tree/main/pkg/hdtn",
-      description: "Go wrapper for NASA Glenn's HDTN library.",
+      url: "#",
+      description: "Go wrapper for NASA Glenn's HDTN library. (Source not yet public — repository under development.)",
     },
     {
       title: "Contact Plan Manager + CGR",
-      url: "https://github.com/g4dpz/cislunar_proposal/tree/main/pkg/contact",
-      description: "Contact plan management and Contact Graph Routing.",
+      url: "#",
+      description: "Contact plan management and Contact Graph Routing. (Source not yet public — repository under development.)",
     },
     {
       title: "Security Package",
-      url: "https://github.com/g4dpz/cislunar_proposal/tree/main/pkg/security",
-      description: "Rate limiting and access control.",
+      url: "#",
+      description: "Rate limiting and access control. (Source not yet public — repository under development.)",
     },
   ],
 };

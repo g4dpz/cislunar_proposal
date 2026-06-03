@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 300" font-family="Arial, sans-serif">
+  <!-- Background -->
+  <rect width="850" height="300" fill="#1a1a2e"/>
+  
+  <!-- Title -->
+  <text x="425" y="30" text-anchor="middle" fill="#e0e0e0" font-size="16" font-weight="bold">RADIANT Development Roadmap</text>
+  
+  <!-- Timeline axis -->
+  <line x1="60" y1="150" x2="790" y2="150" stroke="#34495e" stroke-width="2"/>
+  <!-- Arrow -->
+  <polygon points="790,150 780,145 780,155" fill="#34495e"/>
+  
+  <!-- Phase 1 -->
+  <circle cx="130" cy="150" r="12" fill="#2ecc71" stroke="#27ae60" stroke-width="2"/>
+  <text x="130" y="155" text-anchor="middle" fill="#1a1a2e" font-size="10" font-weight="bold">1</text>
+  <rect x="70" y="170" width="120" height="80" rx="6" fill="#16213e" stroke="#2ecc71" stroke-width="1.5"/>
+  <text x="130" y="190" text-anchor="middle" fill="#2ecc71" font-size="10" font-weight="bold">Terrestrial</text>
+  <text x="130" y="206" text-anchor="middle" fill="#bdc3c7" font-size="9">RPi + TNC4</text>
+  <text x="130" y="220" text-anchor="middle" fill="#bdc3c7" font-size="9">VHF/UHF 9600bd</text>
+  <text x="130" y="234" text-anchor="middle" fill="#bdc3c7" font-size="9">G3RUH packet</text>
+  <text x="130" y="265" text-anchor="middle" fill="#2ecc71" font-size="9">✓ Active</text>
+  
+  <!-- Phase 1.5 -->
+  <circle cx="270" cy="150" r="12" fill="#1abc9c" stroke="#16a085" stroke-width="2"/>
+  <text x="270" y="155" text-anchor="middle" fill="#1a1a2e" font-size="9" font-weight="bold">1.5</text>
+  <rect x="210" y="170" width="120" height="80" rx="6" fill="#16213e" stroke="#1abc9c" stroke-width="1.5"/>
+  <text x="270" y="190" text-anchor="middle" fill="#1abc9c" font-size="10" font-weight="bold">QO-100 (GEO)</text>
+  <text x="270" y="206" text-anchor="middle" fill="#bdc3c7" font-size="9">Es'hail-2 NB</text>
+  <text x="270" y="220" text-anchor="middle" fill="#bdc3c7" font-size="9">500ms RTT</text>
+  <text x="270" y="234" text-anchor="middle" fill="#bdc3c7" font-size="9">Real space path</text>
+  <text x="270" y="265" text-anchor="middle" fill="#f39c12" font-size="9">◐ Planned</text>
+  
+  <!-- Phase 2 -->
+  <circle cx="420" cy="150" r="12" fill="#3498db" stroke="#2980b9" stroke-width="2"/>
+  <text x="420" y="155" text-anchor="middle" fill="#1a1a2e" font-size="10" font-weight="bold">2</text>
+  <rect x="360" y="170" width="120" height="80" rx="6" fill="#16213e" stroke="#3498db" stroke-width="1.5"/>
+  <text x="420" y="190" text-anchor="middle" fill="#3498db" font-size="10" font-weight="bold">CubeSat EM</text>
+  <text x="420" y="206" text-anchor="middle" fill="#bdc3c7" font-size="9">STM32U585</text>
+  <text x="420" y="220" text-anchor="middle" fill="#bdc3c7" font-size="9">B200mini SDR</text>
+  <text x="420" y="234" text-anchor="middle" fill="#bdc3c7" font-size="9">TVAC / fault inj.</text>
+  <text x="420" y="265" text-anchor="middle" fill="#f39c12" font-size="9">◐ Planned</text>
+  
+  <!-- Phase 3 -->
+  <circle cx="570" cy="150" r="12" fill="#f39c12" stroke="#e67e22" stroke-width="2"/>
+  <text x="570" y="155" text-anchor="middle" fill="#1a1a2e" font-size="10" font-weight="bold">3</text>
+  <rect x="510" y="170" width="120" height="80" rx="6" fill="#16213e" stroke="#f39c12" stroke-width="1.5"/>
+  <text x="570" y="190" text-anchor="middle" fill="#f39c12" font-size="10" font-weight="bold">LEO CubeSat</text>
+  <text x="570" y="206" text-anchor="middle" fill="#bdc3c7" font-size="9">437 MHz</text>
+  <text x="570" y="220" text-anchor="middle" fill="#bdc3c7" font-size="9">9.6 kbps GMSK</text>
+  <text x="570" y="234" text-anchor="middle" fill="#bdc3c7" font-size="9">Orbital DTN</text>
+  <text x="570" y="265" text-anchor="middle" fill="#95a5a6" font-size="9">○ Future</text>
+  
+  <!-- Phase 4 -->
+  <circle cx="720" cy="150" r="12" fill="#9b59b6" stroke="#8e44ad" stroke-width="2"/>
+  <text x="720" y="155" text-anchor="middle" fill="#1a1a2e" font-size="10" font-weight="bold">4</text>
+  <rect x="660" y="170" width="120" height="80" rx="6" fill="#16213e" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="720" y="190" text-anchor="middle" fill="#9b59b6" font-size="10" font-weight="bold">Cislunar</text>
+  <text x="720" y="206" text-anchor="middle" fill="#bdc3c7" font-size="9">S-band 2.2 GHz</text>
+  <text x="720" y="220" text-anchor="middle" fill="#bdc3c7" font-size="9">500 bps BPSK</text>
+  <text x="720" y="234" text-anchor="middle" fill="#bdc3c7" font-size="9">1.3s one-way</text>
+  <text x="720" y="265" text-anchor="middle" fill="#95a5a6" font-size="9">○ Future</text>
+  
+  <!-- Top annotations - what each phase validates -->
+  <rect x="70" y="75" width="120" height="35" rx="4" fill="none" stroke="#2ecc71" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="130" y="92" text-anchor="middle" fill="#2ecc71" font-size="8">Full protocol stack</text>
+  <text x="130" y="103" text-anchor="middle" fill="#2ecc71" font-size="8">over real RF</text>
+  <line x1="130" y1="110" x2="130" y2="138" stroke="#2ecc71" stroke-width="1" stroke-dasharray="2,2"/>
+  
+  <rect x="360" y="75" width="120" height="35" rx="4" fill="none" stroke="#3498db" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="420" y="92" text-anchor="middle" fill="#3498db" font-size="8">Flight hardware</text>
+  <text x="420" y="103" text-anchor="middle" fill="#3498db" font-size="8">validation</text>
+  <line x1="420" y1="110" x2="420" y2="138" stroke="#3498db" stroke-width="1" stroke-dasharray="2,2"/>
+  
+  <rect x="660" y="75" width="120" height="35" rx="4" fill="none" stroke="#9b59b6" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="720" y="92" text-anchor="middle" fill="#9b59b6" font-size="8">Deep-space DTN</text>
+  <text x="720" y="103" text-anchor="middle" fill="#9b59b6" font-size="8">demonstration</text>
+  <line x1="720" y1="110" x2="720" y2="138" stroke="#9b59b6" stroke-width="1" stroke-dasharray="2,2"/>
+</svg>

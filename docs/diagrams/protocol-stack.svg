@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 350" font-family="Arial, sans-serif">
+  <!-- Background -->
+  <rect width="700" height="350" fill="#1a1a2e"/>
+  
+  <!-- Title -->
+  <text x="350" y="30" text-anchor="middle" fill="#e0e0e0" font-size="16" font-weight="bold">Protocol Stack Comparison</text>
+  
+  <!-- RADIANT Stack -->
+  <text x="200" y="65" text-anchor="middle" fill="#2ecc71" font-size="13" font-weight="bold">RADIANT</text>
+  
+  <rect x="80" y="80" width="240" height="45" rx="4" fill="#1e3a5f" stroke="#3498db" stroke-width="1.5"/>
+  <text x="200" y="107" text-anchor="middle" fill="#ecf0f1" font-size="12">Application</text>
+  
+  <rect x="80" y="130" width="240" height="45" rx="4" fill="#1e3a5f" stroke="#2ecc71" stroke-width="1.5"/>
+  <text x="200" y="152" text-anchor="middle" fill="#ecf0f1" font-size="12">Bundle Protocol v7</text>
+  <text x="200" y="167" text-anchor="middle" fill="#7f8c8d" font-size="9">RFC 9171</text>
+  
+  <rect x="80" y="180" width="240" height="45" rx="4" fill="#1e3a5f" stroke="#e67e22" stroke-width="1.5"/>
+  <text x="200" y="202" text-anchor="middle" fill="#ecf0f1" font-size="12">Licklider Transport Protocol</text>
+  <text x="200" y="217" text-anchor="middle" fill="#7f8c8d" font-size="9">RFC 5326 — deferred ACK</text>
+  
+  <rect x="80" y="230" width="240" height="45" rx="4" fill="#1e3a5f" stroke="#f39c12" stroke-width="1.5"/>
+  <text x="200" y="257" text-anchor="middle" fill="#ecf0f1" font-size="12">KISS Framing</text>
+  
+  <rect x="80" y="280" width="240" height="45" rx="4" fill="#1e3a5f" stroke="#e74c3c" stroke-width="1.5"/>
+  <text x="200" y="302" text-anchor="middle" fill="#ecf0f1" font-size="12">G3RUH 9600 baud</text>
+  <text x="200" y="317" text-anchor="middle" fill="#7f8c8d" font-size="9">437 MHz UHF</text>
+  
+  <!-- Traditional Stack -->
+  <text x="510" y="65" text-anchor="middle" fill="#e74c3c" font-size="13" font-weight="bold">Traditional Packet</text>
+  
+  <rect x="390" y="80" width="240" height="45" rx="4" fill="#2c1a1a" stroke="#95a5a6" stroke-width="1"/>
+  <text x="510" y="107" text-anchor="middle" fill="#bdc3c7" font-size="12">Application</text>
+  
+  <rect x="390" y="130" width="240" height="45" rx="4" fill="#2c1a1a" stroke="#95a5a6" stroke-width="1"/>
+  <text x="510" y="157" text-anchor="middle" fill="#bdc3c7" font-size="12">TCP/IP</text>
+  
+  <rect x="390" y="180" width="240" height="45" rx="4" fill="#2c1a1a" stroke="#c0392b" stroke-width="1.5"/>
+  <text x="510" y="202" text-anchor="middle" fill="#e74c3c" font-size="12">AX.25</text>
+  <text x="510" y="217" text-anchor="middle" fill="#7f8c8d" font-size="9">+15 bytes overhead per frame</text>
+  
+  <rect x="390" y="230" width="240" height="45" rx="4" fill="#2c1a1a" stroke="#95a5a6" stroke-width="1"/>
+  <text x="510" y="257" text-anchor="middle" fill="#bdc3c7" font-size="12">KISS Framing</text>
+  
+  <rect x="390" y="280" width="240" height="45" rx="4" fill="#2c1a1a" stroke="#95a5a6" stroke-width="1"/>
+  <text x="510" y="307" text-anchor="middle" fill="#bdc3c7" font-size="12">G3RUH 9600 baud</text>
+  
+  <!-- Cross-out on AX.25 -->
+  <line x1="395" y1="180" x2="625" y2="225" stroke="#c0392b" stroke-width="2" opacity="0.6"/>
+  
+  <!-- Annotation -->
+  <text x="350" y="340" text-anchor="middle" fill="#7f8c8d" font-size="10">RADIANT eliminates AX.25 — ~10% throughput improvement</text>
+</svg>

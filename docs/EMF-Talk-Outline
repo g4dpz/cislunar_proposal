@@ -214,10 +214,37 @@ NASA Glenn: HDTN (open source)
 JPL: ION-DTN
 ESA: standardising through CCSDS
 ISS: has run DTN experiments since 2008
+KPLO: Bundle Protocol flying at the Moon today (Korea Pathfinder Lunar Orbiter)
+
+In 2023, the Internet Society's Interplanetary Chapter (IPNSIG) published a governance framework for the Solar System Internet — co-authored by Vint Cerf.
+
+Their recommendation: BPv7 + LTP + Contact Graph Routing as the basis for all communications beyond Earth.
+
+RADIANT implements exactly this architecture.
 
 This is real infrastructure being built by space agencies right now.
 
-Slide 15 — Where Amateur Radio Fits
+Slide 15 — The Solar System Internet
+
+The IPNSIG report envisions a "network of networks" in space — like the terrestrial Internet.
+
+The evolution:
+
+Today: Space agency point-to-point links
+Transitional: Commercial and amateur networks emerge alongside agency backbones
+Future: Multiple interconnected networks, peering like ISPs on Earth
+
+Key insight:
+
+"In 1983, three disparate networks joined together using TCP/IP, giving birth to the Internet. The Solar System Internet will follow a similar trajectory."
+
+The report calls for multistakeholder governance — not just space agencies deciding.
+
+Amateur radio operators are a stakeholder.
+
+RADIANT is how we earn our seat at that table.
+
+Slide 16 — Where Amateur Radio Fits
 
 Historical images:
 
@@ -230,7 +257,7 @@ Amateurs have a long history of experimenting before technologies become mainstr
 Packet radio preceded the commercial Internet.
 Amateur satellites preceded commercial constellations.
 
-Slide 16 — Enter RADIANT
+Slide 17 — Enter RADIANT
 
 Radio Amateur Delay-tolerant Interplanetary Networking Testbed
 
@@ -240,7 +267,7 @@ What would an amateur version look like?
 
 That's RADIANT.
 
-Slide 17 — The Roadmap
+Slide 18 — The Roadmap
 
 Phase 1 — Terrestrial Radio (now)
 DTN over amateur packet radio links
@@ -259,7 +286,7 @@ Amateur relay near the Moon
 
 Timeline: now → next year → 3 years → 5+ years
 
-Slide 18 — Demo: Live Simulation
+Slide 19 — Demo: Live Simulation
 
 Live or pre-recorded screen capture:
 
@@ -275,7 +302,7 @@ Mention:
 
 This makes RADIANT feel real rather than aspirational.
 
-Slide 19 — The Partners
+Slide 20 — The Partners
 
 Logos:
 
@@ -287,7 +314,7 @@ This isn't just one person with an interesting idea.
 
 It's a collaboration across amateur and professional communities.
 
-Slide 20 — Why This Matters
+Slide 21 — Why This Matters
 
 This isn't really about amateur radio.
 
@@ -302,7 +329,17 @@ All protocols are public. All software is open source. Anyone can run a node.
 
 The regulations that govern amateur radio mean everything we build is transparent and auditable by design.
 
-Slide 21 — Closing Thought
+The IPNSIG report's key principles for the Solar System Internet:
+
+Collaboration
+Transparency
+Interoperability
+Fair resource allocation
+Security built in from the start
+
+RADIANT already embodies all of these.
+
+Slide 22 — Closing Thought
 
 Large Earth-Moon image.
 
@@ -310,7 +347,7 @@ The first Internet connected universities.
 
 The next generation of networks may connect worlds.
 
-Slide 22 — Get Involved
+Slide 23 — Get Involved
 
 RADIANT
 
@@ -332,16 +369,16 @@ Ground station operators
 
 Speaker Notes
 
-Pacing: 22 slides for 40 minutes = ~1.8 minutes per slide. Comfortable pace with room for pauses and audience reactions.
+Pacing: 23 slides for 40 minutes = ~1.7 minutes per slide. Comfortable pace with room for pauses and audience reactions.
 
 The balance should be approximately:
 
 15% space context (slides 2–4)
-15% personal credibility and motivation (slides 5–6)
+10% personal credibility and motivation (slides 5–6)
 30% the networking problem and DTN concepts (slides 7–13)
-10% professional context / not science fiction (slide 14)
-20% RADIANT and amateur radio (slides 15–20)
-10% close and call to action (slides 21–22)
+15% professional context and SSI vision (slides 14–15)
+20% RADIANT and amateur radio (slides 16–21)
+10% close and call to action (slides 22–23)
 
 Key principles for EMF:
 
@@ -349,7 +386,19 @@ Key principles for EMF:
 - Use analogies they know: UUCP, postal service, train timetables.
 - Pre-empt the Starlink question — it shows you've thought about it.
 - The TCP handshake example makes the problem visceral for anyone who's written networked code.
+- The IPNSIG/SSI reference adds institutional weight — this isn't just amateur radio people dreaming.
 - The demo (even pre-recorded) makes RADIANT tangible.
-- End on the emotional line (slide 21), keep the logistics (slide 22) as a backdrop for Q&A.
+- End on the emotional line (slide 22), keep the logistics (slide 23) as a backdrop for Q&A.
 - Cross-reference the AMSAT Village session to funnel interested technical people.
 - QR code on the final slide — people will photograph it.
+
+Key references:
+
+- IPNSIG, "Solar System Internet Architecture and Governance", September 2023
+  (Co-authored by Vint Cerf, Scott Burleigh, et al.)
+  https://www.ipnsig.org/
+- RFC 9171 — Bundle Protocol Version 7
+- RFC 5326 — Licklider Transmission Protocol
+- NASA HDTN — https://github.com/nasa/HDTN
+- LunaNet Interoperability Specification (NASA/TP-20210021073)
+- CCSDS 730.1-G-1 — Solar System Internetwork Architecture
