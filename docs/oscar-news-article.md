@@ -74,7 +74,7 @@ An important design philosophy throughout is that the terrestrial network intent
 
 Every demonstration therefore exercises the same DTN behaviour, contact scheduling logic, and store-and-forward mechanisms needed for deep-space operation.
 
-The project has already achieved several notable technical milestones, including a functioning three-node cislunar simulation incorporating realistic packet-level propagation delays ranging from lunar-scale 1.3-second paths to Mars-scale multi-minute round-trip times. CGR is successfully computing multi-hop relay paths while LTP manages RTTs up to 24 minutes. Supporting infrastructure includes a custom C++17 KISS convergence layer adapter for HDTN, a Go-based orchestration system, property-based testing, and a full CI pipeline.
+The project has already achieved several notable technical milestones, including a functioning three-node cislunar simulation incorporating simulated packet-level propagation delays (injected via software, not actual RF paths) ranging from lunar-scale 1.3-second paths to Mars-scale multi-minute round-trip times. CGR is successfully computing multi-hop relay paths while LTP manages RTTs up to 24 minutes. Supporting infrastructure includes a custom C++17 KISS convergence layer adapter for HDTN, a Go-based orchestration system, property-based testing, and a full CI pipeline.
 
 ## Protocol Stack and Regulatory Compliance
 
@@ -94,7 +94,7 @@ RADIANT is designed as a community project from the outset. Participation ranges
 
 The project is actively seeking collaboration from amateur radio clubs, universities, CubeSat teams, packet radio operators, microwave experimenters, EME and weak-signal operators, and researchers interested in space networking.
 
-All software and documentation are open-source and publicly available.
+All software and documentation are open-source under the MIT licence. The source repository is currently private while contribution agreements with AMSAT-UK are finalised, but will be made public.
 
 **Website:** https://radiant.amsat-uk.org
 

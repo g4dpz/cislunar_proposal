@@ -22,27 +22,28 @@ The project implements Bundle Protocol version 7 (BPv7) over amateur radio links
 
 ## What We've Accomplished
 
-### Working DTN Simulation
+### Working DTN Simulation (Lab Environment)
 
-We have a fully operational 3-node DTN simulation demonstrating store-and-forward relay with true packet-level propagation delays:
+We have a fully operational 3-node DTN simulation demonstrating store-and-forward relay with **simulated** propagation delays (injected via HDTN's `udp-delay-sim` proxy over localhost — not real space links):
 
 ```
 Ground Station (Earth) → Lunar Orbiter (relay) → Lunar Lander
      nodeId=10              nodeId=20              nodeId=30
 ```
 
-**Demonstrated scenarios:**
-- **Cislunar**: 1.3-second OWLT, 500 bps S-band (Earth-Moon)
-- **Mars closest approach**: 3-minute OWLT, 32 kbps X-band
-- **Mars average**: 12-minute OWLT, 32 kbps X-band
-- **True packet-level delay**: Using HDTN's `udp-delay-sim` proxy for real propagation simulation
+**Simulated scenarios (artificial delay injection, not RF paths):**
+- **Cislunar timing**: 1.3-second OWLT injected, 500 bps configured
+- **Mars closest approach timing**: 3-minute OWLT injected, 32 kbps configured
+- **Mars average timing**: 12-minute OWLT injected, 32 kbps configured
 
-**What this proves:**
-- LTP deferred acknowledgment with deep-space retransmission timers
-- Contact Graph Routing (CGR) computing multi-hop paths
-- Store-and-forward relay at the orbiter node
-- Bundle delivery across multiple hops with different link characteristics
-- LTP session management with 2.6s to 24-minute round-trip times
+**What this validates:**
+- LTP deferred acknowledgment works correctly with deep-space retransmission timers
+- Contact Graph Routing (CGR) computes multi-hop paths as expected
+- Store-and-forward relay at the orbiter node functions correctly
+- Bundle delivery across multiple hops with different configured link characteristics
+- LTP session management handles 2.6s to 24-minute round-trip times gracefully
+
+> **Note:** These are software simulations with injected delay, running on a single machine or LAN. They validate the DTN protocol behaviour under representative timing conditions, but do not involve actual RF propagation or space hardware.
 
 ### HDTN Migration
 
@@ -197,12 +198,12 @@ go build ./...
 
 ## Key Technologies
 
-### Supported DTN Engines (implementation-agnostic)
+### Supported DTN Engines (implementation-agnostic architecture)
 
-- **HDTN** — NASA Glenn's High-rate Delay Tolerant Networking (C++17)
-- **ION-DTN** — JPL's Interplanetary Overlay Network
-- **µD3TN** — Lightweight, space-tested DTN implementation for microcontrollers and POSIX (candidate flight software)
-- **Hardy** — Modular Rust BPv7 implementation with `no_std` core libraries (candidate flight software)
+- **HDTN** — NASA Glenn's High-rate Delay Tolerant Networking (C++17) — **currently integrated and operational**
+- **ION-DTN** — JPL's Interplanetary Overlay Network — *planned via abstraction layer*
+- **µD3TN** — Lightweight, space-tested DTN implementation for microcontrollers and POSIX — *planned, candidate flight software*
+- **Hardy** — Modular Rust BPv7 implementation with `no_std` core libraries — *planned, candidate flight software*
 
 ### Protocols and Standards
 
@@ -214,7 +215,9 @@ go build ./...
 
 ---
 
-## Future Enhancements
+## Future Enhancements (Designed, Not Yet Implemented)
+
+The following features have detailed specifications but **no implementation yet**. They represent the design direction for future development phases.
 
 ### Contact Log — Versioned Contact-Plan and Run-Evidence Logging
 
@@ -310,4 +313,4 @@ MIT — see [LICENSE](LICENSE)
 - **Website**: https://radiant.amsat-uk.org
 - **Email**: dave@g4dpz.me.uk
 - **Callsign**: G4DPZ
-- **Source**: https://github.com/g4dpz/cislunar_proposal
+- **Source**: Private repository (not yet public — contribution agreements pending)

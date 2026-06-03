@@ -16,7 +16,7 @@ The project progresses through five phases:
 
 ## Planned Features
 
-Alongside the phased hardware roadmap, several cross-cutting capabilities are in development:
+Alongside the phased hardware roadmap, several cross-cutting capabilities are in design (specifications written, implementation not yet started):
 
 - **Multi-Node Contact Graph** — Time-dependent routing across ground stations, LEO, GEO, and cislunar nodes with automated plan distribution
 - **Contact Log** — Versioned logging of planned vs. actual contact behaviour for cross-phase performance comparison

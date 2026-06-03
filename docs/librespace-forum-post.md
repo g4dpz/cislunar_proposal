@@ -42,10 +42,10 @@ Each phase validates technologies needed for the next. The terrestrial network d
 
 Phase 1 is operational with two nodes. We've demonstrated:
 
-- Store-and-forward delivery and DTN ping over real amateur radio links
-- 3-node cislunar simulation with true packet-level propagation delays (1.3s Moon, 3-12 min Mars)
+- Store-and-forward delivery and DTN ping over real amateur radio links (9600 baud VHF/UHF)
+- 3-node cislunar simulation with **simulated** propagation delays injected via software (1.3s Moon, 3-12 min Mars — not actual RF paths)
 - Contact Graph Routing computing multi-hop relay paths
-- LTP managing RTTs up to 24 minutes
+- LTP managing RTTs up to 24 minutes (in simulation)
 - Custom C++17 KISS convergence layer adapter plugin for HDTN
 - Go-based orchestration system with property-based testing (35+ correctness properties)
 - Full CI pipeline
@@ -55,7 +55,7 @@ Phase 1 is operational with two nodes. We've demonstrated:
 There's natural overlap between RADIANT and the LibreSpace ecosystem:
 
 - **SatNOGS ground stations** could potentially serve as DTN ground segment nodes for the LEO CubeSat phase
-- **Open-source satellite philosophy** — RADIANT is MIT-licensed, all documentation public
+- **Open-source satellite philosophy** — RADIANT is MIT-licensed, all documentation public (source repository not yet public, pending contribution agreements)
 - **Distributed ground station network** — we're building exactly this for DTN, and SatNOGS has proven the model works
 - **CubeSat community** — we're targeting a CubeSat-class payload and would welcome collaboration with teams who have flight experience
 
@@ -68,7 +68,7 @@ We're also interested in whether anyone in the community has experience with:
 ## Links
 
 - **Website:** https://radiant.amsat-uk.org
-- **GitHub:** https://github.com/g4dpz/cislunar_proposal
+- **GitHub:** Private repository (contribution agreements pending — will be made public)
 - **Supported by:** AMSAT-UK, AMSAT-DL, Goonhilly Earth Station
 
 The project is actively seeking collaboration from CubeSat teams, ground station operators, and anyone interested in space networking. All contributions welcome — from code to ground station time to flight hardware partnerships.
