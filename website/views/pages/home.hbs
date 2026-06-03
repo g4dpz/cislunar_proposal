@@ -13,47 +13,74 @@
   </div>
 </section>
 
-<section class="py-5" aria-labelledby="about-heading">
+<section class="py-5" aria-labelledby="status-heading">
   <div class="container">
-    <h2 id="about-heading">About the Project</h2>
+    <h2 id="status-heading">Current Status</h2>
+    <p class="mt-2">RADIANT is an early-stage project. Here is what exists today and what is planned.</p>
+    <div class="row g-4 mt-2">
+      <div class="col-md-6">
+        <div class="card h-100 border-success">
+          <div class="card-header bg-success text-white"><strong>Operational Now (Phase 1)</strong></div>
+          <div class="card-body">
+            <ul class="mb-0">
+              <li>Two-node terrestrial DTN over VHF/UHF</li>
+              <li>Hardware: Raspberry Pi + Mobilinkd TNC4 + Yaesu FT-817</li>
+              <li>9600 baud G3RUH GFSK — standard amateur packet modulation</li>
+              <li>BPv7 bundles over LTP wrapped directly in KISS framing</li>
+              <li>Ping and store-and-forward file delivery validated</li>
+              <li>Simulated propagation delay (cislunar/interplanetary timing) in lab</li>
+              <li>Callsign-embedded DTN Endpoint Identifiers for regulatory compliance</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card h-100 border-secondary">
+          <div class="card-header bg-secondary text-white"><strong>In Design / Planned</strong></div>
+          <div class="card-body">
+            <ul class="mb-0">
+              <li>Phase 1.5: QO-100 GEO satellite DTN demonstration</li>
+              <li>Phase 2: CubeSat engineering model (STM32U585 + SDR)</li>
+              <li>Phase 3: LEO CubeSat flight with ground-to-space DTN</li>
+              <li>Phase 4: Cislunar S-band/X-band with FEC (LDPC)</li>
+              <li>Adaptive modulation (4FSK, QPSK) replacing baseline GFSK</li>
+              <li>Forward error correction (convolutional, Reed-Solomon, LDPC)</li>
+              <li>Multi-engine DTN abstraction layer</li>
+              <li>Source code repository (not yet public)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5 bg-light" aria-labelledby="about-heading">
+  <div class="container">
+    <h2 id="about-heading">What This Project Is</h2>
+    <p class="mt-2">RADIANT is a <strong>networking-layer integration project</strong>, not a PHY-layer innovation project. The value is in making DTN work end-to-end over amateur radio links with proper regulatory compliance, contact scheduling, and store-and-forward semantics — then progressively improving the physical layer as we move toward space.</p>
     <div class="row g-4 mt-2">
       <div class="col-md-6 col-lg-4">
         <div class="card h-100 border-primary">
           <div class="card-body">
-            <h3 class="card-title h5">Amateur Radio Links</h3>
-            <p class="card-text">Using amateur radio links as realistic disrupted networks to validate DTN protocols in real-world conditions.</p>
+            <h3 class="card-title h5">Amateur Radio as DTN Testbed</h3>
+            <p class="card-text">Amateur radio links are naturally disrupted, intermittent, and scheduled — exactly the environment DTN was designed for. LEO passes, QO-100 transponder slots, and terrestrial VHF links all exercise real DTN behaviours.</p>
           </div>
         </div>
       </div>
       <div class="col-md-6 col-lg-4">
         <div class="card h-100 border-primary">
           <div class="card-body">
-            <h3 class="card-title h5">HDTN Software</h3>
-            <p class="card-text">Running NASA Glenn's HDTN (High-rate Delay Tolerant Networking) software — a modern, high-performance implementation of the Bundle Protocol optimised for high data rates.</p>
+            <h3 class="card-title h5">DTN Integration</h3>
+            <p class="card-text">Running the NASA/JPL interplanetary internet protocol suite (BPv7, LTP, CGR) on affordable amateur ground stations. The engineering is in the integration: LTP-over-KISS, callsign-embedded EIDs, contact plan management.</p>
           </div>
         </div>
       </div>
       <div class="col-md-6 col-lg-4">
         <div class="card h-100 border-primary">
           <div class="card-body">
-            <h3 class="card-title h5">Store-and-Forward</h3>
-            <p class="card-text">Demonstrating store-and-forward networking over intermittent and disrupted links, surviving power cycles and outages.</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-4">
-        <div class="card h-100 border-primary">
-          <div class="card-body">
-            <h3 class="card-title h5">CubeSat Payload</h3>
-            <p class="card-text">Building toward an amateur CubeSat hosted payload for ground-to-space DTN demonstration in Low Earth Orbit.</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-4">
-        <div class="card h-100 border-primary">
-          <div class="card-body">
-            <h3 class="card-title h5">Cislunar Ambition</h3>
-            <p class="card-text">Eventual cislunar payload ambition — amateur participation in Earth-Moon Delay-Tolerant Networking.</p>
+            <h3 class="card-title h5">Phased Approach</h3>
+            <p class="card-text">Starting with proven, simple hardware (TNC4 + FT-817) and progressively moving to software-defined radio, adaptive modulation, and eventually flight hardware. Each phase validates the next.</p>
           </div>
         </div>
       </div>
@@ -63,7 +90,7 @@
 
 <section class="py-5 bg-light" aria-labelledby="features-heading">
   <div class="container">
-    <h2 id="features-heading">Key Features</h2>
+    <h2 id="features-heading">Technical Capabilities (Operational + Planned)</h2>
     <div class="row g-3 mt-2">
       {{#each content.features}}
       <div class="col-md-6">
