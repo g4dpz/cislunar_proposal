@@ -2,186 +2,346 @@
 
 ## Overview
 
-Phase 1 validates HDTN over amateur radio using the existing HDTN KISS CLA plugin with Mobilinkd TNC4 and Yaesu FT-817 at 9600 baud. HDTN provides BPv7, LTP, bundle storage, priority handling, and lifetime enforcement out of the box. Our code is limited to: KISS frame validation tools (already done), HDTN configuration, a thin Go orchestration wrapper for node lifecycle and telemetry, and integration testing.
-
-HDTN provides a modular KISS CLA plugin that wraps LTP segments in KISS frames for serial TNCs.
+This implementation plan builds the `radiant-terrestrial` binary — a configured instance of the RADIANT DTN abstraction layer for terrestrial amateur radio DTN validation. The system composes 6 components: Node Controller, KISS CLA, Bundle Store, Contact Plan Manager, Beacon Timer, and Telemetry Collector. All code is Rust, using `tokio` async runtime, `radiant-dtn-abstraction`, `radiant-kiss`, and `radiant-cla` crates. CRC is the sole corruption detection mechanism — no cryptography of any kind.
 
 ## Tasks
 
-- [x] 1. Half-Duplex KISS Transfer Validation (Pre-HDTN)
-  - [x] 1.1 Implement basic KISS frame construction and parsing
-    - Created `ax25/` Go package with `BuildUIFrame`, `ParseFrame`, `ParseCallsign`
-    - _Requirements: 9.1, 9.4, 9.5_
+- [ ] 1. Set up project structure, dependencies, and core types
+  - [ ] 1.1 Create `radiant-terrestrial` crate with Cargo.toml
+    - Initialize the crate with `[[bin]]` target for `radiant-terrestrial`
+    - Add dependencies: `radiant-dtn-abstraction`, `radiant-kiss`, `radiant-cla`, `tokio` (full features), `serde`, `serde_yaml`, `serde_json`, `serialport`, `tracing`, `tracing-subscriber`, `thiserror`, `chrono`, `crc`, `proptest` (dev)
+    - Create `src/main.rs` entry point and module declarations
+    - _Requirements: 12.1, 13.1_
 
-  - [x] 1.2 Implement TNC4 USB serial interface
-    - Created `kiss/` Go package with KISS encode/decode and TNC serial interface
+  - [ ] 1.2 Define core data types and enums
+    - Implement `Priority` enum (Bulk, Normal, Expedited, Critical) with `Ord` derivation
+    - Implement `BundleId` struct (source_eid, creation_timestamp, sequence_number)
+    - Implement `BundleRecord` struct with all metadata fields
+    - Implement `BundleType` enum (Data, PingRequest, PingResponse)
+    - Implement `NodeError`, `StoreError`, `ClaError`, `PlanError` error types using `thiserror`
+    - _Requirements: 1.1, 1.4, 14.1, 17.1, 17.2_
+
+  - [ ] 1.3 Define configuration structs
+    - Implement `TerrestrialNodeConfig` with `NetworkConfiguration` and `NodeOperationalConfig`
+    - Implement `NodeOperationalConfig` with all fields (callsign_eid, store_path, max_storage_bytes, max_bundle_size, max_bundle_rate, default_priority, cycle_interval_ms, beacon_interval_secs, beacon_text, tnc_device, tnc_baud_rate, usb_retry_interval_secs, telemetry_path, engine_restart_backoff_secs)
+    - Add `serde::Serialize` and `serde::Deserialize` derives
+    - Implement config loading from YAML file
+    - _Requirements: 12.1, 14.4_
+
+  - [ ] 1.4 Implement Callsign EID validation
+    - Write `validate_callsign_eid()` function enforcing: 1-2 letter prefix, 1+ digits, 1-3 letter suffix, SSID 0-15
+    - Return structured `CallsignError` on failure with reason
+    - Validate the `dtn://callsign-ssid` URI format
+    - _Requirements: 10.3, 10.4_
+
+  - [ ]* 1.5 Write property test for Callsign EID validation
+    - **Property 17: Callsign EID Validation**
+    - **Validates: Requirements 10.3**
+
+- [ ] 2. Implement Bundle Store
+  - [ ] 2.1 Implement filesystem-backed Bundle Store
+    - Create `BundleStore` struct implementing `BundleStoreOps` trait
+    - Implement atomic writes: write to temp file → fsync → rename
+    - Implement `store()`, `retrieve()`, `delete()` operations
+    - Implement `list_by_destination()` and `list_by_priority()` with priority ordering (critical first)
+    - Implement `capacity()` reporting
+    - _Requirements: 2.1, 2.2, 2.3, 2.6_
+
+  - [ ]* 2.2 Write property test for Bundle Store round-trip
+    - **Property 3: Bundle Store Round-Trip**
+    - **Validates: Requirements 2.2**
+
+  - [ ]* 2.3 Write property test for priority ordering invariant
+    - **Property 4: Priority Ordering Invariant**
+    - **Validates: Requirements 2.3, 5.3, 14.2**
+
+  - [ ] 2.4 Implement eviction and expiry logic
+    - Implement `evict_expired()` — delete all bundles where creation_timestamp + lifetime ≤ current_time
+    - Implement `evict_for_space()` — evict lowest-priority oldest bundles first; critical only after all others gone
+    - Implement capacity enforcement on store — reject if full and cannot evict
+    - _Requirements: 2.4, 2.5, 3.1, 3.2, 14.3_
+
+  - [ ]* 2.5 Write property test for store capacity invariant
+    - **Property 5: Store Capacity Invariant**
+    - **Validates: Requirements 2.6**
+
+  - [ ]* 2.6 Write property test for eviction preserves critical bundles
+    - **Property 6: Eviction Preserves Critical Bundles**
+    - **Validates: Requirements 2.4, 2.5, 14.3**
+
+  - [ ]* 2.7 Write property test for expiry cleanup completeness
+    - **Property 8: Expiry Cleanup Completeness**
+    - **Validates: Requirements 3.1, 3.2**
+
+  - [ ] 2.8 Implement store reload from filesystem
+    - Implement `reload()` — scan store directory, parse metadata files, rebuild in-memory index
+    - Validate integrity of each entry on load, discard corrupted entries with log
+    - _Requirements: 2.7, 17.3_
+
+  - [ ]* 2.9 Write property test for store reload preserves bundles
+    - **Property 7: Store Reload Preserves All Bundles**
+    - **Validates: Requirements 2.7, 17.3**
+
+- [ ] 3. Checkpoint - Bundle Store complete
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 4. Implement KISS CLA
+  - [ ] 4.1 Implement KISS frame encoding and decoding
+    - Create `KissCla` struct with `KissClaConfig`
+    - Implement KISS frame encoding: FEND + CMD(0x00) + byte-stuffed data + FEND
+    - Implement KISS frame decoding: detect FEND boundaries, reverse byte stuffing (0xDB 0xDC → 0xC0, 0xDB 0xDD → 0xDB)
+    - Implement `LinkMetrics` tracking (bytes_sent, bytes_received, frames_sent, frames_received, framing_errors)
+    - _Requirements: 9.1, 9.2, 9.7_
+
+  - [ ]* 4.2 Write property test for KISS frame round-trip
+    - **Property 12: KISS Frame Round-Trip**
+    - **Validates: Requirements 9.1, 9.2, 9.6**
+
+  - [ ] 4.3 Implement ConvergenceLayerAdapter trait for KissCla
+    - Implement `send_segment()` — encode LTP segment in KISS frame, write to serial
+    - Implement `recv_segment()` — read from serial, decode KISS frame, extract LTP segment
+    - Implement `activate()` — open USB serial connection to TNC4
+    - Implement `deactivate()` — close USB serial connection
+    - Implement `is_active()` status check
     - _Requirements: 9.4, 9.5_
 
-  - [x] 1.3 Implement half-duplex KISS send/receive test harness
-    - Created `cmd/ax25send/` and `cmd/ax25recv/` CLI tools
-    - _Requirements: 9.1, 9.5_
+  - [ ] 4.4 Implement USB disconnection detection and reconnection
+    - Detect USB disconnection within 5 seconds via serial read/write errors
+    - Set `ClaStatus::Disconnected` on detection
+    - Attempt reconnection at configurable retry interval
+    - Track disconnection events in link metrics
+    - _Requirements: 17.4_
 
-  - [x] 1.4 Write KISS frame round-trip test (loopback or two-node)
-    - Validated G4DPZ-1 ↔ G4DPZ-2 over TNC4 + FT-817 at 9600 baud in both directions
-    - _Requirements: 9.1, 9.5, 9.6_
+  - [ ]* 4.5 Write property test for LTP segmentation correctness
+    - **Property 13: LTP Segmentation Correctness**
+    - **Validates: Requirements 9.3**
 
-- [x] 2. Checkpoint — Half-duplex KISS link validated. KISS frames sent and received between two nodes over TNC4 + FT-817 at 9600 baud.
+- [ ] 5. Implement Contact Plan Manager
+  - [ ] 5.1 Implement ContactPlanManager struct and core operations
+    - Create `ContactPlanManager` implementing `ContactPlanOps` trait
+    - Implement `ContactWindow` struct with all fields (remote_node_eid, remote_node_number, start_time, end_time, rate_bps, link_type)
+    - Implement `load()` and `load_from_file()` from canonical config format (YAML/JSON)
+    - Implement `active_contacts(time)` — return all windows where start_time ≤ time < end_time
+    - Implement `next_contact(dest_node, after)` — earliest future window for destination
+    - Implement `update()` — add/update window, reject overlaps on same link
+    - Implement `persist()` and `reload()` for filesystem persistence
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7_
 
-- [x] 3. Build HDTN with KISS CLA
-  - [x] 3.1 Build HDTN from source with KISS CLA enabled
-    - Configure and compile HDTN (`./configure && make`) targeting macOS/Linux
-    - Verify HDTN KISS CLA plugin binaries are built
-    - Verify `hdtn-config`, `hdtn-config`, `hdtn-config`, `bping`, `bpsink`, `bpsendfile`, `bprecvfile` are available
-    - _Requirements: all_
+  - [ ]* 5.2 Write property test for contact plan active query correctness
+    - **Property 14: Contact Plan Active Query Correctness**
+    - **Validates: Requirements 7.2**
 
-  - [x] 3.2 Verify HDTN KISS CLA compiles and links correctly
-    - Run HDTN test suite (if available) to confirm build integrity
-    - Verify KISS CLA can open a serial device (loopback test with virtual serial port if no hardware)
-    - _Requirements: 9.1, 9.4_
+  - [ ]* 5.3 Write property test for contact plan overlap rejection
+    - **Property 15: Contact Plan Overlap Rejection**
+    - **Validates: Requirements 7.4**
 
-- [x] 4. Checkpoint — HDTN built with KISS CLA
+  - [ ]* 5.4 Write property test for contact plan serialization round-trip
+    - **Property 16: Contact Plan Serialization Round-Trip**
+    - **Validates: Requirements 7.6, 7.7**
 
-- [x] 5. Create HDTN configuration for two-node terrestrial setup
-  - [x] 5.1 Create Node A (Engine 1) configuration files
-    - Create `configs/node-a/hdtn-config.json` — HDTN initialization, contacts, ranges
-    - Create `configs/node-a/hdtn-config.json` — LTP configuration using HDTN KISS CLA plugin
-    - Create `configs/node-a/hdtn-config.json` — BP scheme, endpoints, protocol, inducts/outducts
-    - Create `configs/node-a/hdtn-kiss-config.json` — KISS serial device path (TNC4), 9600 baud, MTU 512, rate 960
-    - Configure for Mobilinkd TNC4 device path (e.g., `/dev/tty.usbmodem2086327235531`)
-    - _Requirements: 7.1, 9.1, 9.4, 9.5_
+  - [ ]* 5.5 Write property test for direct contact lookup (no relay)
+    - **Property 21: Direct Contact Lookup (No Relay)**
+    - **Validates: Requirements 6.2**
 
-  - [x] 5.2 Create Node B (Engine 2) configuration files
-    - Create `configs/node-b/hdtn-config.json` — HDTN initialization, contacts, ranges
-    - Create `configs/node-b/hdtn-config.json` — LTP configuration using HDTN KISS CLA plugin
-    - Create `configs/node-b/hdtn-config.json` — BP scheme, endpoints, protocol, inducts/outducts
-    - Create `configs/node-b/hdtn-kiss-config.json` — KISS serial device path (TNC4), 9600 baud, MTU 512, rate 960
-    - Configure for Mobilinkd TNC4 device path (e.g., `/dev/tty.usbmodem20A5329335531`)
-    - _Requirements: 7.1, 9.1, 9.4, 9.5_
+- [ ] 6. Checkpoint - CLA and Contact Plan complete
+  - Ensure all tests pass, ask the user if questions arise.
 
-  - [x] 5.3 Create startup and shutdown scripts for each node
-    - Create `scripts/start-node-a.sh` — runs `hdtn-config`, `hdtn-config`, `hdtn-config` with config files
-    - Create `scripts/start-node-b.sh` — same for Node B
-    - Create `scripts/stop-node.sh` — runs `hdtn-stop` for clean shutdown
-    - _Requirements: all_
+- [ ] 7. Implement Bundle Protocol Agent logic
+  - [ ] 7.1 Implement bundle creation and CRC validation
+    - Implement bundle creation with BPv7 version 7, source/destination Callsign_EIDs, CRC, priority, lifetime
+    - Implement BPv7 bundle CRC computation using the `crc` crate
+    - Implement bundle validation: version==7, valid destination Callsign_EID, lifetime>0, creation_timestamp ≤ current time, CRC correct
+    - Log specific validation failure reason with source EID on rejection
+    - _Requirements: 1.1, 1.2, 1.3, 13.3_
 
-  - [x] 5.4 Document configuration parameters and device mapping
-    - Document which TNC4 device maps to which node
-    - Document contact windows, engine IDs, endpoint IDs
-    - _Requirements: 7.1_
+  - [ ]* 7.2 Write property test for bundle validation correctness
+    - **Property 2: Bundle Validation Correctness**
+    - **Validates: Requirements 1.2, 1.3**
 
-- [x] 6. Checkpoint — HDTN configuration files created for two-node setup
+  - [ ] 7.3 Implement bundle serialization/deserialization
+    - Implement BPv7 wire format serialization (CBOR encoding per RFC 9171)
+    - Implement BPv7 wire format deserialization with CRC verification
+    - Support all three bundle types (Data, PingRequest, PingResponse)
+    - _Requirements: 1.5_
 
-- [x] 7. Test HDTN bping over KISS CLA
-  - [x] 7.1 Start HDTN on both nodes
-    - Run startup scripts on Node A and Node B
-    - Verify HDTN initializes without errors (`hdtn.log`)
-    - Verify HDTN KISS CLA plugin processes are running
-    - _Requirements: all_
+  - [ ]* 7.4 Write property test for bundle serialization round-trip
+    - **Property 1: Bundle Serialization Round-Trip**
+    - **Validates: Requirements 1.5**
 
-  - [x] 7.2 Run bping from Node A to Node B
-    - Execute `bping ipn:1.1 ipn:2.1 -c 5` on Node A
-    - Verify ping responses received from Node B
-    - Record round-trip times
-    - _Requirements: 4.1, 4.2, 4.3, 4.4_
+  - [ ] 7.5 Implement ping request/response handling
+    - On receiving a ping request addressed to local endpoint, generate exactly one ping response
+    - Set ping response destination to original sender's Callsign_EID
+    - Include original request's BundleId in response payload
+    - Queue response in Bundle Store for delivery
+    - _Requirements: 4.1, 4.2, 4.4_
 
-  - [x] 7.3 Run bping from Node B to Node A
-    - Execute `bping ipn:2.1 ipn:1.1 -c 5` on Node B
-    - Verify ping responses received from Node A
-    - Confirm half-duplex DTN ping works in both directions
-    - _Requirements: 4.1, 4.2, 4.3, 4.4_
+  - [ ]* 7.6 Write property test for ping response correctness
+    - **Property 9: Ping Response Correctness**
+    - **Validates: Requirements 4.1, 4.4**
 
-- [x] 8. Checkpoint — DTN ping validated over KISS CLA + TNC4 + FT-817
+  - [ ] 7.7 Implement routing logic (local delivery vs store-for-forwarding)
+    - If destination matches local EID → deliver locally
+    - If destination is remote → store in Bundle Store for direct delivery
+    - Never forward to non-final-destination node (no relay)
+    - _Requirements: 5.1, 5.2, 6.1_
 
-- [x] 9. Test HDTN store-and-forward over KISS CLA
-  - [x] 9.1 Test bpsendfile / bprecvfile
-    - Start `bprecvfile ipn:2.1 1` on Node B
-    - Send a test file from Node A: `bpsendfile ipn:1.1 ipn:2.1 testfile.txt`
-    - Verify file received intact on Node B (checksum comparison)
-    - _Requirements: 5.1, 5.2, 5.3, 5.4_
+  - [ ]* 7.8 Write property test for routing correctness
+    - **Property 10: Routing Correctness (Local vs Remote)**
+    - **Validates: Requirements 5.1, 5.2, 6.1**
 
-  - [x] 9.2 Test store-and-forward with delayed contact
-    - Send a bundle from Node A while Node B is offline (no contact window active)
-    - Verify bundle is stored by HDTN on Node A
-    - Start Node B and establish contact
-    - Verify bundle is delivered to Node B when contact opens
-    - _Requirements: 2.1, 2.2, 5.2, 5.5_
+  - [ ] 7.9 Implement ACK-driven store management
+    - On LTP acknowledgment → delete bundle from store
+    - On LTP timeout (no ACK) → retain bundle for retry in next contact window
+    - _Requirements: 5.4, 5.5_
 
-  - [x] 9.3 Test priority-based delivery
-    - Send multiple bundles with different priorities (bulk, normal, expedited, critical)
-    - Verify HDTN delivers them in priority order during the contact window
-    - _Requirements: 5.3, 11.1, 11.2_
+  - [ ]* 7.10 Write property test for ACK-driven store management
+    - **Property 11: ACK-Driven Store Management**
+    - **Validates: Requirements 5.4, 5.5**
 
-  - [x] 9.4 Test bundle lifetime expiry
-    - Send a bundle with a short lifetime (e.g., 30 seconds)
-    - Wait for the lifetime to expire before establishing contact
-    - Verify the bundle is not delivered (expired and removed by HDTN)
-    - _Requirements: 3.1, 3.2_
+  - [ ]* 7.11 Write property test for source Callsign EID presence
+    - **Property 18: Source Callsign EID Presence**
+    - **Validates: Requirements 10.1, 10.2**
 
-- [x] 10. Checkpoint — Store-and-forward validated over KISS CLA
+- [ ] 8. Implement Rate Limiter and Bundle Size Enforcement
+  - [ ] 8.1 Implement sliding-window rate limiter
+    - Create `RateLimiter` struct with per-source-EID sliding window
+    - Implement `check()` — accept if within configured max rate, reject with `RateLimitError` if exceeded
+    - Log rate-limit events with source EID
+    - _Requirements: 15.1, 15.2_
 
-- [x] 11. Checkpoint — No cryptography (amateur radio regulatory compliance)
+  - [ ]* 8.2 Write property test for rate limiter enforcement
+    - **Property 19: Rate Limiter Enforcement**
+    - **Validates: Requirements 15.1, 15.2**
 
-- [x] 12. Checkpoint — Regulatory compliance confirmed
+  - [ ] 8.3 Implement maximum bundle size enforcement
+    - Reject bundles exceeding configured max_bundle_size
+    - Accept bundles at or below the limit (assuming other validation passes)
+    - _Requirements: 15.3_
 
-- [x] 13. Build Go orchestration wrapper
-  - [x] 13.1 Create Go wrapper for HDTN node lifecycle
-    - Implement `Start()` — execute hdtn-config/hdtn-config/hdtn-config with config files
-    - Implement `Stop()` — execute hdtn-stop for clean shutdown
-    - Implement `IsRunning()` — check if HDTN processes are alive
-    - Handle Ctrl+C for graceful shutdown
-    - _Requirements: 14.3_
+  - [ ]* 8.4 Write property test for maximum bundle size enforcement
+    - **Property 20: Maximum Bundle Size Enforcement**
+    - **Validates: Requirements 15.3**
 
-  - [x] 13.2 Create Go wrapper for telemetry collection
-    - Query HDTN status via `hdtn-config`/`hdtn-config` commands
-    - Parse output to extract: bundles stored, bundles sent, bundles received, contacts completed/missed
-    - Expose telemetry via local interface (JSON file or HTTP endpoint)
-    - _Requirements: 13.1, 13.2, 13.3, 13.4_
+- [ ] 9. Checkpoint - BPA and rate limiting complete
+  - Ensure all tests pass, ask the user if questions arise.
 
-  - [x] 13.3 Create Go wrapper for contact plan management
-    - Load contact plan from a YAML/JSON config file
-    - Generate HDTN `hdtn-config` contact/range commands
-    - Support adding/removing contacts at runtime via `hdtn-config`
-    - _Requirements: 7.1, 7.2, 7.3, 7.6, 7.7_
+- [ ] 10. Implement Beacon Timer
+  - [ ] 10.1 Implement BeaconTimer struct and logic
+    - Create `BeaconTimer` with configurable interval (default 600s)
+    - Implement `is_due(current_time)` — true if interval elapsed since last beacon
+    - Implement `record_beacon(timestamp)` — update last beacon time, increment count
+    - Initial beacon fires within 30 seconds of startup
+    - _Requirements: 11.1, 11.4_
 
-  - [x] 13.4 Create unified CLI for node operation
-    - Create `cmd/dtn-node/main.go` — single entry point for starting a terrestrial DTN node
-    - Parse config file (node ID, callsign, TNC device, contact plan, HDTN config paths)
-    - Start HDTN, monitor health, expose telemetry, handle shutdown
-    - _Requirements: all_
+  - [ ] 10.2 Implement beacon bundle creation
+    - Source EID: node's Callsign_EID
+    - Destination EID: `dtn://beacon`
+    - Lifetime: 600 seconds
+    - Payload: human-readable identification text from config (e.g., "G4DPZ amateur radio DTN experimental station")
+    - Include CRC for error detection
+    - Log each beacon transmission with timestamp
+    - _Requirements: 11.2, 11.3, 11.5_
 
-  - [ ]* 13.5 Write unit tests for Go orchestration wrapper
-    - Test config file parsing
-    - Test HDTN command generation
-    - Test telemetry parsing
-    - _Requirements: 13.1, 13.2_
+  - [ ]* 10.3 Write property test for beacon timing regularity
+    - **Property 22: Beacon Timing Regularity**
+    - **Validates: Requirements 11.1**
 
-- [x] 14. Checkpoint — Go orchestration wrapper complete
+- [ ] 11. Implement Telemetry Collector
+  - [ ] 11.1 Implement TelemetryCollector struct
+    - Create `TelemetryCollector` with `NodeHealth` and `NodeStatistics` snapshots
+    - Implement `update_from_engine()` — merge DTN engine stats and link states
+    - Implement `record_contact_completed()`, `record_contact_missed()`, `record_beacon()`
+    - Implement `snapshot_health()` and `snapshot_stats()`
+    - _Requirements: 16.1, 16.2, 16.5_
 
-- [x] 15. End-to-end integration validation
-  - [x] 15.1 Run full end-to-end test using Go wrapper
-    - Start both nodes using `cmd/dtn-node`
-    - Run bping in both directions
-    - Send files in both directions
-    - Verify telemetry reports correct statistics
-    - _Requirements: all_
+  - [ ] 11.2 Implement telemetry exposure via local interface
+    - Write telemetry snapshots to configured path (file or unix socket)
+    - Respond to telemetry queries within 1 second
+    - _Requirements: 16.3, 16.4_
 
-  - [x] 15.2 Run extended duration test
-    - Run both nodes for 1+ hours with periodic bundle exchanges
-    - Verify no memory leaks, no process crashes, telemetry remains accurate
-    - _Requirements: 15.1, 13.1, 13.2_
+- [ ] 12. Implement Node Controller orchestration loop
+  - [ ] 12.1 Implement Node Controller initialization
+    - Load config from YAML
+    - Validate Callsign_EID — reject startup if invalid
+    - Initialize all components: Bundle Store (with reload), Contact Plan Manager, KISS CLA, Beacon Timer, Telemetry Collector
+    - Configure DTN engine through abstraction layer
+    - _Requirements: 10.4, 12.1, 12.2, 12.3, 17.3_
 
-  - [x]* 15.3 Document operational procedures
-    - Write a README with setup instructions, configuration guide, and troubleshooting
-    - Include device mapping for the two Mobilinkd TNC4 devices
-    - _Requirements: all_
+  - [ ] 12.2 Implement main async operation cycle
+    - Check active contacts via Contact Plan Manager
+    - Activate CLA if contact window active
+    - Transmit queued bundles in priority order during active contact
+    - Process received bundles: validate CRC, route (local delivery or store)
+    - Handle ping requests → generate responses
+    - Run bundle lifetime expiry cleanup
+    - Check beacon timer → transmit if due
+    - Collect telemetry
+    - Deactivate CLA when contact window closes
+    - Target cycle time: 100ms
+    - _Requirements: 8.1, 8.2, 8.3, 14.2, 18.1_
 
-- [x] 16. Final checkpoint — Phase 1 terrestrial DTN validated
+  - [ ] 12.3 Implement contact window execution logic
+    - On contact start: activate CLA, begin transmission
+    - Transmit bundles in strict priority order (critical → expedited → normal → bulk)
+    - On contact end: cease transmission, record link metrics, update telemetry
+    - On CLA failure during contact: mark contact missed, retain bundles, increment counter
+    - _Requirements: 8.1, 8.2, 8.3, 8.4_
+
+  - [ ] 12.4 Implement error recovery and fault tolerance
+    - USB disconnection: detect, mark contact interrupted, retry at interval
+    - DTN engine crash: detect via abstraction layer health check, restart with backoff
+    - Store corruption on reload: discard corrupted entries, log, continue
+    - No direct contact window: retain bundle until window added or lifetime expires
+    - _Requirements: 17.3, 17.4, 17.5, 17.6_
+
+  - [ ] 12.5 Implement graceful shutdown
+    - Flush pending store operations
+    - Deactivate CLA
+    - Stop DTN engine via abstraction layer
+    - Persist contact plan state
+    - _Requirements: 12.3_
+
+- [ ] 13. Implement main binary entry point
+  - [ ] 13.1 Wire main.rs with CLI argument parsing and startup
+    - Parse config file path from CLI args
+    - Load and validate configuration
+    - Set up tracing/logging subscriber
+    - Initialize NodeController
+    - Set up shutdown signal handler (SIGTERM, SIGINT)
+    - Call `node_controller.run(shutdown_rx).await`
+    - _Requirements: 10.4, 12.1_
+
+- [ ] 14. Final checkpoint - Full integration
+  - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
 
-- Tasks marked with `*` are optional
-- HDTN provides: BPv7, LTP, bundle storage, priority queuing, lifetime enforcement, eviction — we do NOT reimplement these
-- HDTN's KISS CLA plugin handles KISS framing and serial I/O — we do NOT reimplement this
-- Our Go code is a thin orchestration layer: node lifecycle, telemetry collection, contact plan management, and CLI
-- The `ax25/` and `kiss/` Go packages from tasks 1.1-1.4 remain useful for standalone KISS testing and debugging
-- Mobilinkd TNC4 devices: `/dev/tty.usbmodem2086327235531` (Node A) and `/dev/tty.usbmodem20A5329335531` (Node B)
+- Tasks marked with `*` are optional and can be skipped for faster MVP
+- Each task references specific requirements for traceability
+- Checkpoints ensure incremental validation
+- Property tests validate universal correctness properties (22 total)
+- Unit tests validate specific examples and edge cases
+- The `crc` crate handles BPv7 bundle CRC computation — no cryptographic crates needed
+- No BPSec, HMAC, encryption, or digital signatures anywhere in the implementation
+- All transmitted data remains fully inspectable per amateur radio regulations
+
+## Task Dependency Graph
+
+```json
+{
+  "waves": [
+    { "id": 0, "tasks": ["1.1"] },
+    { "id": 1, "tasks": ["1.2", "1.3"] },
+    { "id": 2, "tasks": ["1.4", "2.1", "4.1", "5.1"] },
+    { "id": 3, "tasks": ["1.5", "2.2", "2.3", "2.4", "4.2", "4.3", "5.2", "5.3", "5.4", "5.5"] },
+    { "id": 4, "tasks": ["2.5", "2.6", "2.7", "2.8", "4.4", "4.5"] },
+    { "id": 5, "tasks": ["2.9", "7.1", "7.3"] },
+    { "id": 6, "tasks": ["7.2", "7.4", "7.5", "7.7", "7.9", "8.1", "8.3"] },
+    { "id": 7, "tasks": ["7.6", "7.8", "7.10", "7.11", "8.2", "8.4", "10.1"] },
+    { "id": 8, "tasks": ["10.2", "10.3", "11.1"] },
+    { "id": 9, "tasks": ["11.2", "12.1"] },
+    { "id": 10, "tasks": ["12.2", "12.3", "12.4", "12.5"] },
+    { "id": 11, "tasks": ["13.1"] }
+  ]
+}
+```

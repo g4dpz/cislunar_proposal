@@ -1,0 +1,20 @@
+# Build artifacts
+/target/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Proptest regression files (local-only, re-discovered on each machine)
+*.proptest-regressions

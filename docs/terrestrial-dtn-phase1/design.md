@@ -2,34 +2,71 @@
 
 ## Overview
 
-This design describes the Phase 1 terrestrial DTN validation system for amateur radio. The system deploys HDTN (NASA Glenn's High-rate Delay Tolerant Networking) on Linux or macOS hosts connected via USB to Mobilinkd TNC4 terminal node controllers, which drive Yaesu FT-817 radios at 9600 baud through the 9600 baud data port using G3RUH-compatible GFSK modulation on VHF/UHF amateur bands.
+This design describes the Phase 1 terrestrial DTN validation system for amateur radio. The system is a configured instance of the RADIANT DTN abstraction layer (`radiant-dtn-abstraction`) running on Raspberry Pi hosts connected via USB to Mobilinkd TNC4 terminal node controllers, which drive Yaesu FT-817 radios at 9600 baud through the 9600 baud data port using G3RUH-compatible GFSK modulation on VHF/UHF amateur bands.
 
-The system supports two core operations: **ping** (DTN reachability test — send a bundle echo request and receive an echo response) and **store-and-forward** (point-to-point bundle delivery during scheduled contact windows). There is **no relay functionality** — nodes do not forward bundles on behalf of other nodes. All bundle delivery is direct (source → destination).
+The system supports two core operations: **ping** (DTN reachability test) and **store-and-forward** (point-to-point bundle delivery during scheduled contact windows). There is **no relay functionality** — nodes do not forward bundles on behalf of other nodes. All bundle delivery is direct (source → destination).
 
-The protocol stack is: BPv7 bundles over LTP sessions over KISS frames. Station identification for amateur radio regulatory compliance is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign/service) in the bundle primary block, plus periodic beacon bundles. LTP provides reliable transfer with deferred acknowledgment. No cryptographic operations are used (amateur radio regulations prohibit encryption and cryptography on transmitted signals).
+The protocol stack is:
 
-All code is implemented in Go, targeting Linux and macOS (amd64/arm64). The system wraps HDTN's C++17 libraries via cgo for BPv7/LTP protocol operations, with Go managing the application-level orchestration, bundle store, contact plan, and node lifecycle. The KISS Convergence Layer Adapter (CLA) is HDTN's native KISS CLA — the HDTN KISS CLA plugin that wraps LTP segments in KISS frames for serial TNCs. This means HDTN directly handles bundle transmission and reception over KISS with no UDP intermediary. The CLA provides KISS framing as the link service layer below HDTN's LTP engine, sending and receiving LTP segments over KISS frames via the TNC4 USB serial connection. Station identification is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign/service) in every bundle's primary block. The bundle data path is: HDTN BPA → HDTN LTP → HDTN KISS CLA plugin → TNC4 USB → FT-817 radio. No UDP sockets are involved anywhere in the data path.
+```
+┌─────────────────────────────────────┐
+│   Application (ping, store-and-fwd) │
+├─────────────────────────────────────┤
+│   BPv7 (Bundle Protocol v7)         │
+│   EID: dtn://callsign-ssid/service  │
+│   CRC integrity check               │
+├─────────────────────────────────────┤
+│   LTP (Licklider Transmission)      │
+│   LTP checksum                      │
+├─────────────────────────────────────┤
+│   KISS (radiant-kiss, no_std)       │
+├─────────────────────────────────────┤
+│   USB Serial (TNC4)                 │
+├─────────────────────────────────────┤
+│   G3RUH GFSK (9600 baud)           │
+└─────────────────────────────────────┘
+```
+
+**No cryptographic operations are permitted over amateur radio links.** Per amateur radio regulations (ITU Article 25, FCC Part 97.113) and project steering constraints, there is no BPSec, no HMAC, no digital signatures, and no encryption of any kind. Protection against accidental corruption relies solely on CRC validation: BPv7 bundle CRC (RFC 9171 §5.2) and LTP checksums (RFC 5326). All transmitted data is fully inspectable by any third party with knowledge of the published protocol specifications.
+
+**Key design decisions:**
+
+1. **Rust** — All components implemented in Rust using the RADIANT crate ecosystem (`radiant-dtn-abstraction`, `radiant-kiss`, `radiant-cla`)
+2. **KISS framing (NO AX.25)** — LTP segments wrapped directly in KISS frames via `radiant-kiss` (a `no_std` crate designed for eventual STM32U585 flight hardware)
+3. **DTN Abstraction Layer** — The binary is a configured instance of `radiant-dtn-abstraction` with a KISS CLA backend adapter, canonical YAML/JSON config, and backend adapters for ION-DTN or Hardy
+4. **Callsign-EID station identification** — `dtn://callsign-ssid/service` format in every bundle primary block; no AX.25 addressing required
+5. **Manual contact plans** — No CGR orbital prediction; operator-configured contact windows in the canonical config format
+6. **CRC-only corruption protection** — BPv7 bundle CRC and LTP checksums provide error detection; no cryptographic integrity mechanisms
+7. **Periodic beacon** — Beacon bundle every 10 minutes for regulatory station identification compliance
 
 ### Scope Boundaries
 
-**In scope**: Linux/macOS ground nodes, Mobilinkd TNC4 (USB), Yaesu FT-817 (9600 baud), HDTN BPv7/LTP/KISS, HDTN's KISS CLA plugin for LTP-over-KISS framing, callsign-embedded DTN EIDs (dtn://callsign/service) for station identification, ping, store-and-forward, priority handling, bundle persistence, contact plan management, rate limiting, telemetry.
+**In scope**: Raspberry Pi ground nodes, Mobilinkd TNC4 (USB), Yaesu FT-817 (9600 baud G3RUH), DTN abstraction layer with ION-DTN/Hardy backend, KISS CLA (`radiant-cla` + `radiant-kiss`), ping, store-and-forward, priority handling, bundle persistence, contact plan management, rate limiting, telemetry, CRC validation, beacon timer.
 
-**Out of scope**: STM32U585 OBC, IQ baseband, SDR, Ettus B200mini, CGR orbital prediction, orbital mechanics, space segment (CubeSat, cislunar), S-band/X-band, flight hardware, relay functionality, UDP-based external CLA interfaces, cryptography (prohibited by amateur radio regulations).
+**Out of scope**: STM32U585 OBC, IQ baseband, SDR, Ettus B200mini, CGR orbital prediction, orbital mechanics, space segment (CubeSat, cislunar), S-band/X-band, flight hardware, relay/forwarding, AX.25, any cryptography (BPSec, HMAC, encryption, digital signatures).
 
 ## Architecture
 
+The terrestrial Phase 1 binary (`radiant-terrestrial`) is a configured instance of the DTN abstraction layer. It composes the following subsystems:
+
 ```mermaid
 graph TD
-    subgraph "Terrestrial DTN Node (Linux/macOS)"
-        NC[Node Controller<br/>Go orchestrator]
+    subgraph "radiant-terrestrial (Raspberry Pi)"
+        NC[Node Controller<br/>Rust async orchestrator]
+        AL[Abstraction Layer<br/>radiant-dtn-abstraction]
         BS[Bundle Store<br/>Filesystem persistence]
         CPM[Contact Plan Manager<br/>Manual scheduling]
-        TEL[Telemetry Collector<br/>Health & statistics]
+        BCN[Beacon Timer<br/>10-min identification]
+        TEL[Telemetry Endpoint<br/>Health & statistics]
 
-        subgraph "HDTN Stack (C++17 libraries via cgo)"
-            BPA[Bundle Protocol Agent<br/>HDTN BPA]
-            LTP[LTP Engine<br/>HDTN LTP]
-            CLA[KISS CLA<br/>HDTN KISS CLA plugin<br/>LTP link service adapter]
+        subgraph "DTN Engine (managed by Abstraction Layer)"
+            BPA[Bundle Protocol Agent<br/>ION-DTN or Hardy]
+            LTP_E[LTP Engine<br/>Segmentation & reliability]
+        end
+
+        subgraph "Convergence Layer (radiant-cla)"
+            CLA[KISS CLA<br/>radiant-cla trait impl]
+            KISS[KISS Framing<br/>radiant-kiss no_std]
         end
     end
 
@@ -38,46 +75,69 @@ graph TD
         FT817[Yaesu FT-817<br/>9600 baud data port<br/>G3RUH GFSK VHF/UHF]
     end
 
-    NC --> BPA
+    NC --> AL
     NC --> BS
     NC --> CPM
+    NC --> BCN
     NC --> TEL
-    BPA --> BS
-    BPA --> LTP
-    LTP --> CLA
-    CLA --> TNC
+    AL --> BPA
+    BPA --> LTP_E
+    LTP_E --> CLA
+    CLA --> KISS
+    KISS --> TNC
     TNC --> FT817
 
     style NC fill:#2d5016,color:#fff
+    style AL fill:#1a3a5c,color:#fff
     style BPA fill:#1a3a5c,color:#fff
-    style LTP fill:#1a3a5c,color:#fff
     style BS fill:#5c3a1a,color:#fff
     style CPM fill:#3a1a5c,color:#fff
     style CLA fill:#5c1a3a,color:#fff
+    style KISS fill:#5c1a3a,color:#fff
+    style BCN fill:#1a5c3a,color:#fff
 ```
 
 ### Node-to-Node Communication
 
 ```mermaid
 graph LR
-    subgraph "Node A"
-        A_NC[Node Controller] --> A_BPA[HDTN BPA]
-        A_BPA --> A_LTP[HDTN LTP]
+    subgraph "Node A (Raspberry Pi)"
+        A_NC[Node Controller] --> A_AL[Abstraction Layer]
+        A_AL --> A_BPA[DTN Engine BPA]
+        A_BPA --> A_LTP[LTP Engine]
         A_LTP --> A_CLA[KISS CLA]
-        A_CLA --> A_TNC[TNC4 USB]
+        A_CLA --> A_KISS[radiant-kiss]
+        A_KISS --> A_TNC[TNC4 USB]
         A_TNC --> A_FT[FT-817]
     end
 
-    A_FT <-->|"KISS frames<br/>9600 baud VHF/UHF"| B_FT
+    A_FT <-->|"KISS/LTP frames<br/>9600 baud VHF/UHF<br/>NO AX.25"| B_FT
 
-    subgraph "Node B"
+    subgraph "Node B (Raspberry Pi)"
         B_FT[FT-817] --> B_TNC[TNC4 USB]
-        B_TNC --> B_CLA[KISS CLA]
-        B_CLA --> B_LTP[HDTN LTP]
-        B_LTP --> B_BPA[HDTN BPA]
-        B_BPA --> B_NC[Node Controller]
+        B_TNC --> B_KISS[radiant-kiss]
+        B_KISS --> B_CLA[KISS CLA]
+        B_CLA --> B_LTP[LTP Engine]
+        B_LTP --> B_BPA[DTN Engine BPA]
+        B_BPA --> B_AL[Abstraction Layer]
+        B_AL --> B_NC[Node Controller]
     end
 ```
+
+### Relationship to DTN Abstraction Layer
+
+The terrestrial Phase 1 binary does not reimplement DTN engine management — it instantiates the abstraction layer with specific configuration:
+
+| Abstraction Layer Feature | Phase 1 Configuration |
+|---|---|
+| Backend adapter | ION-DTN adapter (primary) or Hardy adapter (alternative) |
+| Convergence layer | `ConvergenceLayerLink::Kiss` — TNC4 USB serial |
+| Routing strategy | `RoutingStrategy::Static` — manual contact plan |
+| Contact plan | Operator-configured YAML, loaded via `ContactPlan` model |
+| Security policy | None — no BPSec, no cryptography; CRC-only corruption detection |
+| Endpoint ID | `EndpointId::Dtn { authority: "callsign-ssid", path: "service" }` |
+| Event bus | Subscribed for link state changes, engine state changes |
+| Telemetry | `collect_stats()` + `link_states()` merged with local metrics |
 
 ## Sequence Diagrams
 
@@ -87,32 +147,31 @@ graph LR
 sequenceDiagram
     participant Op as Operator
     participant NC as Node Controller
-    participant BPA as Bundle Protocol Agent
-    participant BS as Bundle Store
-    participant LTP as HDTN LTP Engine
-    participant CLA as HDTN KISS CLA plugin
+    participant AL as Abstraction Layer
+    participant BPA as DTN Engine (BPA)
+    participant LTP as LTP Engine
+    participant CLA as KISS CLA (radiant-cla)
+    participant KISS as radiant-kiss
     participant TNC as TNC4 USB
     participant Remote as Remote Node
 
-    Op->>NC: Initiate ping to remote node
-    NC->>BPA: CreatePing(destination)
-    BPA->>BPA: Create ping request bundle (BPv7)
-    BPA->>BS: Store ping request
-    NC->>NC: Check active contact window
-    NC->>BS: Retrieve bundles for remote
-    BS-->>NC: [ping request bundle]
-    NC->>BPA: Transmit bundle
+    Op->>NC: Initiate ping to dtn://remote-1/ping
+    NC->>AL: create_bundle(ping_request)
+    AL->>BPA: bp_send(ping_request_bundle)
     BPA->>LTP: LTP session send
-    LTP->>CLA: LTP segments → KISS frames
-    CLA->>TNC: USB serial write
-    TNC->>Remote: 9600 baud RF
+    LTP->>CLA: LTP segment bytes
+    CLA->>KISS: frame(segment)
+    KISS->>TNC: [FEND][CMD][LTP data][FEND]
+    TNC->>Remote: 9600 baud RF (G3RUH GFSK)
     Remote-->>TNC: Ping response RF
-    TNC-->>CLA: USB serial read
-    CLA-->>LTP: KISS frames → LTP segments
+    TNC-->>KISS: raw bytes
+    KISS-->>CLA: extract(frame) → LTP segment
+    CLA-->>LTP: LTP segment
     LTP-->>BPA: Reassembled bundle
-    BPA-->>NC: Ping response bundle
-    NC->>NC: HandlePingResponse
-    NC->>Op: RTT = response.time - request.time
+    BPA-->>AL: bundle_received(ping_response)
+    AL-->>NC: ping_response event
+    NC->>NC: RTT = now - request.creation_timestamp
+    NC->>Op: Report RTT
 ```
 
 ### Store-and-Forward Operation
@@ -121,634 +180,620 @@ sequenceDiagram
 sequenceDiagram
     participant Op as Operator
     participant NC as Node Controller
-    participant BPA as Bundle Protocol Agent
     participant BS as Bundle Store
     participant CPM as Contact Plan Manager
-    participant LTP as HDTN LTP Engine
-    participant CLA as HDTN KISS CLA plugin
+    participant AL as Abstraction Layer
+    participant BPA as DTN Engine (BPA)
+    participant LTP as LTP Engine
+    participant CLA as KISS CLA
+    participant KISS as radiant-kiss
     participant TNC as TNC4 USB
-    participant Remote as Remote Node
 
-    Op->>NC: Submit message (dest: remote node)
-    NC->>BPA: CreateBundle(dest, payload, priority)
-    BPA->>BS: Store bundle
+    Op->>NC: Submit message (dest: dtn://remote-1/mail)
+    NC->>BPA: create_bundle(dest, payload, priority)
+    NC->>BS: store(bundle)
     Note over NC,CPM: No active contact — bundle queued
 
-    Note over NC,Remote: Contact window opens
-    NC->>CPM: GetActiveContacts(now)
-    CPM-->>NC: [contact with remote node]
-    NC->>CLA: Initialize link for contact
-    CLA->>TNC: Open USB serial connection
-    NC->>BS: ListByDestination(remote) + priority sort
+    Note over NC,TNC: Contact window opens
+    NC->>CPM: get_active_contacts(now)
+    CPM-->>NC: [contact with remote-1]
+    NC->>CLA: activate_link(tnc_device)
+    NC->>BS: list_by_destination(remote-1, priority_order)
     BS-->>NC: [bundles sorted by priority]
     loop For each bundle (priority order)
-        NC->>BPA: Transmit bundle
-        BPA->>LTP: LTP session send
-        LTP->>CLA: LTP segments → KISS frames
-        CLA->>TNC: USB serial write
-        TNC->>Remote: 9600 baud RF
-        Remote-->>TNC: LTP ACK RF
-        TNC-->>CLA: USB serial read
-        CLA-->>LTP: LTP ACK
-        LTP-->>BPA: ACK confirmed
-        BPA-->>NC: ACK received
-        NC->>BS: Delete(bundle.ID)
+        NC->>AL: transmit(bundle)
+        AL->>BPA: bp_send(bundle)
+        BPA->>LTP: LTP session
+        LTP->>CLA: LTP segments
+        CLA->>KISS: frame(segment)
+        KISS->>TNC: KISS frame bytes
+        TNC-->>KISS: LTP ACK frame
+        KISS-->>CLA: extract → ACK segment
+        CLA-->>LTP: ACK
+        LTP-->>BPA: Delivery confirmed
+        BPA-->>NC: ACK event
+        NC->>BS: delete(bundle.id)
     end
-    Note over NC,Remote: Contact window closes
+    Note over NC,TNC: Contact window closes
+    NC->>CLA: deactivate_link()
     NC->>NC: Record link metrics
 ```
 
+### Beacon Transmission
+
+```mermaid
+sequenceDiagram
+    participant BCN as Beacon Timer
+    participant NC as Node Controller
+    participant BPA as DTN Engine (BPA)
+    participant CLA as KISS CLA
+    participant TNC as TNC4 USB
+
+    Note over BCN: 10-minute interval elapsed
+    BCN->>NC: beacon_due event
+    NC->>BPA: create_bundle(dest=dtn://beacon, payload="G4DPZ amateur radio DTN experimental station", lifetime=600s)
+    BPA->>CLA: transmit beacon bundle (LTP → KISS)
+    CLA->>TNC: KISS frame with beacon
+    NC->>NC: log beacon_transmitted(timestamp)
+```
 
 ## Components and Interfaces
 
-### Component 1: Bundle Protocol Agent (BPA)
+### Component 1: Node Controller (`radiant-terrestrial` binary)
 
-**Purpose**: Core DTN engine responsible for creating, receiving, validating, storing, and delivering BPv7 bundles. Wraps HDTN's C implementation via cgo. Supports three bundle types: data (store-and-forward), ping request, and ping response. Does not perform relay — bundles are not forwarded on behalf of other nodes.
+**Purpose**: Top-level async Rust orchestrator binary. Instantiates the DTN abstraction layer, bundle store, contact plan manager, beacon timer, and KISS CLA. Runs the autonomous operation cycle: check contacts, transmit queued bundles, process received bundles, handle pings, expire old bundles, fire beacons, collect telemetry.
 
-**Interface**:
-```go
-// BundleID uniquely identifies a bundle.
-type BundleID struct {
-    SourceEID         EndpointID
-    CreationTimestamp  uint64 // DTN epoch seconds
-    SequenceNumber     uint64
+```rust
+use radiant_dtn_abstraction::{
+    NetworkConfiguration, BackendAdapter, AdapterRegistry,
+    BundleStatistics, LinkState, EngineState, EventBus, DtnEvent,
+};
+use radiant_cla::ConvergenceLayerAdapter;
+use radiant_kiss::KissFramer;
+use tokio::time::{interval, Duration};
+
+/// Top-level node configuration loaded from canonical YAML/JSON.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct TerrestrialNodeConfig {
+    /// Canonical DTN abstraction layer config
+    pub network: NetworkConfiguration,
+    /// Local node operational parameters
+    pub node: NodeOperationalConfig,
 }
 
-// Priority levels for bundle handling.
-type Priority int
-
-const (
-    PriorityBulk      Priority = 0
-    PriorityNormal     Priority = 1
-    PriorityExpedited  Priority = 2
-    PriorityCritical   Priority = 3
-)
-
-// BundleType distinguishes operational bundle types.
-type BundleType int
-
-const (
-    BundleTypeData         BundleType = 0 // store-and-forward payload
-    BundleTypePingRequest  BundleType = 1 // echo request
-    BundleTypePingResponse BundleType = 2 // echo response
-)
-
-// Bundle represents a BPv7 bundle.
-type Bundle struct {
-    ID          BundleID
-    Destination EndpointID
-    Payload     []byte
-    Priority    Priority
-    Lifetime    uint64     // seconds
-    CreatedAt   uint64     // DTN epoch seconds
-    Type        BundleType
-    RawBytes    []byte     // serialized BPv7 wire format (CBOR)
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct NodeOperationalConfig {
+    /// Callsign EID: dtn://callsign-ssid/service
+    pub callsign_eid: String,
+    /// Bundle store filesystem path
+    pub store_path: std::path::PathBuf,
+    /// Maximum bundle store capacity in bytes
+    pub max_storage_bytes: u64,
+    /// Maximum accepted bundle size in bytes
+    pub max_bundle_size: u64,
+    /// Maximum bundle acceptance rate per source EID (bundles/sec)
+    pub max_bundle_rate: f64,
+    /// Default bundle priority
+    pub default_priority: Priority,
+    /// Operation cycle interval (target: 100ms)
+    pub cycle_interval_ms: u64,
+    /// Beacon interval in seconds (default: 600 = 10 minutes)
+    pub beacon_interval_secs: u64,
+    /// Beacon payload text
+    pub beacon_text: String,
+    /// TNC4 USB device path
+    pub tnc_device: String,
+    /// TNC4 baud rate (9600)
+    pub tnc_baud_rate: u32,
+    /// USB reconnection retry interval in seconds
+    pub usb_retry_interval_secs: u64,
+    /// Telemetry output path (file or unix socket)
+    pub telemetry_path: String,
+    /// DTN engine restart backoff interval in seconds
+    pub engine_restart_backoff_secs: u64,
 }
 
-// BundleProtocolAgent defines the BPA interface.
-type BundleProtocolAgent interface {
-    // CreateBundle creates a new data bundle for store-and-forward delivery.
-    CreateBundle(dest EndpointID, payload []byte, priority Priority, lifetime uint64) (*Bundle, error)
-
-    // CreatePing creates a ping echo request bundle.
-    CreatePing(dest EndpointID) (*Bundle, error)
-
-    // ValidateBundle checks BPv7 validity: version==7, valid EID, lifetime>0,
-    // timestamp<=now, CRC correct. Returns nil if valid.
-    ValidateBundle(b *Bundle) error
-
-    // SerializeBundle encodes a Bundle to BPv7 wire format (CBOR).
-    SerializeBundle(b *Bundle) ([]byte, error)
-
-    // DeserializeBundle decodes BPv7 wire format back to a Bundle.
-    DeserializeBundle(data []byte) (*Bundle, error)
-
-    // GeneratePingResponse creates a ping response from a ping request.
-    // The response destination is set to the request's source EID.
-    // The request's BundleID is included in the response payload.
-    GeneratePingResponse(request *Bundle) (*Bundle, error)
-}
-```
-
-**Responsibilities**:
-- Bundle creation with proper BPv7 headers, CBOR serialization, and endpoint addressing
-- Bundle validation: version==7, valid destination EID, lifetime>0, timestamp<=now, CRC correct
-- Serialization/deserialization round-trip (BPv7 CBOR wire format)
-- Ping echo request/response handling
-- Discard invalid bundles with logged reason and source EID
-
-### Component 2: Bundle Store
-
-**Purpose**: Persistent storage for bundles awaiting delivery. Persists to the local filesystem. Survives process restarts and power cycles. Provides priority-ordered retrieval and capacity-bounded eviction.
-
-**Interface**:
-```go
-// StoreCapacity reports current store utilization.
-type StoreCapacity struct {
-    TotalBytes  uint64
-    UsedBytes   uint64
-    BundleCount uint64
+/// Bundle priority levels.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
+pub enum Priority {
+    Bulk = 0,
+    Normal = 1,
+    Expedited = 2,
+    Critical = 3,
 }
 
-// BundleStore defines the persistent bundle storage interface.
-type BundleStore interface {
-    // Store persists a bundle atomically to the filesystem.
-    // Returns error if store is full and eviction cannot free space.
-    Store(b *Bundle) error
+/// Node Controller — the main orchestrator.
+pub struct NodeController {
+    config: TerrestrialNodeConfig,
+    adapter: Arc<dyn BackendAdapter>,
+    store: BundleStore,
+    contact_plan: ContactPlanManager,
+    beacon_timer: BeaconTimer,
+    cla: KissCla,
+    telemetry: TelemetryCollector,
+    event_bus: EventBus,
+}
 
-    // Retrieve returns a bundle by its ID, or nil if not found.
-    Retrieve(id BundleID) (*Bundle, error)
+impl NodeController {
+    /// Initialize the node from canonical config.
+    pub async fn new(config: TerrestrialNodeConfig) -> Result<Self, NodeError>;
 
-    // Delete removes a bundle from the store.
-    Delete(id BundleID) error
+    /// Run the main async event loop. Blocks until shutdown signal.
+    pub async fn run(&mut self, shutdown: tokio::sync::watch::Receiver<bool>) -> Result<(), NodeError>;
 
-    // ListByPriority returns all bundles sorted by priority (critical first).
-    ListByPriority() ([]*Bundle, error)
+    /// Execute a single operation cycle (for testing).
+    pub async fn run_cycle(&mut self, current_time: u64) -> Result<CycleMetrics, NodeError>;
 
-    // ListByDestination returns bundles for a specific destination,
-    // sorted by priority (critical first).
-    ListByDestination(dest EndpointID) ([]*Bundle, error)
+    /// Graceful shutdown: flush store, deactivate CLA, stop engine.
+    pub async fn shutdown(&mut self) -> Result<(), NodeError>;
 
-    // Capacity returns current store utilization.
-    Capacity() (StoreCapacity, error)
+    /// Current health snapshot.
+    pub fn health(&self) -> NodeHealth;
 
-    // EvictExpired removes all bundles whose lifetime has expired.
-    // Returns the number of bundles evicted.
-    EvictExpired(currentTime uint64) (int, error)
-
-    // EvictLowestPriority removes the lowest-priority, oldest bundle.
-    // Critical bundles are only evicted when no lower-priority bundles remain.
-    // Returns the evicted bundle or nil if store is empty.
-    EvictLowestPriority() (*Bundle, error)
-
-    // Reload restores store state from the filesystem after a restart.
-    // Validates store integrity and discards corrupted entries.
-    Reload() error
-
-    // Flush ensures all in-memory state is persisted to disk.
-    Flush() error
+    /// Cumulative statistics.
+    pub fn statistics(&self) -> NodeStatistics;
 }
 ```
 
 **Responsibilities**:
-- Atomic writes to prevent corruption on power loss (write-to-temp + rename)
-- Priority-ordered index (critical > expedited > normal > bulk)
-- Capacity enforcement: total stored bytes never exceeds configured maximum
-- Eviction policy: expired bundles first, then lowest-priority with earliest timestamp
-- Critical bundles preserved until all lower-priority bundles evicted
-- Reload from filesystem on process restart with integrity validation
-
-### Component 3: Contact Plan Manager
-
-**Purpose**: Manages manually scheduled communication windows between terrestrial ground nodes. No CGR or orbital prediction — contact windows are configured by the operator in HDTN JSON contact plan format. Provides direct contact lookup for bundle delivery scheduling.
-
-**Interface**:
-```go
-// LinkType identifies the radio band for a contact.
-type LinkType int
-
-const (
-    LinkTypeVHF LinkType = 0 // LTP-over-KISS over VHF (9600 baud via TNC4 + FT-817)
-    LinkTypeUHF LinkType = 1 // LTP-over-KISS over UHF (9600 baud via TNC4 + FT-817)
-)
-
-// ContactWindow represents a scheduled communication window.
-type ContactWindow struct {
-    ContactID  uint64
-    RemoteNode NodeID
-    StartTime  uint64 // epoch seconds
-    EndTime    uint64 // epoch seconds
-    DataRate   uint64 // bits per second
-    Link       LinkType
-}
-
-// ContactPlan holds the full set of scheduled contacts.
-type ContactPlan struct {
-    PlanID    uint64
-    ValidFrom uint64
-    ValidTo   uint64
-    Contacts  []ContactWindow
-}
-
-// ContactPlanManager defines the contact scheduling interface.
-type ContactPlanManager interface {
-    // LoadPlan loads a contact plan, replacing any existing plan.
-    // Validates: all contacts within valid-from/valid-to, no overlaps on same link.
-    LoadPlan(plan ContactPlan) error
-
-    // LoadFromFile loads a contact plan from an HDTN JSON config file.
-    LoadFromFile(path string) error
-
-    // GetActiveContacts returns contacts active at the given time
-    // (startTime <= t < endTime).
-    GetActiveContacts(t uint64) ([]ContactWindow, error)
-
-    // GetNextContact returns the earliest future contact with the given node.
-    GetNextContact(node NodeID, afterTime uint64) (*ContactWindow, error)
-
-    // FindDirectContact returns the next direct contact with the destination.
-    // No multi-hop — returns a single contact or nil.
-    FindDirectContact(dest EndpointID, afterTime uint64) (*ContactWindow, error)
-
-    // UpdatePlan adds or updates a single contact window.
-    // Rejects if it would create an overlap on the same link.
-    UpdatePlan(contact ContactWindow) error
-
-    // Persist saves the current plan to the filesystem.
-    Persist() error
-
-    // Reload restores the plan from the filesystem after restart.
-    Reload() error
-}
-```
-
-**Responsibilities**:
-- Maintain time-tagged schedule of contact windows (manually configured)
-- Validate contact plan: all windows within valid-from/valid-to, no overlapping contacts on same link
-- Direct contact lookup for destination nodes (no multi-hop routing)
-- Persist plan to filesystem, reload on restart
-- Support HDTN JSON contact plan file format
-
-### Component 4: Convergence Layer Adapter (CLA) — HDTN Native KISS CLA
-
-**Purpose**: HDTN's native KISS CLA plugin that wraps LTP segments in KISS frames for serial TNCs. The CLA provides KISS framing as the link service layer below HDTN's LTP engine — it sends and receives LTP segments over KISS frames via the Mobilinkd TNC4 USB serial connection. Station identification is achieved via callsign-embedded DTN Endpoint Identifiers (dtn://callsign/service) in every bundle's primary block, not in the link-layer framing. HDTN directly handles bundle transmission and reception through the KISS CLA; there is no UDP intermediary anywhere in the data path. The Go Node Controller manages the CLA lifecycle (initialization, contact scheduling, telemetry, error recovery).
-
-**HDTN Integration**:
-- The CLA uses HDTN's KISS CLA to to transmit LTP segments as KISS frames over serial
-- The CLA uses HDTN's KISS CLA to receive KISS frames (containing LTP segments) from serial and deliver them to HDTN's LTP engine
-- HDTN's LTP engine handles segmentation, reassembly, retransmission, and acknowledgment natively — the KISS CLA only handles KISS framing and TNC4 serial I/O
-- Station identification is in the DTN EID (dtn://callsign/service) in the bundle primary block, not in link-layer headers
-
-**Interface**:
-```go
-// CLAStatus represents the current link state.
-type CLAStatus int
-
-const (
-    CLAStatusIdle         CLAStatus = 0
-    CLAStatusActive       CLAStatus = 1 // link service registered and operational
-    CLAStatusError        CLAStatus = 2
-)
-
-// LinkMetrics captures link quality measurements.
-type LinkMetrics struct {
-    RSSI             int     // dBm
-    SNR              float64 // dB
-    BitErrorRate     float64
-    BytesTransferred uint64
-    FramesSent       uint64
-    FramesReceived   uint64
-}
-
-// KISSCLAPlugin defines the Go-side management interface for HDTN's native KISS CLA.
-// The actual CLA protocol logic is handled by HDTN's KISS CLA plugin.
-// This interface manages the CLA lifecycle from the Go Node Controller.
-type KISSCLAPlugin interface {
-    // Init initializes the KISS CLA by configuring HDTN's KISS CLA plugin
-    // with the TNC4 serial device path and baud rate.
-    // Called once at node startup.
-    Init(config CLAConfig) error
-
-    // ActivateLink opens the TNC4 USB serial connection and signals HDTN
-    // that the link service is available for the given contact window.
-    // HDTN's LTP engine will begin sending segments through the KISS CLA.
-    ActivateLink(contact ContactWindow) error
-
-    // DeactivateLink signals HDTN that the link service is no longer available
-    // and closes the TNC4 USB serial connection.
-    DeactivateLink() error
-
-    // Shutdown stops the KISS CLA programs and releases resources.
-    Shutdown() error
-
-    // Status returns the current CLA state.
-    Status() CLAStatus
-
-    // GetMetrics returns cumulative link metrics for the current session.
-    GetMetrics() LinkMetrics
-
-    // IsConnected returns true if the USB connection to TNC4 is active.
-    IsConnected() bool
-}
-
-// CLAConfig holds configuration for the HDTN KISS CLA.
-type CLAConfig struct {
-    LocalEID        EndpointID    // DTN EID with callsign, e.g. dtn://g4dpz-1
-    TNCDevice       string        // USB serial device path, e.g. "/dev/ttyACM0"
-    TNCBaudRate     int           // 9600
-    MaxFrameSize    int           // max KISS frame information field size
-    RetryInterval   time.Duration // USB reconnection retry interval
-}
-```
-
-**HDTN KISS CLA Plugin* (modular CLA architecture):
-```
-HDTN KISS CLA plugin (transmit path): wraps LTP segments in KISS frames and writes to TNC4 via USB serial.
-HDTN KISS CLA plugin (receive path): reads KISS frames from TNC4 USB serial, extracts LTP segments,
-             and delivers them to HDTN's LTP engine.
-```
-
-These are configured via HDTN's JSON configuration file with the TNC4 serial device path and baud rate. No custom C code is required — HDTN provides this functionality natively.
-
-**Responsibilities**:
-- Use HDTN's KISS CLA plugin for LTP-over-KISS framing
-- KISS framing (FEND/CMD/DATA/FEND) wrapping LTP segments for TNC transport
-- Station identification via callsign-embedded DTN EIDs (dtn://callsign/service) in every bundle's primary block
-- USB serial interface to Mobilinkd TNC4 (not Bluetooth)
-- Drive FT-817 at 9600 baud via TNC4 (G3RUH GFSK)
-- Link quality monitoring (RSSI, SNR, BER, frame counts)
-- Detect USB disconnection within 5 seconds, attempt reconnection at configurable interval
-- No LTP segmentation/reassembly logic — HDTN's LTP engine handles that natively
-- No UDP sockets — all data flows through HDTN's KISS CLA plugin
-
-### Component 5: Node Controller
-
-**Purpose**: Top-level orchestrator tying together BPA, Bundle Store, Contact Plan Manager, and CLA. Manages the autonomous operation cycle: check contacts, transmit queued bundles, receive incoming bundles, handle pings, expire old bundles, collect telemetry. Interfaces with HDTN's KISS CLA for link lifecycle management (activation/deactivation), while HDTN's internal stack handles the actual bundle transmission through the KISS CLA programs.
-
-**Interface**:
-```go
-// NodeConfig holds the configuration for a terrestrial DTN node.
-type NodeConfig struct {
-    NodeID           NodeID
-    Callsign         string    // Amateur radio callsign for DTN EID (e.g., "G4DPZ")
-    SSID             uint8     // SSID for DTN EID (e.g., 1 → dtn://g4dpz-1)
-    Endpoints        []EndpointID
-    MaxStorageBytes  uint64   // bundle store capacity
-    DefaultPriority  Priority
-    CycleInterval    time.Duration // target: 100ms
-    MaxBundleSize    uint64   // max accepted bundle size in bytes
-    MaxBundleRate    float64  // max bundles/sec per source EID
-    TNCDevice        string   // USB serial device path, e.g. "/dev/ttyACM0"
-    TNCBaudRate      int      // 9600
-    ContactPlanFile  string   // path to HDTN JSON contact plan file
-    TelemetryPath    string   // path for telemetry output (file/socket)
-    RetryInterval    time.Duration // USB reconnection retry interval
-}
-
-// NodeHealth reports current node health.
-type NodeHealth struct {
-    UptimeSeconds       uint64
-    StorageUsedPercent  float64
-    BundlesStored       uint64
-    BundlesDelivered    uint64
-    BundlesDropped      uint64 // expired + evicted
-    LastContactTime     *uint64
-}
-
-// NodeStatistics reports cumulative statistics.
-type NodeStatistics struct {
-    TotalBundlesReceived uint64
-    TotalBundlesSent     uint64
-    TotalBytesReceived   uint64
-    TotalBytesSent       uint64
-    AverageLatencySeconds float64
-    ContactsCompleted    uint64
-    ContactsMissed       uint64
-}
-
-// NodeController defines the node orchestrator interface.
-type NodeController interface {
-    // Initialize sets up the node with the given configuration.
-    Initialize(config NodeConfig) error
-
-    // Run starts the main operation loop. Blocks until Shutdown is called.
-    Run(ctx context.Context) error
-
-    // RunCycle executes a single operation cycle (for testing).
-    RunCycle(currentTime uint64) error
-
-    // Shutdown gracefully stops the node, flushing store and closing CLA.
-    Shutdown() error
-
-    // Health returns current node health snapshot.
-    Health() NodeHealth
-
-    // Statistics returns cumulative node statistics.
-    Statistics() NodeStatistics
-}
-```
-
-**Responsibilities**:
-- Orchestrate the check-contacts → activate-CLA-link → transmit → receive → cleanup cycle (target: 100ms)
-- Manage CLA lifecycle: initialization, link activation/deactivation per contact window, shutdown
-- Submit queued bundles to HDTN BPA in priority order during active contact windows
-- Process incoming bundles delivered by HDTN: validate, store data bundles, handle ping requests
+- Orchestrate check-contacts → activate-CLA → transmit → receive → cleanup cycle (target: 100ms)
+- Configure and manage DTN engine through abstraction layer lifecycle operations
+- Submit queued bundles in priority order during active contact windows (direct delivery only)
+- Process incoming bundles: validate CRC, store data bundles, handle ping requests
 - Generate ping echo responses and queue for delivery
-- Enforce rate limiting per source EID
-- Enforce maximum bundle size
+- Fire beacon bundles every 10 minutes
+- Enforce rate limiting per source EID and maximum bundle size
 - Run bundle lifetime expiry cleanup
-- Collect telemetry (including KISS CLA link metrics) and expose via local interface
-- Handle USB disconnection detection and reconnection via KISS CLA
+- Validate bundle CRC on reception (no cryptographic verification)
+- Collect telemetry (engine stats + CLA link metrics) and expose via local interface
+- Handle USB disconnection detection and reconnection
 - Reload state from filesystem on restart
 - No relay — direct delivery only
 
+### Component 2: KISS Convergence Layer Adapter (`KissCla`)
+
+**Purpose**: Implements the `radiant-cla` convergence layer trait for KISS-framed LTP over USB serial. Uses `radiant-kiss` (a `no_std` crate) for KISS frame encoding/decoding. LTP segments are wrapped directly in KISS frames — no AX.25 layer.
+
+```rust
+use radiant_cla::ConvergenceLayerAdapter;
+use radiant_kiss::{KissFrame, KissEncoder, KissDecoder, FEND, FESC, TFEND, TFESC};
+
+/// KISS CLA configuration.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct KissClaConfig {
+    /// USB serial device path (e.g., "/dev/ttyACM0")
+    pub tnc_device: String,
+    /// Baud rate (9600 for TNC4 + FT-817)
+    pub baud_rate: u32,
+    /// Local LTP engine ID
+    pub local_engine_id: u64,
+    /// Remote LTP engine ID
+    pub remote_engine_id: u64,
+    /// Maximum KISS frame payload size in bytes
+    pub max_frame_size: u32,
+    /// USB reconnection retry interval
+    pub retry_interval: Duration,
+}
+
+/// Link status for the KISS CLA.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ClaStatus {
+    Idle,
+    Active,
+    Error,
+    Disconnected,
+}
+
+/// Cumulative link metrics.
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+pub struct LinkMetrics {
+    pub bytes_sent: u64,
+    pub bytes_received: u64,
+    pub frames_sent: u64,
+    pub frames_received: u64,
+    pub framing_errors: u64,
+}
+
+/// KISS CLA implementing the radiant-cla trait.
+pub struct KissCla {
+    config: KissClaConfig,
+    status: ClaStatus,
+    metrics: LinkMetrics,
+    serial: Option<SerialPort>,
+    encoder: KissEncoder,
+    decoder: KissDecoder,
+}
+
+impl ConvergenceLayerAdapter for KissCla {
+    /// Send an LTP segment wrapped in a KISS frame.
+    async fn send_segment(&mut self, segment: &[u8]) -> Result<(), ClaError>;
+
+    /// Receive the next LTP segment from a KISS frame.
+    async fn recv_segment(&mut self) -> Result<Vec<u8>, ClaError>;
+
+    /// Activate the link (open USB serial connection).
+    async fn activate(&mut self) -> Result<(), ClaError>;
+
+    /// Deactivate the link (close USB serial connection).
+    async fn deactivate(&mut self) -> Result<(), ClaError>;
+
+    /// Check if the link is currently active.
+    fn is_active(&self) -> bool;
+}
+
+impl KissCla {
+    pub fn new(config: KissClaConfig) -> Self;
+    pub fn status(&self) -> ClaStatus;
+    pub fn metrics(&self) -> &LinkMetrics;
+    pub fn reset_metrics(&mut self);
+}
+```
+
+**KISS Frame Format** (from `radiant-kiss`):
+
+```
+[FEND] [CMD] [LTP segment data...] [FEND]
+
+FEND = 0xC0 (frame boundary)
+CMD  = 0x00 (data frame, port 0)
+Byte stuffing:
+  0xC0 in data → 0xDB 0xDC (FESC + TFEND)
+  0xDB in data → 0xDB 0xDD (FESC + TFESC)
+```
+
+**Responsibilities**:
+- Wrap outbound LTP segments in KISS frames (FEND + CMD + data + FEND with byte stuffing)
+- Extract inbound LTP segments from KISS frames (detect FEND boundaries, reverse byte stuffing)
+- Interface with TNC4 via USB serial (`/dev/ttyACM0` at 9600 baud)
+- Detect USB disconnection within 5 seconds
+- Attempt USB reconnection at configurable retry interval
+- Track link metrics (bytes, frames, framing errors)
+- NO AX.25 framing, headers, or addressing
+
+### Component 3: Bundle Store
+
+**Purpose**: Persistent priority-ordered storage for bundles awaiting delivery. Uses the local filesystem with atomic writes (write-to-temp + rename). Survives process restarts and power cycles.
+
+```rust
+/// Unique bundle identifier.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+pub struct BundleId {
+    pub source_eid: String,
+    pub creation_timestamp: u64,
+    pub sequence_number: u64,
+}
+
+/// Bundle metadata stored alongside the raw bundle bytes.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct BundleRecord {
+    pub id: BundleId,
+    pub destination_eid: String,
+    pub priority: Priority,
+    pub lifetime_secs: u64,
+    pub creation_timestamp: u64,
+    pub size_bytes: u64,
+    pub bundle_type: BundleType,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum BundleType {
+    Data,
+    PingRequest,
+    PingResponse,
+}
+
+/// Store capacity report.
+#[derive(Debug, Clone)]
+pub struct StoreCapacity {
+    pub total_bytes: u64,
+    pub used_bytes: u64,
+    pub bundle_count: u64,
+}
+
+/// Bundle Store trait.
+pub trait BundleStoreOps {
+    /// Persist a bundle atomically (write-to-temp + rename).
+    fn store(&mut self, record: &BundleRecord, raw_bytes: &[u8]) -> Result<(), StoreError>;
+
+    /// Retrieve a bundle by ID.
+    fn retrieve(&self, id: &BundleId) -> Result<Option<(BundleRecord, Vec<u8>)>, StoreError>;
+
+    /// Delete a bundle.
+    fn delete(&mut self, id: &BundleId) -> Result<(), StoreError>;
+
+    /// List bundles for a destination, sorted by priority (critical first).
+    fn list_by_destination(&self, dest_eid: &str) -> Result<Vec<BundleRecord>, StoreError>;
+
+    /// List all bundles sorted by priority.
+    fn list_by_priority(&self) -> Result<Vec<BundleRecord>, StoreError>;
+
+    /// Current capacity utilization.
+    fn capacity(&self) -> StoreCapacity;
+
+    /// Evict all expired bundles. Returns count evicted.
+    fn evict_expired(&mut self, current_time: u64) -> Result<u64, StoreError>;
+
+    /// Evict lowest-priority, oldest bundles to free `required_bytes`.
+    /// Critical bundles only evicted when no lower-priority remain.
+    fn evict_for_space(&mut self, required_bytes: u64) -> Result<u64, StoreError>;
+
+    /// Reload store state from filesystem (after restart).
+    fn reload(&mut self) -> Result<(), StoreError>;
+}
+```
+
+**Responsibilities**:
+- Atomic writes: write to temp file, fsync, rename — prevents corruption on power loss
+- Priority-ordered index: critical > expedited > normal > bulk
+- Capacity enforcement: total bytes ≤ configured max
+- Eviction policy: expired first, then lowest-priority with earliest creation timestamp
+- Critical bundles preserved until all lower-priority evicted
+- Reload from filesystem on process restart with integrity validation
+
+### Component 4: Contact Plan Manager
+
+**Purpose**: Manages manually scheduled communication windows between terrestrial nodes. No CGR or orbital prediction. Contact plans are loaded from the canonical YAML/JSON config format (compatible with `radiant-dtn-abstraction` `ContactPlan` model).
+
+```rust
+use radiant_dtn_abstraction::model::{Contact, ContactPlan};
+
+/// Link type for terrestrial contacts.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum LinkType {
+    Vhf,
+    Uhf,
+}
+
+/// Extended contact window with terrestrial-specific metadata.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ContactWindow {
+    pub remote_node_eid: String,
+    pub remote_node_number: u64,
+    pub start_time: u64,
+    pub end_time: u64,
+    pub rate_bps: u64,
+    pub link_type: LinkType,
+}
+
+/// Contact Plan Manager trait.
+pub trait ContactPlanOps {
+    /// Load a contact plan from canonical config.
+    fn load(&mut self, plan: &ContactPlan) -> Result<(), PlanError>;
+
+    /// Load from a YAML/JSON file path.
+    fn load_from_file(&mut self, path: &std::path::Path) -> Result<(), PlanError>;
+
+    /// Get all contacts active at the given time.
+    fn active_contacts(&self, time: u64) -> Vec<&ContactWindow>;
+
+    /// Get the next contact with a specific destination node.
+    fn next_contact(&self, dest_node: u64, after: u64) -> Option<&ContactWindow>;
+
+    /// Add or update a contact window. Rejects overlaps on the same link.
+    fn update(&mut self, window: ContactWindow) -> Result<(), PlanError>;
+
+    /// Persist current plan to filesystem.
+    fn persist(&self) -> Result<(), PlanError>;
+
+    /// Reload from filesystem.
+    fn reload(&mut self) -> Result<(), PlanError>;
+}
+```
+
+**Responsibilities**:
+- Maintain time-tagged schedule of contact windows
+- Validate: all windows within valid-from/valid-to, no overlapping contacts on same link
+- Direct contact lookup (no multi-hop routing)
+- Compatible with `radiant-dtn-abstraction` `ContactPlan` data model
+- Persist to filesystem, reload on restart
+
+### Component 5: Beacon Timer
+
+**Purpose**: Fires periodic beacon bundles for amateur radio station identification compliance. Beacons are transmitted every 10 minutes regardless of whether a contact window is active. An initial beacon is transmitted within 30 seconds of startup.
+
+```rust
+/// Beacon timer state.
+pub struct BeaconTimer {
+    interval: Duration,
+    last_beacon: Option<u64>,
+    beacon_count: u64,
+}
+
+impl BeaconTimer {
+    pub fn new(interval_secs: u64) -> Self;
+
+    /// Check if a beacon is due.
+    pub fn is_due(&self, current_time: u64) -> bool;
+
+    /// Record a beacon transmission.
+    pub fn record_beacon(&mut self, timestamp: u64);
+
+    /// Number of beacons transmitted since startup.
+    pub fn count(&self) -> u64;
+}
+```
+
+**Beacon Bundle Format**:
+- Source EID: `dtn://callsign-ssid` (node's callsign EID)
+- Destination EID: `dtn://beacon` (well-known broadcast-style endpoint)
+- Lifetime: 600 seconds (one beacon interval)
+- Payload: Human-readable identification string, e.g., "G4DPZ amateur radio DTN experimental station"
+- CRC: BPv7 bundle CRC for error detection (no cryptographic integrity block)
+
+### Component 6: Telemetry Collector
+
+**Purpose**: Collects and exposes node health and performance metrics. Merges DTN engine telemetry (via abstraction layer) with local node metrics (store utilization, beacon count, contact statistics).
+
+```rust
+/// Real-time node health snapshot.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct NodeHealth {
+    pub uptime_secs: u64,
+    pub storage_used_percent: f64,
+    pub bundles_stored: u64,
+    pub bundles_delivered: u64,
+    pub bundles_dropped: u64,
+    pub last_contact_time: Option<u64>,
+}
+
+/// Cumulative node statistics.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct NodeStatistics {
+    pub total_bundles_received: u64,
+    pub total_bundles_sent: u64,
+    pub total_bytes_received: u64,
+    pub total_bytes_sent: u64,
+    pub avg_delivery_latency_secs: f64,
+    pub contacts_completed: u64,
+    pub contacts_missed: u64,
+    pub beacons_transmitted: u64,
+}
+
+/// Telemetry collector merging engine + local metrics.
+pub struct TelemetryCollector {
+    start_time: u64,
+    health: NodeHealth,
+    stats: NodeStatistics,
+}
+
+impl TelemetryCollector {
+    pub fn new() -> Self;
+    pub fn update_from_engine(&mut self, engine_stats: &BundleStatistics, link_states: &[LinkState]);
+    pub fn record_contact_completed(&mut self, metrics: &LinkMetrics);
+    pub fn record_contact_missed(&mut self);
+    pub fn record_beacon(&mut self);
+    pub fn snapshot_health(&self) -> NodeHealth;
+    pub fn snapshot_stats(&self) -> NodeStatistics;
+}
+```
 
 ## Data Models
 
-### EndpointID
+### Callsign EID Format
 
-```go
-// EndpointID is a DTN endpoint identifier (dtn:// or ipn: scheme).
-type EndpointID struct {
-    Scheme string // "dtn" or "ipn"
-    SSP    string // scheme-specific part, e.g. "//gs-alpha/mail"
-}
+```
+dtn://callsign-ssid/service
 
-// NodeID identifies a DTN node.
-type NodeID string
+Examples:
+  dtn://g4dpz-1           # Primary station (node identity)
+  dtn://g4dpz-1/mail      # Mail service endpoint
+  dtn://g4dpz-1/ping      # Ping service endpoint
+  dtn://w1abc-2/file      # File transfer endpoint
+  dtn://beacon            # Well-known beacon destination
+
+Callsign rules:
+  - One or two letter prefix
+  - One or more digits
+  - One to three letter suffix
+  - All lowercase
+  - SSID: 0-15 (following AX.25 convention)
 ```
 
-### BPv7 Bundle Wire Format
+### Canonical Configuration (YAML)
 
-```go
-// PrimaryBlock is the BPv7 primary block (CBOR-encoded on the wire).
-type PrimaryBlock struct {
-    Version           uint8      // always 7
-    BundleFlags       uint64
-    CRCType           uint8      // 0=none, 1=CRC-16, 2=CRC-32
-    Destination       EndpointID
-    Source            EndpointID
-    ReportTo          EndpointID
-    CreationTimestamp  uint64     // DTN epoch seconds
-    SequenceNumber     uint64
-    Lifetime          uint64     // seconds
-    CRC               []byte     // computed CRC value
-}
+The terrestrial node uses the same canonical config format as `radiant-dtn-abstraction`:
 
-// CanonicalBlock is a BPv7 extension or payload block.
-type CanonicalBlock struct {
-    BlockType   uint64
-    BlockNumber uint64
-    BlockFlags  uint64
-    CRCType     uint8
-    Data        []byte
-    CRC         []byte
-}
+```yaml
+version: "1.0"
+backend: ion-dtn
 
-// BPv7Bundle is the full on-wire bundle structure.
-type BPv7Bundle struct {
-    Primary    PrimaryBlock
-    Extensions []CanonicalBlock
-    Payload    CanonicalBlock
-}
+local_node:
+  node_number: 1
+  callsign_eid: { authority: "g4dpz-1", path: "" }
+  name: "G4DPZ Terrestrial Node A"
+  services:
+    - { service_number: 1, description: "Bundle delivery" }
+    - { service_number: 2047, description: "Ping echo" }
+    - { service_number: 2048, description: "Beacon" }
+
+neighbors:
+  - node_number: 2
+    name: "W1ABC Terrestrial Node B"
+    links:
+      - type: kiss
+        id: "kiss-tnc4"
+        tnc_device: "/dev/ttyACM0"
+        baud_rate: 9600
+        local_engine_id: 1
+        remote_engine_id: 2
+        frame_size: 1400
+
+contact_plan:
+  contacts:
+    - source_node: 1
+      dest_node: 2
+      start_time: 0
+      end_time: 2147483647
+      rate_bps: 9600
+      confidence: 1.0
+    - source_node: 2
+      dest_node: 1
+      start_time: 0
+      end_time: 2147483647
+      rate_bps: 9600
+      confidence: 1.0
+  ranges:
+    - source_node: 1
+      dest_node: 2
+      owlt_secs: 0.001
+
+routing:
+  strategy: static
+  static_routes:
+    - destination_node: 2
+      next_hop_node: 2
 ```
 
-**Validation Rules**:
-- `Primary.Version` must equal 7
-- `Primary.Destination` must be a well-formed EndpointID (non-empty scheme and SSP)
-- `Primary.Lifetime` must be > 0
-- `Primary.CreationTimestamp` must be ≤ current time
-- CRC must validate if `CRCType` ≠ 0
-- Total serialized bundle size must not exceed `NodeConfig.MaxBundleSize`
+### Node Operational Configuration (YAML extension)
 
-### Contact Plan Data Model
-
-```go
-// ContactPlan validation rules:
-// - ValidFrom < ValidTo
-// - All contacts fall within [ValidFrom, ValidTo]
-// - No overlapping contacts on the same link for a given node
+```yaml
+# Appended to the canonical config as a terrestrial-specific section
+node:
+  callsign_eid: "dtn://g4dpz-1"
+  store_path: "/var/radiant/bundles"
+  max_storage_bytes: 1073741824  # 1 GiB
+  max_bundle_size: 65536         # 64 KiB
+  max_bundle_rate: 10.0          # bundles/sec per source
+  default_priority: normal
+  cycle_interval_ms: 100
+  beacon_interval_secs: 600
+  beacon_text: "G4DPZ amateur radio DTN experimental station"
+  tnc_device: "/dev/ttyACM0"
+  tnc_baud_rate: 9600
+  usb_retry_interval_secs: 5
+  telemetry_path: "/var/radiant/telemetry.sock"
+  engine_restart_backoff_secs: 10
 ```
 
-### Rate Limiter State
+### Rate Limiter
 
-```go
-// RateLimiter tracks bundle acceptance rates per source EID.
-type RateLimiter struct {
-    MaxRate     float64                    // bundles per second
-    WindowSize  time.Duration              // sliding window
-    Counts      map[EndpointID][]uint64    // timestamps of accepted bundles per source
+```rust
+/// Sliding-window rate limiter per source EID.
+pub struct RateLimiter {
+    max_rate: f64,
+    window: Duration,
+    counts: HashMap<String, VecDeque<u64>>,  // source_eid → timestamps
 }
-```
 
-## Key Functions
+impl RateLimiter {
+    pub fn new(max_rate: f64, window: Duration) -> Self;
 
-### Function 1: RunCycle (Main Operation Loop)
-
-```go
-func (nc *nodeController) RunCycle(currentTime uint64) error {
-    // Step 1: Check for active contact windows
-    // Step 2: For each active contact, activate CLA link and submit queued bundles
-    //         to HDTN BPA in priority order (direct delivery only — no relay).
-    //         HDTN's LTP engine transmits segments through the KISS CLA.
-    // Step 3: Process incoming bundles delivered by HDTN (received via KISS CLA)
-    //         - Data bundles: validate, store, deliver if local
-    //         - Ping requests: generate echo response, queue for delivery
-    // Step 4: Expire old bundles (lifetime enforcement)
-    // Step 5: Flush store to disk
-    // Step 6: Update telemetry (including CLA plugin link metrics)
-    // Target: complete within 100ms
-}
-```
-
-**Preconditions**:
-- Node is initialized with valid config
-- Contact plan is loaded
-- CLA plugin is registered with HDTN's convergence layer framework
-- TNC4/FT-817 hardware is operational or gracefully degraded
-
-**Postconditions**:
-- All deliverable bundles sent during active contacts (direct delivery only)
-- Incoming bundles processed: data stored/delivered, pings answered
-- Expired bundles removed
-- Store persisted to filesystem
-- Telemetry updated
-
-### Function 2: ProcessIncomingBundle
-
-```go
-func (nc *nodeController) ProcessIncomingBundle(b *Bundle, currentTime uint64) error {
-    // 1. Validate bundle (version, EID, lifetime, timestamp, CRC)
-    //    (bundle received from HDTN BPA, which received it via LTP → KISS CLA)
-    // 2. Check rate limit for source EID
-    // 3. Check bundle size limit
-    // 4. Check if expired (createdAt + lifetime <= currentTime)
-    // 6. If ping request → generate echo response, store for delivery
-    // 7. If destination is local → deliver to application agent
-    // 8. If destination is remote → store for direct delivery during next contact
-    // 9. No relay — never forward on behalf of other nodes
+    /// Check if a bundle from this source is allowed.
+    /// Returns Ok(()) if allowed, Err(RateLimited) if over limit.
+    pub fn check(&mut self, source_eid: &str, current_time: u64) -> Result<(), RateLimitError>;
 }
 ```
 
-**Preconditions**:
-- `b` is a received bundle delivered by HDTN (received via LTP → KISS CLA → TNC4)
-- `currentTime` is the current epoch time
+### Callsign Validation
 
-**Postconditions**:
-- Valid bundles are stored or delivered
-- Invalid/expired bundles are discarded with logged reason
-- Rate-limited bundles are rejected with logged event
-- Ping requests produce exactly one echo response queued for delivery
-- Store consistency maintained
-
-### Function 3: ExecuteContactWindow
-
-```go
-func (nc *nodeController) ExecuteContactWindow(contact ContactWindow, currentTime uint64) (sent int, bytesSent uint64, err error) {
-    // 1. Activate CLA link for the contact (signals HDTN link service is available)
-    // 2. Retrieve bundles destined for contact.RemoteNode, sorted by priority
-    // 3. Submit each bundle to HDTN BPA for transmission while currentTime < contact.EndTime
-    //    (HDTN's LTP engine sends segments through the KISS CLA)
-    // 4. On ACK (reported by HDTN LTP): delete bundle from store
-    // 5. On failure: stop sending, retain remaining bundles
-    // 6. Deactivate CLA link (signals HDTN link service is no longer available)
-    // 7. Record link metrics from KISS CLA
-}
+```rust
+/// Validate a callsign-SSID string against amateur radio format.
+/// Returns Ok(()) for valid callsigns, Err with reason for invalid.
+///
+/// Valid format: 1-2 letter prefix + 1+ digits + 1-3 letter suffix + hyphen + SSID(0-15)
+/// Examples: "g4dpz-1", "w1abc-0", "vk2abc-15"
+pub fn validate_callsign_eid(eid: &str) -> Result<(), CallsignError>;
 ```
-
-**Preconditions**:
-- `contact.StartTime <= currentTime < contact.EndTime`
-- CLA is initialized and registered with HDTN
-- TNC4 USB connection is available (or gracefully degraded)
-
-**Postconditions**:
-- ACKed bundles deleted from store
-- Unacknowledged bundles retained for retry
-- `sent <= initial bundle count for destination`
-- `bytesSent <= contact.DataRate * (contact.EndTime - contact.StartTime) / 8`
-- Link metrics recorded from KISS CLA
-- CLA link deactivated (HDTN notified link service is unavailable)
-
-### Function 4: EvictBundles
-
-```go
-func (bs *bundleStore) EvictForSpace(requiredBytes uint64, currentTime uint64) (uint64, error) {
-    // 1. Evict expired bundles first
-    // 2. If still insufficient: evict bulk, then normal, then expedited
-    // 3. Critical bundles evicted only when no lower-priority bundles remain
-    // 4. Within same priority: evict oldest (earliest creation timestamp) first
-    // Returns bytes freed
-}
-```
-
-**Preconditions**:
-- `requiredBytes > 0`
-- Store is at or near capacity
-
-**Postconditions**:
-- `bytesFreed >= requiredBytes` if sufficient evictable bundles exist
-- No critical bundles evicted unless all lower priorities exhausted
-- Eviction order: expired → bulk → normal → expedited → critical
-- Store consistency maintained
-
-### Function 5: FindDirectContact
-
-```go
-func (cpm *contactPlanManager) FindDirectContact(dest EndpointID, afterTime uint64) (*ContactWindow, error) {
-    // Linear scan of contacts sorted by start time.
-    // Return earliest contact where RemoteNode matches dest and StartTime >= afterTime.
-    // No multi-hop routing — single direct contact or nil.
-}
-```
-
-**Preconditions**:
-- Contact plan is loaded and valid
-- `dest` is a valid endpoint ID
-
-**Postconditions**:
-- Returns the earliest future direct contact with destination, or nil
-- Result is a single contact window (no multi-hop path)
-
 
 ## Correctness Properties
 
@@ -756,250 +801,414 @@ func (cpm *contactPlanManager) FindDirectContact(dest EndpointID, afterTime uint
 
 ### Property 1: Bundle Serialization Round-Trip
 
-*For any* valid BPv7 Bundle, serializing it to the CBOR wire format and then deserializing the wire format back SHALL produce a Bundle equivalent to the original.
+*For any* valid BPv7 Bundle object (with version 7, valid Callsign_EIDs, positive lifetime, valid CRC, and any of the three bundle types), serializing to BPv7 wire format and then parsing the wire format back SHALL produce a Bundle equivalent to the original.
 
 **Validates: Requirements 1.5**
 
-### Property 2: Bundle Store/Retrieve Round-Trip
+### Property 2: Bundle Validation Correctness
 
-*For any* valid Bundle, storing it in the Bundle Store and then retrieving it by its BundleID (source EID, creation timestamp, sequence number) SHALL produce a Bundle identical to the original.
-
-**Validates: Requirements 2.2**
-
-### Property 3: LTP-over-KISS Encapsulation Round-Trip
-
-*For any* valid Bundle, encapsulating it into LTP segments over KISS frames (with LTP segmentation if the bundle exceeds a single KISS frame) and then reassembling the frames back into a bundle SHALL produce a Bundle equivalent to the original.
-
-**Validates: Requirements 9.6**
-
-### Property 4: Bundle Validation Correctness
-
-*For any* Bundle, the BPA validation function SHALL accept the bundle if and only if its version equals 7, its destination is a well-formed EndpointID, its lifetime is greater than zero, its creation timestamp does not exceed the current time, and its CRC is correct. All other bundles SHALL be rejected.
+*For any* bundle field combination, the validator SHALL accept bundles where version==7, destination is a well-formed Callsign_EID, lifetime>0, creation timestamp ≤ current time, and CRC is correct; and SHALL reject bundles where any one of these conditions is violated, identifying the specific failure.
 
 **Validates: Requirements 1.2, 1.3**
 
-### Property 5: Priority Ordering Invariant
+### Property 3: Bundle Store Round-Trip
 
-*For any* set of bundles in the Bundle Store, listing them by priority or transmitting them during a contact window SHALL produce a sequence where each bundle's priority is greater than or equal to the next bundle's priority (critical > expedited > normal > bulk).
+*For any* valid BundleRecord and raw byte payload, storing the bundle and then retrieving it by its BundleId SHALL return a record and payload identical to the original.
 
-**Validates: Requirements 2.3, 5.3, 11.2**
+**Validates: Requirements 2.2**
 
-### Property 6: Eviction Policy Ordering
+### Property 4: Priority Ordering Invariant
 
-*For any* Bundle Store at capacity, when eviction is triggered, expired bundles SHALL be evicted first, then bundles in ascending priority order (bulk before normal before expedited), and critical-priority bundles SHALL be preserved until all lower-priority bundles have been evicted. Within the same priority level, bundles with the earliest creation timestamp SHALL be evicted first.
+*For any* set of bundles stored with different priority levels, listing bundles by priority (or by destination with priority sort) SHALL return them in strict order: all critical bundles first, then all expedited, then all normal, then all bulk.
 
-**Validates: Requirements 2.4, 2.5, 11.3**
+**Validates: Requirements 2.3, 5.3, 14.2**
 
-### Property 7: Store Capacity Bound
+### Property 5: Store Capacity Invariant
 
 *For any* sequence of store and delete operations on the Bundle Store, the total stored bytes SHALL never exceed the configured maximum storage capacity.
 
 **Validates: Requirements 2.6**
 
-### Property 8: Bundle Lifetime Enforcement
+### Property 6: Eviction Preserves Critical Bundles
 
-*For any* set of bundles in the Bundle Store after a cleanup cycle completes, zero bundles SHALL have a creation timestamp plus lifetime less than or equal to the current time.
+*For any* Bundle Store containing bundles of mixed priorities, when eviction is triggered to free space, the store SHALL evict expired bundles first, then bulk, then normal, then expedited — and critical bundles SHALL only be evicted when no lower-priority bundles remain.
+
+**Validates: Requirements 2.4, 2.5, 14.3**
+
+### Property 7: Store Reload Preserves All Bundles
+
+*For any* set of bundles persisted to the Bundle Store, dropping in-memory state and calling reload SHALL restore all non-expired bundles with their original records and payloads intact.
+
+**Validates: Requirements 2.7, 17.3**
+
+### Property 8: Expiry Cleanup Completeness
+
+*For any* Bundle Store and current time value, after running evict_expired(current_time), the store SHALL contain zero bundles whose creation_timestamp + lifetime_secs ≤ current_time.
 
 **Validates: Requirements 3.1, 3.2**
 
-### Property 9: Ping Echo Correctness
+### Property 9: Ping Response Correctness
 
-*For any* ping request bundle received by the BPA addressed to a local endpoint, exactly one ping response bundle SHALL be generated with its destination set to the original sender's EndpointID, the original request's BundleID included in the response payload, and the response queued in the Bundle Store for delivery.
+*For any* valid ping request bundle addressed to a local endpoint, processing the request SHALL produce exactly one ping response bundle whose destination equals the original sender's Callsign_EID and whose payload contains the original request's BundleId.
 
-**Validates: Requirements 4.1, 4.2, 4.4**
+**Validates: Requirements 4.1, 4.4**
 
-### Property 10: Local vs Remote Delivery Routing
+### Property 10: Routing Correctness (Local vs Remote)
 
-*For any* received data bundle, if the bundle's destination matches a local EndpointID, the BPA SHALL deliver it to the local application agent. If the destination is a remote EndpointID, the BPA SHALL store it in the Bundle Store for direct delivery during the next contact window with the destination node.
+*For any* received data bundle, if the destination Callsign_EID matches the local node's configured EID then the bundle SHALL be delivered locally, otherwise it SHALL be stored in the Bundle Store for direct delivery — and in no case SHALL a bundle be forwarded to a node that is not its final destination.
 
-**Validates: Requirements 5.1, 5.2**
+**Validates: Requirements 5.1, 5.2, 6.1**
 
-### Property 11: ACK Deletes, No-ACK Retains
+### Property 11: ACK-Driven Store Management
 
-*For any* bundle transmitted during a contact window, if the remote node acknowledges receipt via LTP, the bundle SHALL be deleted from the Bundle Store. If the transmission is not acknowledged within the LTP retransmission timeout, the bundle SHALL remain in the Bundle Store for retry during the next contact window.
+*For any* bundle in the store that is transmitted and acknowledged via LTP, the bundle SHALL be deleted from the store; for any bundle that is not acknowledged within the LTP timeout, the bundle SHALL be retained in the store for retry.
 
 **Validates: Requirements 5.4, 5.5**
 
-### Property 12: No Relay — Direct Delivery Only
+### Property 12: KISS Frame Round-Trip
 
-*For any* bundle transmitted during any contact window, the contact's remote node SHALL match the bundle's final destination EndpointID. No bundle SHALL be forwarded on behalf of other nodes, and all contact lookups SHALL return single-hop direct contacts only.
+*For any* valid byte sequence representing an LTP segment, wrapping the segment in a KISS frame (FEND + CMD 0x00 + byte-stuffed data + FEND) and then extracting the segment by detecting FEND boundaries and reversing byte stuffing SHALL produce a byte sequence identical to the original.
 
-**Validates: Requirements 6.1, 6.2**
+**Validates: Requirements 9.1, 9.2, 9.6**
 
-### Property 13: Active Contacts Query Correctness
+### Property 13: LTP Segmentation Correctness
 
-*For any* contact plan and query time t, the active contacts query SHALL return exactly those contact windows whose start time is at or before t and whose end time is after t — no more, no fewer.
+*For any* bundle whose serialized size exceeds the configured maximum KISS frame payload size, LTP segmentation SHALL produce segments where each segment's size is ≤ the maximum frame payload size, and reassembling all segments SHALL produce the original bundle bytes.
+
+**Validates: Requirements 9.3**
+
+### Property 14: Contact Plan Active Query Correctness
+
+*For any* contact plan and query time T, the set of active contacts returned SHALL include all and only those contact windows where start_time ≤ T < end_time.
 
 **Validates: Requirements 7.2**
 
-### Property 14: Next Contact Lookup Correctness
+### Property 15: Contact Plan Overlap Rejection
 
-*For any* contact plan, destination node, and current time, the next-contact lookup SHALL return the earliest future contact window matching that destination, or nil if no such contact exists.
+*For any* pair of contact windows that share the same link and have overlapping time ranges (start_A < end_B AND start_B < end_A), attempting to add both to the contact plan SHALL result in the second being rejected.
 
-**Validates: Requirements 7.3**
+**Validates: Requirements 7.4**
 
-### Property 15: Contact Plan Validity Invariants
+### Property 16: Contact Plan Serialization Round-Trip
 
-*For any* valid contact plan, all contact windows SHALL fall within the plan's valid-from and valid-to time range, and no two contacts on the same link for a given node SHALL overlap in time.
+*For any* valid contact plan, serializing to YAML (or JSON) and then deserializing SHALL produce a contact plan equivalent to the original, compatible with the Abstraction Layer Canonical_Config format.
 
-**Validates: Requirements 7.4, 7.5**
+**Validates: Requirements 7.6, 7.7**
 
-### Property 16: No Transmission After Window End
+### Property 17: Callsign EID Validation
 
-*For any* contact window and transmission sequence, no bundle transmission SHALL occur after the contact window's end time has been reached.
+*For any* string, the callsign validator SHALL accept strings matching the pattern (1-2 letter prefix)(1+ digits)(1-3 letter suffix)-(SSID 0-15) and SHALL reject all other strings.
 
-**Validates: Requirements 8.2**
+**Validates: Requirements 10.3**
 
-### Property 17: Missed Contact Retains Bundles
+### Property 18: Source Callsign EID Presence
 
-*For any* scheduled contact window where the CLA fails to establish a link, all bundles queued for that contact's destination SHALL remain in the Bundle Store, and the contacts-missed counter SHALL be incremented by exactly one.
+*For any* outbound bundle created by the BPA, the bundle's primary block source EID SHALL be non-empty and SHALL match the node's configured Callsign_EID in `dtn://callsign-ssid` format.
 
-**Validates: Requirements 8.4**
+**Validates: Requirements 10.1, 10.2**
 
-### Property 18: DTN EID Callsign Validation
+### Property 19: Rate Limiter Enforcement
 
-*For any* bundle transmitted through the CLA, the bundle's primary block SHALL carry a valid DTN Endpoint Identifier (dtn://callsign/service) containing a valid amateur radio callsign as the source EID.
+*For any* configured maximum rate and sequence of bundle arrivals from the same source EID, the rate limiter SHALL accept bundles arriving at or below the configured rate and SHALL reject bundles that would cause the rate from that source to exceed the limit within the sliding window.
 
-**Validates: Requirements 9.1**
+**Validates: Requirements 15.1, 15.2**
 
-### Property 19: Rate Limiting
+### Property 20: Maximum Bundle Size Enforcement
 
-*For any* sequence of bundle submissions from a single source EndpointID, if the submission rate exceeds the configured maximum bundles per second, the BPA SHALL reject bundles beyond the rate limit while accepting bundles within the limit.
+*For any* bundle whose total serialized size exceeds the configured maximum bundle size, the BPA SHALL reject the bundle; for any bundle whose size is ≤ the configured maximum, the BPA SHALL accept it (assuming all other validation passes).
 
-**Validates: Requirements 12.1, 12.2**
+**Validates: Requirements 15.3**
 
-### Property 22: Bundle Size Limit
+### Property 21: Direct Contact Lookup (No Relay)
 
-*For any* bundle whose total serialized size exceeds the configured maximum bundle size, the BPA SHALL reject the bundle.
+*For any* destination node query against the Contact Plan Manager, all returned contact windows SHALL have their remote_node field matching the queried destination — no intermediate or multi-hop contacts SHALL be returned.
 
-**Validates: Requirements 12.3**
+**Validates: Requirements 6.2**
 
-### Property 23: Statistics Monotonicity and Consistency
+### Property 22: Beacon Timing Regularity
 
-*For any* sequence of node operations, the cumulative statistics (total bundles received, total bundles sent, total bytes received, total bytes sent, contacts completed, contacts missed) SHALL be monotonically non-decreasing.
+*For any* operational duration D seconds, the number of beacon bundles transmitted SHALL equal ⌊D / beacon_interval⌋ + 1 (the +1 accounts for the initial startup beacon), with tolerance of ±1 for timing edge cases.
 
-**Validates: Requirements 13.1, 13.2**
-
-### Property 24: Bundle Retention When No Contact Available
-
-*For any* bundle whose destination has no direct contact window in the current contact plan, the Bundle Store SHALL retain the bundle until a contact window with that destination is added to the plan or the bundle's lifetime expires.
-
-**Validates: Requirements 14.5**
-
+**Validates: Requirements 11.1**
 
 ## Error Handling
 
-### Error Scenario 1: Store Full
+### Error Categories
 
-**Condition**: Bundle Store reaches configured maximum capacity when a new bundle arrives.
-**Response**: Invoke eviction policy — remove expired bundles first, then lowest-priority bundles (bulk → normal → expedited). Critical bundles evicted only as last resort.
-**Recovery**: If eviction frees sufficient space, store the new bundle. If not (e.g., store is full of critical bundles), reject the incoming bundle and return a storage-full error. If the LTP session is still active, signal the error to the sender. Log the event for telemetry.
+```rust
+/// Top-level error type for the terrestrial node.
+#[derive(Debug, thiserror::Error)]
+pub enum NodeError {
+    #[error("Store error: {0}")]
+    Store(#[from] StoreError),
 
-### Error Scenario 2: Contact Window Missed
+    #[error("CLA error: {0}")]
+    Cla(#[from] ClaError),
 
-**Condition**: KISS CLA fails to establish LTP link service during a scheduled contact window (TNC4 not responding, radio not keyed, no KISS connection established via TNC4 USB serial).
-**Response**: Mark the contact as missed in statistics. Retain all queued bundles for the next available contact window with the same destination. Increment `ContactsMissed` counter.
-**Recovery**: Bundles remain in store for delivery during the next contact. If consecutive misses exceed a configurable threshold, log a health alert.
+    #[error("Contact plan error: {0}")]
+    Plan(#[from] PlanError),
 
-### Error Scenario 3: Bundle Corruption (CRC Failure)
+    #[error("Validation error: {0}")]
+    Validation(String),
 
-**Condition**: CRC validation fails on a received bundle.
-**Response**: Discard the corrupted bundle. Log the corruption event with the source EndpointID and link metrics (RSSI, SNR, BER).
-**Recovery**: The sender retains the bundle (LTP will not receive an ACK) and retransmits during the next contact window. No store state change on the receiving node.
+    #[error("Engine error: {0}")]
+    Engine(#[from] radiant_dtn_abstraction::AbstractionError),
 
-### Error Scenario 4: USB Disconnection (TNC4)
+    #[error("Configuration error: {0}")]
+    Config(String),
 
-**Condition**: USB connection to the Mobilinkd TNC4 is lost during operation.
-**Response**: KISS CLA detects disconnection within 5 seconds. Mark the current contact as interrupted. Retain all queued bundles. HDTN's LTP engine is notified that the link service is unavailable.
-**Recovery**: KISS CLA attempts to re-establish the USB connection at the configured retry interval. Once reconnected, the CLA re-registers the link service with HDTN and normal operation resumes. Bundles queued during disconnection are delivered during the next available contact window.
+    #[error("Rate limited: {source_eid}")]
+    RateLimited { source_eid: String },
+}
 
-### Error Scenario 6: Process Crash and Restart
+#[derive(Debug, thiserror::Error)]
+pub enum StoreError {
+    #[error("Storage full: cannot free {required} bytes")]
+    Full { required: u64 },
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("Corruption detected: {0}")]
+    Corruption(String),
+    #[error("Bundle not found: {0:?}")]
+    NotFound(BundleId),
+}
 
-**Condition**: The Node Controller process crashes or is killed.
-**Response**: On restart, the Node Controller reloads the Bundle Store and Contact Plan Manager state from the local filesystem.
-**Recovery**: Bundle Store validates integrity of persisted bundles (discards any corrupted entries from partial writes). Contact plan is reloaded from the persisted file. Normal operation resumes without manual intervention. Any bundle that was partially transmitted is retransmitted in full during the next contact.
+#[derive(Debug, thiserror::Error)]
+pub enum ClaError {
+    #[error("USB disconnected: {device}")]
+    Disconnected { device: String },
+    #[error("Framing error: {0}")]
+    FramingError(String),
+    #[error("Serial IO error: {0}")]
+    SerialIo(String),
+    #[error("Link not active")]
+    LinkNotActive,
+}
 
-### Error Scenario 7: No Direct Contact Available
+#[derive(Debug, thiserror::Error)]
+pub enum PlanError {
+    #[error("Overlapping contacts on link {link}: {a} and {b}")]
+    Overlap { link: String, a: String, b: String },
+    #[error("Contact outside valid range: {0}")]
+    OutOfRange(String),
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("Parse error: {0}")]
+    Parse(String),
+}
+```
 
-**Condition**: No direct contact window exists in the current contact plan for a bundle's destination.
-**Response**: Bundle remains in the store, marked as undeliverable in the queue.
-**Recovery**: Re-evaluate when the contact plan is updated (operator adds new contacts). If the bundle's lifetime expires before a contact becomes available, the bundle is evicted during the next cleanup cycle.
+### Error Recovery Strategies
 
-### Error Scenario 8: Rate Limit Exceeded
+| Failure | Detection | Recovery |
+|---|---|---|
+| USB disconnection (TNC4) | Serial read/write error or 5s timeout | Mark contact interrupted, retain bundles, retry at configurable interval |
+| DTN engine crash | Abstraction Layer `health()` returns unhealthy | Log reason, restart with exponential backoff |
+| Store corruption | Integrity check on reload | Discard corrupted entries, log, continue with remaining bundles |
+| Bundle CRC failure | CRC check on received bundle | Discard bundle, log corruption event + source EID |
+| Store full (all critical) | `evict_for_space()` cannot free enough | Reject incoming bundle with `StoreError::Full` |
+| Rate limit exceeded | Rate limiter rejects | Reject bundle, log rate-limit event with source EID |
+| Contact window missed | CLA fails to activate | Mark contact missed, increment counter, retain all queued bundles |
+| Process restart | Startup detection | Reload store + contact plan from filesystem, resume autonomous operation |
 
-**Condition**: A source EndpointID submits bundles faster than the configured maximum rate.
-**Response**: Reject additional bundles from that source. Log the rate-limit event with the source EID and current rate.
-**Recovery**: Bundles within the rate limit continue to be accepted. The rate limiter resets as the sliding window advances.
+### Logging Strategy
 
-### Error Scenario 9: Oversized Bundle
+All error events are logged with structured fields:
+- `timestamp`: ISO 8601 UTC
+- `level`: ERROR, WARN, INFO
+- `component`: node_controller, bundle_store, cla, contact_plan
+- `event`: specific event name (e.g., `bundle_crc_failed`, `usb_disconnected`)
+- `source_eid`: when applicable, the source callsign EID
+- `details`: human-readable description
 
-**Condition**: A received bundle's total serialized size exceeds the configured maximum.
-**Response**: Reject the bundle before storing. Log the rejection with the source EID and bundle size.
-**Recovery**: No state change. The sender may re-send with a smaller payload.
+Beacon transmissions are logged at INFO level with timestamp for regulatory record-keeping.
 
 ## Testing Strategy
 
-### Unit Testing
+### Property-Based Testing (proptest)
 
-Test each component in isolation with example-based tests:
+The crate uses [proptest](https://crates.io/crates/proptest) for property-based testing. Each correctness property maps to one or more proptest test functions.
 
-- **BPA**: Bundle creation with all three types (data, ping request, ping response). Validation with valid and invalid bundles (wrong version, empty EID, zero lifetime, future timestamp, bad CRC). Default priority assignment.
-- **Bundle Store**: Store/retrieve/delete operations. Priority-ordered listing. Capacity enforcement. Eviction with mixed priorities. Reload after simulated restart.
-- **Contact Plan Manager**: Load plan with valid/invalid contacts. Active contact queries at boundary times. Next contact lookup. Overlap rejection. HDTN format file parsing.
-- **CLA**: KISS frame construction via HDTN's KISS CLA plugin. HDTN KISS CLA configuration and operation. LTP link service adapter interface compliance. TNC4 USB serial I/O. Link metrics collection. No UDP socket tests — all data flows through HDTN's KISS CLA plugin.
-- **Node Controller**: Single cycle execution. Ping request/response flow. Rate limiting. Bundle size rejection.
-- **Rate Limiter**: Acceptance within limit. Rejection beyond limit. Sliding window reset.
+**Configuration:**
+- Minimum 100 iterations per property test (proptest default: 256 cases)
+- Custom `Arbitrary` implementations for all domain types (Bundle, BundleRecord, ContactWindow, etc.)
+- Generators constrained to produce valid amateur radio callsign formats
+- Generators for byte sequences include 0xC0 and 0xDB values to exercise KISS byte stuffing
 
-### Property-Based Testing
-
-**Library**: [rapid](https://github.com/flyingmutant/rapid) — a Go property-based testing library inspired by Hypothesis.
-
-**Configuration**: Minimum 100 iterations per property test.
-
-**Tag format**: Each test is tagged with a comment referencing the design property:
-```go
-// Feature: terrestrial-dtn-phase1, Property 1: Bundle Serialization Round-Trip
+**Test tag format:**
+```rust
+// Feature: terrestrial-dtn-phase1, Property 12: KISS Frame Round-Trip
 ```
 
-Key property tests:
+**Key generator strategies:**
 
-1. **Bundle serialization round-trip** (Property 1): Generate random valid Bundles, serialize to CBOR, deserialize, assert equality.
-2. **Bundle store/retrieve round-trip** (Property 2): Generate random Bundles, store, retrieve by ID, assert equality.
-3. **LTP-over-KISS encapsulation round-trip** (Property 3): Generate random Bundles of varying sizes, pass through HDTN's LTP engine and the HDTN KISS CLA plugin, reassemble via HDTN's LTP, assert equality.
-4. **Validation correctness** (Property 4): Generate random Bundles with random field mutations, verify validator accepts iff all fields are valid.
-5. **Priority ordering** (Property 5): Generate random bundle sets with random priorities, store, list by priority, verify non-increasing priority sequence.
-6. **Eviction ordering** (Property 6): Generate random stores at capacity with mixed priorities, trigger eviction, verify expired first then ascending priority order, critical last.
-7. **Capacity bound** (Property 7): Generate random store/delete operation sequences, verify total bytes never exceeds max after each operation.
-8. **Lifetime enforcement** (Property 8): Generate random bundles with random lifetimes, advance time, run cleanup, verify zero expired bundles remain.
-9. **Ping echo correctness** (Property 9): Generate random ping requests with random source EIDs, process, verify exactly one response with correct dest and request ID in payload.
-10. **Local vs remote routing** (Property 10): Generate random bundles with destinations matching and not matching local EIDs, verify correct routing.
-11. **ACK/no-ACK behavior** (Property 11): Generate random transmission scenarios with random ACK outcomes, verify ACKed bundles deleted and unACKed retained.
-12. **No relay** (Property 12): Generate random bundles and contacts, verify bundles only transmitted to contacts matching their destination.
-13. **Active contacts query** (Property 13): Generate random contact plans and query times, verify returned set is exactly the active contacts.
-14. **Next contact lookup** (Property 14): Generate random plans, destinations, times, verify result is earliest future matching contact.
-15. **Contact plan validity** (Property 15): Generate random contact plans, verify all contacts within valid range and no overlaps on same link.
-16. **No transmission after window end** (Property 16): Generate random contact windows and time sequences, verify no transmission after end time.
-17. **Missed contact retains bundles** (Property 17): Generate random failed contacts, verify bundles retained and missed counter incremented.
-18. **DTN EID callsign validation** (Property 18): Generate random bundles, transmit through the HDTN KISS CLA, verify output bundles carry valid DTN EIDs (dtn://callsign/service) with valid source callsigns.
-19. **Rate limiting** (Property 19): Generate random submission sequences at various rates, verify correct acceptance/rejection.
-22. **Bundle size limit** (Property 22): Generate random bundles of varying sizes, verify oversized rejected.
-23. **Statistics monotonicity** (Property 23): Generate random operation sequences, verify cumulative stats are non-decreasing.
-24. **Bundle retention without contact** (Property 24): Generate bundles with no matching contacts, verify retention until contact added or lifetime expires.
+```rust
+use proptest::prelude::*;
 
-### Integration Testing
+/// Generate valid amateur radio callsigns.
+fn arb_callsign() -> impl Strategy<Value = String> {
+    // 1-2 letter prefix + 1+ digits + 1-3 letter suffix
+    ("[a-z]{1,2}[0-9]{1,2}[a-z]{1,3}", 0..=15u8)
+        .prop_map(|(call, ssid)| format!("{}-{}", call, ssid))
+}
 
-- **End-to-end store-and-forward**: Two nodes exchange data bundles over the HDTN stack (BPA → LTP → KISS CLA) using simulated TNC4 serial I/O during a contact window.
-- **End-to-end ping**: Node A pings Node B through the full HDTN stack, receives echo response, measures RTT.
-- **Contact window lifecycle**: Schedule a contact, verify KISS CLA link activation, HDTN LTP session establishment, bundle transmission through KISS CLA, link deactivation, and metrics recording.
-- **HDTN KISS CLA operation: Verify the KISS CLA plugin correctly interfaces with HDTN's convergence layer framework and handle LTP segment transmission/reception.
-- **Crash recovery**: Populate store and contact plan, kill process, restart, verify state recovered and operation resumes.
-- **USB disconnection**: Simulate TNC4 USB disconnect, verify KISS CLA detection within 5 seconds, bundle retention, and reconnection.
-- **HDTN format parsing**: Load a real HDTN JSON contact plan file, verify correct interpretation.
+/// Generate valid Callsign EIDs.
+fn arb_callsign_eid() -> impl Strategy<Value = String> {
+    arb_callsign().prop_map(|cs| format!("dtn://{}", cs))
+}
 
-### Performance Benchmarks
+/// Generate valid bundle records with realistic field ranges.
+fn arb_bundle_record() -> impl Strategy<Value = BundleRecord> {
+    (
+        arb_callsign_eid(),  // source
+        arb_callsign_eid(),  // destination
+        0..=3u8,             // priority
+        1..=86400u64,        // lifetime
+        1000000000..=2000000000u64, // creation timestamp
+        1..=65536u64,        // size
+        0..=2u8,             // bundle type
+    ).prop_map(|(src, dst, pri, life, ts, size, btype)| {
+        BundleRecord {
+            id: BundleId { source_eid: src, creation_timestamp: ts, sequence_number: 0 },
+            destination_eid: dst,
+            priority: Priority::from(pri),
+            lifetime_secs: life,
+            creation_timestamp: ts,
+            size_bytes: size,
+            bundle_type: BundleType::from(btype),
+        }
+    })
+}
 
-- Node Controller cycle time: target ≤ 100ms
-- Bundle Store single store/retrieve: target ≤ 10ms
-- BPA validation per bundle: target ≤ 5ms
-- Telemetry query response: target ≤ 1 second
+/// Generate arbitrary byte sequences for KISS round-trip testing.
+/// Ensures coverage of bytes requiring stuffing (0xC0, 0xDB).
+fn arb_ltp_segment() -> impl Strategy<Value = Vec<u8>> {
+    prop::collection::vec(any::<u8>(), 1..2048)
+}
+```
 
+### Unit Tests (Example-Based)
+
+Unit tests cover specific scenarios and edge cases not suited to property testing:
+
+- Bundle creation with each of the three types (data, ping request, ping response)
+- Beacon bundle format (destination = `dtn://beacon`, lifetime = 600s)
+- Initial beacon fires within 30 seconds of startup
+- Default priority applied from config when bundle has no explicit priority
+- Startup rejection when callsign EID is missing or invalid
+- Contact window execution: start/stop timing, metrics recording
+- CLA link failure: contact marked missed, bundles retained
+- USB disconnection detection timing (< 5 seconds)
+- Telemetry snapshot format and field population
+- Engine restart via abstraction layer on unexpected exit
+- No BPSec blocks present in serialized bundle wire format
+- No cryptographic operations invoked during bundle creation or validation
+- CRC field present and correct in all created bundles
+
+### Integration Tests
+
+Integration tests require hardware or mocked serial ports:
+
+- **Loopback test**: KISS frame encode → serial write → serial read → KISS frame decode (with loopback serial adapter)
+- **TNC4 test**: Verify USB serial connection to real TNC4 hardware (feature-gated: `#[cfg(feature = "integration-tnc4")]`)
+- **Engine lifecycle test**: Start/stop ION-DTN or Hardy via abstraction layer (feature-gated: `#[cfg(feature = "integration-ion")]` / `#[cfg(feature = "integration-hardy")]`)
+- **Two-node test**: End-to-end ping and store-and-forward between two nodes over VHF/UHF (manual test procedure)
+
+### Performance Tests
+
+Performance tests verify the timing requirements from Requirement 18:
+
+- `run_cycle()` completes within 100ms (with mocked CLA)
+- Bundle store/retrieve within 10ms
+- Bundle validation within 5ms per bundle
+- `radiant-kiss` encode/decode within 1ms per frame
+
+### Test Organization
+
+```
+radiant-terrestrial/
+├── src/
+│   └── ...
+└── tests/
+    ├── property_tests/
+    │   ├── bundle_roundtrip.rs      # Property 1
+    │   ├── bundle_validation.rs     # Property 2
+    │   ├── store_roundtrip.rs       # Property 3
+    │   ├── store_priority.rs        # Property 4
+    │   ├── store_capacity.rs        # Property 5
+    │   ├── store_eviction.rs        # Property 6
+    │   ├── store_reload.rs          # Property 7
+    │   ├── expiry_cleanup.rs        # Property 8
+    │   ├── ping_response.rs         # Property 9
+    │   ├── routing.rs               # Property 10
+    │   ├── ack_management.rs        # Property 11
+    │   ├── kiss_roundtrip.rs        # Property 12
+    │   ├── ltp_segmentation.rs      # Property 13
+    │   ├── contact_active.rs        # Property 14
+    │   ├── contact_overlap.rs       # Property 15
+    │   ├── contact_roundtrip.rs     # Property 16
+    │   ├── callsign_validation.rs   # Property 17
+    │   ├── callsign_presence.rs     # Property 18
+    │   ├── rate_limiter.rs          # Property 19
+    │   ├── bundle_size.rs           # Property 20
+    │   ├── contact_direct.rs        # Property 21
+    │   └── beacon_timing.rs         # Property 22
+    ├── unit/
+    │   ├── beacon_test.rs
+    │   ├── node_controller_test.rs
+    │   └── cla_test.rs
+    ├── integration/
+    │   ├── loopback_test.rs
+    │   ├── tnc4_test.rs
+    │   └── engine_lifecycle_test.rs
+    └── bench/
+        ├── cycle_bench.rs
+        ├── store_bench.rs
+        └── kiss_bench.rs
+```
+
+### CI Configuration
+
+```yaml
+# Property-based tests run on every PR
+- cargo test --package radiant-terrestrial -- property_tests
+
+# Unit tests run on every PR
+- cargo test --package radiant-terrestrial -- unit
+
+# Performance benchmarks run on every PR (non-blocking, report only)
+- cargo bench --package radiant-terrestrial
+
+# Integration tests run nightly (require engine binaries)
+- cargo test --package radiant-terrestrial --features integration-ion -- integration
+- cargo test --package radiant-terrestrial --features integration-hardy -- integration
+```
+
+### Amateur Radio Compliance Verification
+
+Tests verify:
+- All outbound bundles contain source Callsign_EID in primary block
+- Callsign EID format validation rejects malformed callsigns
+- Beacon bundles contain callsign and identification text
+- No BPSec blocks (BIB or BCB) are present in any bundle wire format
+- No cryptographic operations (HMAC, digital signatures, encryption) are invoked anywhere in the codebase
+- CRC is the sole corruption detection mechanism on bundles
+- Generated engine configurations use `dtn://callsign-ssid/service` format
+- No AX.25 framing bytes appear in KISS frame output
+- All transmitted data conforms to published protocol specifications (BPv7 RFC 9171, LTP RFC 5326, KISS)
+
+### Crate Dependencies
+
+| Crate | Purpose |
+|---|---|
+| `radiant-dtn-abstraction` | DTN engine management, canonical config model |
+| `radiant-kiss` | KISS frame encoding/decoding (`no_std`) |
+| `radiant-cla` | Convergence layer adapter trait |
+| `tokio` | Async runtime for orchestration loop |
+| `serde` + `serde_yaml` + `serde_json` | Config serialization |
+| `serialport` | USB serial communication with TNC4 |
+| `proptest` | Property-based testing framework |
+| `tracing` | Structured logging |
+| `thiserror` | Error type derivation |
+| `chrono` | Timestamp handling |
+| `crc` | BPv7 bundle CRC computation and validation |

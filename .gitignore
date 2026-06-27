@@ -61,3 +61,5 @@ website/data/*.db-wal
 esa-competition-contestants
 esa-competition-teams
 /hardy
+/hardy-ltp-cla
+/ION-DTN
