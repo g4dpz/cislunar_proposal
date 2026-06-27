@@ -240,14 +240,14 @@ Periodic transmission of BPv7 bundles containing the operator's callsign and sta
 
 See [`.kiro/specs/station-identification-beacon/requirements.md`](.kiro/specs/station-identification-beacon/requirements.md) for the full requirements specification.
 
-### Test Framework — Requirements-Based Verification (NASA TM Methodology)
+### Test Framework — Requirements-Based Verification
 
-A property-based test framework modeled after NASA Glenn's published Test Framework methodology (TM-20240014467 / LEW-20818-1), providing automated verification across all mission phases:
+A property-based test framework inspired by NASA Glenn Research Center's approach to DTN protocol verification (TM-20240014467 / LEW-20818-1), providing automated verification across all mission phases:
 
-- **Property-based testing** — Verifies correctness properties hold for all inputs within defined domains using randomized generation (gopter/rapid)
+- **Property-based testing** — Verifies correctness properties hold for all inputs within defined domains using randomized generation (proptest)
 - **Requirements traceability** — Each property test traces to one or more system requirements, enabling requirements-based verification for flight proposals
 - **Cross-phase coverage** — Validates the full protocol stack (BPv7 → LTP → KISS → G3RUH) across terrestrial, QO-100, EM, LEO, and cislunar configurations
-- **NASA methodology** — Follows NASA Glenn Research Center's published test framework approach
+- **Inspired by NASA methodology** — Shares the philosophy of property-based protocol verification applied to DTN implementations, adapted for amateur radio constraints
 - **CI integration** — Automated test execution in the continuous integration pipeline
 - **Supports flight proposals** — Provides verification evidence suitable for regulatory submissions and ESA ARTES proposals
 
