@@ -83,7 +83,7 @@ The report identifies routing as the most-studied problem in interplanetary netw
 
 RADIANT's multi-node contact graph implementation directly addresses all four:
 - Automated contact window computation from orbital predictions
-- HDTN-compatible JSON export format (standard)
+- Standard JSON export format compatible with multiple DTN engines
 - REST API and OTA distribution for plan sharing (interoperability)
 - Time-dependent Dijkstra routing (scalable)
 
@@ -247,7 +247,8 @@ For RADIANT:
 - CCSDS 730.1-G-1 — Solar System Internetwork Architecture (2014)
 - CCSDS 734.1-B-1 — Licklider Transmission Protocol (space profile)
 - NASA/TP-20210021073/Rev.4 — LunaNet Interoperability Specification
-- NASA HDTN — https://github.com/nasa/HDTN
+- NASA HDTN — https://github.com/nasa/HDTN (historical reference)
+- ION-DTN — https://sourceforge.net/projects/ion-dtn/
 - IETF DTN WG — https://datatracker.ietf.org/wg/dtn/about/
 - IETF TVR WG — https://datatracker.ietf.org/wg/tvr/about/
 - SANA — https://sanaregistry.org/

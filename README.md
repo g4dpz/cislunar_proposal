@@ -3,8 +3,7 @@
 **From amateur packet radio to CubeSat relay to cislunar networking**
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Go Version](https://img.shields.io/badge/go-1.26+-00ADD8.svg)](https://golang.org/)
-[![HDTN](https://img.shields.io/badge/HDTN-2.0-green.svg)](https://github.com/nasa/HDTN)
+[![Rust](https://img.shields.io/badge/rust-1.78+-orange.svg)](https://www.rust-lang.org/)
 
 **Website**: https://radiant.amsat-uk.org
 
@@ -14,7 +13,7 @@
 
 RADIANT brings Delay-Tolerant Networking (DTN) to amateur radio, enabling store-and-forward messaging across disrupted links from terrestrial ground stations to Low Earth Orbit (LEO) and ultimately to cislunar space.
 
-The project implements Bundle Protocol version 7 (BPv7) over amateur radio links using LTP wrapped directly in KISS framing, with callsign-embedded DTN Endpoint Identifiers for station identification. The architecture is **DTN-implementation-agnostic** — the abstraction layer supports multiple DTN engines (NASA Glenn's HDTN, JPL's ION-DTN, µD3TN, and Hardy) through a common interface, allowing operators to select the engine best suited to their platform and mission phase.
+The project implements Bundle Protocol version 7 (BPv7) over amateur radio links using LTP wrapped directly in KISS framing, with callsign-embedded DTN Endpoint Identifiers for station identification. The architecture is **DTN-implementation-agnostic** — the abstraction layer supports multiple DTN engines (JPL's ION-DTN, µD3TN, and Hardy) through a common interface, allowing operators to select the engine best suited to their platform and mission phase.
 
 **Supported by**: AMSAT-UK, AMSAT-DL, and Goonhilly Earth Station
 
@@ -24,7 +23,7 @@ The project implements Bundle Protocol version 7 (BPv7) over amateur radio links
 
 ### Working DTN Simulation (Lab Environment)
 
-We have a fully operational 3-node DTN simulation demonstrating store-and-forward relay with **simulated** propagation delays (injected via HDTN's `udp-delay-sim` proxy over localhost — not real space links):
+We have a fully operational 3-node DTN simulation demonstrating store-and-forward relay with **simulated** propagation delays (injected via UDP delay proxy over localhost — not real space links):
 
 ```
 Ground Station (Earth) → Lunar Orbiter (relay) → Lunar Lander
@@ -45,14 +44,40 @@ Ground Station (Earth) → Lunar Orbiter (relay) → Lunar Lander
 
 > **Note:** These are software simulations with injected delay, running on a single machine or LAN. They validate the DTN protocol behaviour under representative timing conditions, but do not involve actual RF propagation or space hardware.
 
-### HDTN Migration
+### DTN Engine Abstraction
 
-Migrated from ION-DTN to NASA Glenn's HDTN:
-- `pkg/hdtn/` — Lifecycle manager, telemetry collector, contact plan manager
-- `pkg/hdtnconfig/` — JSON configuration generation
-- `plugins/kiss-cla/` — C++17 KISS CLA plugin for amateur radio TNC interfaces
-- 11 property-based tests validating correctness properties
+The architecture supports multiple DTN engines through a common interface:
+- `crates/radiant-kiss/` — KISS framing library (`no_std` compatible for flight hardware)
+- `crates/radiant-cla/` — Convergence layer abstraction trait
+- `crates/radiant-contact/` — Contact plan manager + CGR engine
+- Property-based tests validating correctness properties
 - Full test suite passing
+
+### Cross-Engine Interoperability (ION-DTN ↔ Hardy)
+
+We have demonstrated live BPv7 bundle delivery between two independent DTN implementations over LTP/UDP — proving the abstraction layer can drive heterogeneous DTN nodes from a single canonical configuration:
+
+```
+ION-DTN (node 10)  ←─ LTP/UDP ─→  Hardy BPA (node 20)
+   ipn:10.1                            ipn:20.1
+   udplso :2113                        hardy-ltp-cla :1113
+```
+
+**What's working:**
+- **ION→Hardy delivery** — 1MB bundle sent via ION's `bpsendfile`, transported over LTP/UDP, received by Hardy's LTP CLA and dispatched to the BPA
+- **Hardy→ION delivery** — Bundles injected via Hardy's gRPC Application service, exported by the LTP CLA, received and delivered by ION's `bprecvfile`
+- **Abstraction layer config generation** — Both engines configured entirely from a shared canonical YAML model (no hand-written ION admin scripts)
+- **Multiple payload sizes verified** — 1KB, 20KB, 100KB, 1MB
+
+**The `radiant-dtn-abstraction` crate** (`radiant-dtn-abstraction/`) provides:
+- Vendor-neutral canonical data model (nodes, neighbors, contacts, routing)
+- Backend adapters for ION-DTN and Hardy (config gen, lifecycle, hot-reconfig, telemetry)
+- Automatic generation of ION admin scripts (`.ionrc`, `.bprc`, `.ltprc`, `.ipnrc`) including loopback entries
+- Hardy YAML + LTP CLA config generation
+- HTTP/JSON management API (axum) with SSE event streaming
+- Engine lifecycle state machine and event bus
+- 232 tests (unit, property-based, integration) all passing
+- Amateur radio compliant throughout (no BPSec, no encryption over amateur links)
 
 ### Protocol Stack
 
@@ -83,62 +108,29 @@ Amateur radio regulations require station identification in every transmission. 
 | Spacecraft | ipn:20.* | dtn://g4dpz/spacecraft |
 | Lander | ipn:30.* | dtn://g4dpz/lander |
 
-HDTN uses numeric `ipn://` addresses for internal routing (CGR requires integer node IDs). The `dtn://` EID with the callsign is stored in each node's configuration via `myDtnEidStr` and appears in bundle metadata, satisfying the regulatory requirement that every transmission carries the operator's callsign.
+DTN engines use numeric `ipn://` addresses for internal routing (CGR requires integer node IDs). The `dtn://` EID with the callsign appears in bundle metadata, satisfying the regulatory requirement that every transmission carries the operator's callsign.
 
 ---
 
-## Running the Cislunar Simulation
+## Building
+
+The project uses a DTN-engine-agnostic architecture. The orchestrator, KISS framing, and contact plan management are independent of the underlying DTN engine. Specific engine integration is configured at deployment time.
 
 ### Prerequisites
 
-- HDTN 2.0 built and installed (see below)
+- Rust 1.78+ (stable toolchain)
 - macOS or Linux
-
-### Building HDTN
-
-HDTN must be cloned, built, and symlinked into this project:
-
-```bash
-# Clone HDTN alongside this project
-cd ~/dev
-git clone https://github.com/nasa/HDTN.git
-cd HDTN
-mkdir build && cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
-sudo make install
-
-# Symlink HDTN source into the project (for config references)
-cd ~/dev/cislunar_proposal
-ln -s ../HDTN HDTN
-```
-
-After installation, `hdtn-one-process`, `bpsendfile`, `bpreceivefile`, and `udp-delay-sim` should be in your PATH.
+- A DTN engine installed (ION-DTN, µD3TN, or Hardy)
 
 ### Quick Start
 
 ```bash
-# Start the 3-node simulation
-./scripts/run-cislunar-sim.sh
+# Build the project
+cargo build --workspace
 
-# In another terminal, send a file from Earth to the Lander
-rm -f /tmp/hdtn-send/*
-echo 'Hello Moon' > /tmp/hdtn-send/lunar.dat
-bpsendfile --my-uri-eid=ipn:1.1 --dest-uri-eid=ipn:3.1 \
-  --use-bp-version-7 \
-  --outducts-config-file=configs/simulation/bping-outducts.json \
-  --file-or-folder-path=/tmp/hdtn-send
-
-# Check received files (arrives after ~1.3s propagation delay)
-ls cislunar_received/
+# Run the orchestrator
+cargo run -- --config configs/dtn-node-a.yaml
 ```
-
-### Adjusting Parameters
-
-Edit `configs/simulation/` JSON files to change:
-- `oneWayLightTimeMs` — propagation delay (1300 for Moon, 180000 for Mars)
-- `rateBitsPerSec` — link data rate in contact plan
-- `DELAY_MS` in run script — true packet delay via proxy
 
 ---
 
@@ -157,26 +149,28 @@ Edit `configs/simulation/` JSON files to change:
 ## Project Structure
 
 ```
-├── cmd/dtn-node/           # Go orchestrator for HDTN
-├── pkg/
-│   ├── hdtn/               # HDTN lifecycle, telemetry, contact plan
-│   ├── hdtnconfig/         # HDTN JSON config generation
-│   ├── contact/            # Contact plan manager + CGR
-│   ├── cla/                # Convergence layer abstractions
-│   └── ...                 # IQ, link budget, store, security
-├── kiss/                   # KISS framing (Go reference implementation)
-├── plugins/kiss-cla/       # C++17 KISS CLA plugin for HDTN
+├── Cargo.toml              # Workspace root
+├── crates/
+│   ├── radiant-kiss/       # KISS framing (no_std compatible)
+│   ├── radiant-cla/        # Convergence layer abstractions
+│   ├── radiant-contact/    # Contact plan manager + CGR
+│   └── radiant-ffi/        # C-ABI exports for engine plugins
+├── radiant-dtn-abstraction/ # DTN abstraction layer (Rust crate)
+│   ├── src/                # Core library (model, adapters, API)
+│   ├── examples/           # ION↔Hardy interop examples
+│   └── tests/              # Property + integration tests
+├── src/
+│   └── main.rs             # dtn-node orchestrator binary
 ├── configs/
 │   ├── simulation/         # 3-node cislunar simulation configs
-│   ├── dtn-node-a.yaml    # Orchestrator config (node A)
-│   └── dtn-node-b.yaml    # Orchestrator config (node B)
+│   ├── dtn-node-a.yaml     # Orchestrator config (node A)
+│   └── dtn-node-b.yaml     # Orchestrator config (node B)
 ├── scripts/
-│   ├── run-cislunar-sim.sh # Launch 3-node simulation
-│   ├── build-hdtn.sh      # Build HDTN with KISS CLA
-│   └── start-node-*.sh    # Node startup scripts
-├── docs/                   # Phase-specific specs and design docs
-├── website/                # Project website (radiant.amsat-uk.org)
-└── deploy/                 # Website deployment configs
+│   ├── run-cislunar-sim.sh  # Launch 3-node simulation
+│   └── start-node-*.sh     # Node startup scripts
+├── docs/                    # Phase-specific specs and design docs
+├── website/                 # Project website (radiant.amsat-uk.org)
+└── deploy/                  # Website deployment configs
 ```
 
 ---
@@ -184,14 +178,17 @@ Edit `configs/simulation/` JSON files to change:
 ## Testing
 
 ```bash
-# Run all Go tests (includes property-based tests)
-go test ./pkg/hdtn/... ./pkg/hdtnconfig/... ./kiss/... ./cmd/dtn-node/...
+# Run all tests (includes property-based tests)
+cargo test --workspace
 
-# Run smoke tests
-go test ./test/integration/ -run TestSmoke
+# Run clippy for static analysis
+cargo clippy --workspace -- -D warnings
 
 # Build verification
-go build ./...
+cargo build --workspace
+
+# Verify no_std KISS crate compiles for embedded target
+cargo build -p radiant-kiss --no-default-features --target thumbv7em-none-eabihf
 ```
 
 ---
@@ -200,10 +197,9 @@ go build ./...
 
 ### Supported DTN Engines (implementation-agnostic architecture)
 
-- **HDTN** — NASA Glenn's High-rate Delay Tolerant Networking (C++17) — **currently integrated and operational**
-- **ION-DTN** — JPL's Interplanetary Overlay Network — *planned via abstraction layer*
-- **µD3TN** — Lightweight, space-tested DTN implementation for microcontrollers and POSIX — *planned, candidate flight software*
-- **Hardy** — Modular Rust BPv7 implementation with `no_std` core libraries — *planned, candidate flight software*
+- **ION-DTN** — JPL's Interplanetary Overlay Network — *reference implementation with flight heritage*
+- **µD3TN** — Lightweight, space-tested DTN implementation for microcontrollers and POSIX — *candidate flight software*
+- **Hardy** — Modular Rust BPv7 implementation with `no_std` core libraries — *candidate flight software*
 
 ### Protocols and Standards
 
@@ -227,7 +223,7 @@ A structured logging system that captures both planned (expected) and actual (ob
 - **Cross-phase comparison** — Normalized metrics (goodput, plan adherence, delivery success ratio) allow direct comparison across terrestrial, QO-100, LEO, and cislunar links
 - **Planned vs. actual** — Captures expected contact window parameters alongside observed timing, throughput, and delivery outcomes
 - **Phase-aware metadata** — Records link type, frequency band, OWLT, orbital parameters, and modulation for each session's environment
-- **Integrates with existing systems** — Pulls contact plan state from the Contact Plan Manager and telemetry from the HDTN REST API automatically
+- **Integrates with existing systems** — Pulls contact plan state from the Contact Plan Manager and telemetry from the DTN engine REST API automatically
 - **Machine-readable and human-readable** — JSON with consistent field ordering; queryable by phase, time range, node pair, and outcome
 
 See [`.kiro/specs/contact-log/requirements.md`](.kiro/specs/contact-log/requirements.md) for the full requirements specification.
@@ -238,7 +234,7 @@ Periodic transmission of BPv7 bundles containing the operator's callsign and sta
 
 - **Regulatory compliance** — Transmits callsign in plaintext so any third party demodulating the signal can identify the station, even when wire format only carries opaque numeric ipn:// EIDs
 - **Analogous to FT8/WSPR** — Embeds callsign in message payloads using a well-known beacon service number (2048)
-- **Independent of data traffic** — Operates on a configurable timer (default 10 minutes) via existing HDTN infrastructure
+- **Independent of data traffic** — Operates on a configurable timer (default 10 minutes) via existing DTN infrastructure
 - **Includes station metadata** — Callsign, Maidenhead grid square, and node type in human-readable payload
 - **Cross-phase** — Required for all phases from terrestrial through cislunar
 
@@ -246,7 +242,7 @@ See [`.kiro/specs/station-identification-beacon/requirements.md`](.kiro/specs/st
 
 ### Test Framework — Requirements-Based Verification (NASA TM Methodology)
 
-A property-based test framework modeled after NASA Glenn's HDTN Test Framework (TM-20240014467 / LEW-20818-1), providing automated verification across all mission phases:
+A property-based test framework modeled after NASA Glenn's published Test Framework methodology (TM-20240014467 / LEW-20818-1), providing automated verification across all mission phases:
 
 - **Property-based testing** — Verifies correctness properties hold for all inputs within defined domains using randomized generation (gopter/rapid)
 - **Requirements traceability** — Each property test traces to one or more system requirements, enabling requirements-based verification for flight proposals
@@ -269,7 +265,7 @@ A multi-node contact graph generator with time-dependent routing, enabling distr
 - **OTA distribution** — Space nodes receive plan updates as administrative DTN bundles (≤5KB, expedited priority) during contact windows
 - **Bootstrap plans** — Pre-loaded from initial TLE before launch; spacecraft converges to operational plan on first OTA update
 - **Plan versioning** — Monotonically increasing versions with latest-wins conflict resolution across multiple uploading ground stations
-- **HDTN-compatible export** — Local node view extracted in NASA HDTN JSON format (source, dest, startTime, endTime, rateBitsPerSec, owlt)
+- **Engine-compatible export** — Local node view extracted in standard JSON format (source, dest, startTime, endTime, rateBitsPerSec, owlt)
 
 See [`.kiro/specs/multi-node-contact-graph/requirements.md`](.kiro/specs/multi-node-contact-graph/requirements.md) for the full requirements specification.
 
@@ -292,6 +288,7 @@ See [`.kiro/specs/radiant-network-orchestrator/requirements.md`](.kiro/specs/rad
 
 ## Documentation
 
+- [DTN Abstraction Layer — Interoperability](radiant-dtn-abstraction/docs/INTEROP-ABSTRACTION-LAYER.md)
 - [LTP-over-KISS Architecture](docs/LTP-KISS-ARCHITECTURE.md)
 - [DTN Callsign EID Configuration](docs/DTN-CALLSIGN-EID-CONFIGURATION.md)
 - [Phase 1: Terrestrial DTN](docs/terrestrial-dtn-phase1/)

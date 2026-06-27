@@ -12,7 +12,7 @@
 - Introduce RADIANT (Radio Amateur Delay-tolerant Interplanetary Networking Testbed)
 - Core ambition: place an amateur-operated DTN node in cislunar space — the first amateur interplanetary-style communication system
 - The CubeSat and cislunar missions are the destination; earlier phases build the validated foundation to get there
-- Built on NASA Glenn's HDTN (High-rate Delay Tolerant Networking) (https://www.nasa.gov/glenn/glenn-expertise-space-exploration/scan/high-rate-delay-tolerant-networking/), implementing Bundle Protocol v7 (RFC 9171) and Licklider Transmission Protocol (RFC 5326)
+- Built on standard DTN protocols — Bundle Protocol v7 (RFC 9171) and Licklider Transmission Protocol (RFC 5326) — with a DTN-engine-agnostic architecture supporting ION-DTN, µD3TN, and Hardy
 - Supported by AMSAT-UK, AMSAT-DL, and Goonhilly Earth Station
 - Open-source, community-driven, MIT-licensed
 
@@ -68,7 +68,7 @@ Each earlier phase validates critical elements needed for the CubeSat and cislun
 
 **Phase 1 — Terrestrial Validation (In Progress):**
 - Raspberry Pi + Mobilinkd TNC4 + Yaesu FT-817 at 9600 baud G3RUH
-- Validates the complete software stack: HDTN, LTP-over-KISS, callsign EIDs
+- Validates the complete software stack: LTP-over-KISS, callsign EIDs
 - Proves store-and-forward and DTN ping over real amateur radio links
 - Two-node testing by G4DPZ
 
@@ -93,8 +93,8 @@ Each earlier phase validates critical elements needed for the CubeSat and cislun
 **Current achievements:**
 - Functioning 3-node cislunar simulation with true packet-level propagation delays (1.3s Moon, 3–12 min Mars)
 - CGR computing multi-hop relay paths, LTP managing 2.6s to 24-minute RTTs
-- Custom C++17 KISS CLA plugin for HDTN
-- Go orchestrator managing HDTN lifecycle, telemetry, and contact plans
+- Custom KISS convergence layer adapter for DTN engine integration
+- Rust orchestrator managing DTN engine lifecycle, telemetry, and contact plans
 - 11 property-based tests, full CI pipeline
 
 ---
