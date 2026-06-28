@@ -117,19 +117,21 @@ peers:\n  - \"{}:{}\"\n", F4JXQ_HOST, F4JXQ_PORT)).unwrap();
         for line in tcpcl_log_content.lines().take(10) { println!("    {}", line); }
     }
 
-    // Send ping via gRPC Application service
+    // Send ping
     println!("[4/4] Sending echo ping...");
-    let ping_payload = b"RADIANT G4DPZ ping - 73 de Dave";
+    let ping_payload: Vec<u8> = b"RADIANT G4DPZ ping - 73 de Dave".to_vec();
+    println!("  Payload: {} bytes", ping_payload.len());
 
-    let result = send_ping("http://[::1]:50051", F4JXQ_ECHO_EID, ping_payload).await;
+    let result = send_ping("http://[::1]:50051", F4JXQ_ECHO_EID, &ping_payload).await;
     match result {
         Ok(Some(response)) => {
-            let response_str = String::from_utf8_lossy(&response);
+            let matches = response == ping_payload;
             println!();
             println!("=== ECHO RESPONSE RECEIVED ===");
             println!("  From: {}", F4JXQ_ECHO_EID);
-            println!("  Payload ({} bytes): {}", response.len(), response_str);
-            println!("  Round-trip: SUCCESS");
+            println!("  Sent: {} bytes", ping_payload.len());
+            println!("  Received: {} bytes", response.len());
+            println!("  Data integrity: {}", if matches { "MATCH ✓" } else { "MISMATCH ✗" });
         }
         Ok(None) => {
             println!();

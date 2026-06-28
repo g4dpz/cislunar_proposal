@@ -140,7 +140,7 @@ fn write_range_commands(out: &mut String, contact_plan: &ContactPlan, local_node
     // Self-range: zero OWLT to self (required by ION for internal routing)
     writeln!(
         out,
-        "a range +0 +9999999999 {} {} 0",
+        "a range +0 +86400 {} {} 0",
         local_node_number, local_node_number
     ).unwrap();
     for range in &contact_plan.ranges {
@@ -153,7 +153,7 @@ fn write_range_commands(out: &mut String, contact_plan: &ContactPlan, local_node
         };
         writeln!(
             out,
-            "a range +0 +9999999999 {} {} {}",
+            "a range +0 +86400 {} {} {}",
             range.source_node,
             range.dest_node,
             owlt
@@ -617,7 +617,7 @@ mod tests {
         let config = sample_config();
         let ionrc = generate_ionrc(&config);
         // OWLT 1.3 rounds up to 2 (ION uses integer seconds, ceil for safety)
-        assert!(ionrc.contains("a range +0 +9999999999 10 20 2"));
+        assert!(ionrc.contains("a range +0 +86400 10 20 2"));
     }
 
     #[test]
@@ -822,15 +822,15 @@ mod tests {
         let config = sample_config();
         let ionrc = generate_ionrc(&config);
         // Self-range must be present with local node number (10) and zero OWLT
-        assert!(ionrc.contains("a range +0 +9999999999 10 10 0"));
+        assert!(ionrc.contains("a range +0 +86400 10 10 0"));
     }
 
     #[test]
     fn test_ionrc_self_range_appears_before_user_ranges() {
         let config = sample_config();
         let ionrc = generate_ionrc(&config);
-        let self_pos = ionrc.find("a range +0 +9999999999 10 10 0").unwrap();
-        let user_pos = ionrc.find("a range +0 +9999999999 10 20 2").unwrap();
+        let self_pos = ionrc.find("a range +0 +86400 10 10 0").unwrap();
+        let user_pos = ionrc.find("a range +0 +86400 10 20 2").unwrap();
         assert!(self_pos < user_pos, "Self-range must appear before user ranges");
     }
 
@@ -861,6 +861,6 @@ mod tests {
         let ionrc = generate_ionrc(&config);
         // Self-contact and self-range must still be generated even with no user contacts/ranges
         assert!(ionrc.contains("a contact +0 +86400 10 10 100000"));
-        assert!(ionrc.contains("a range +0 +9999999999 10 10 0"));
+        assert!(ionrc.contains("a range +0 +86400 10 10 0"));
     }
 }
