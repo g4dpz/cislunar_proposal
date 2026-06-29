@@ -22,6 +22,7 @@ use tracing::{error, info};
 use radiant_dtn_abstraction::adapter::ion::config_gen::generate_ion_config;
 use radiant_dtn_abstraction::adapter::ion::lifecycle::IonLifecycle;
 use radiant_dtn_abstraction::adapter::ion::telemetry::IonTelemetry;
+use radiant_dtn_abstraction::adapter::ion::IonAdapter;
 use radiant_dtn_abstraction::adapter::registry::AdapterRegistry;
 use radiant_dtn_abstraction::api::routes::build_router;
 use radiant_dtn_abstraction::api::AppState;
@@ -268,6 +269,14 @@ async fn cmd_serve(config_path: &str, port: u16) -> Result<(), String> {
 
     // Build application state for the API
     let registry = Arc::new(AdapterRegistry::new());
+
+    // Register the ION-DTN adapter with the registry
+    let ion_adapter = Arc::new(IonAdapter::new(None));
+    registry
+        .register("ion-dtn", ion_adapter)
+        .await
+        .map_err(|e| format!("Failed to register ION adapter: {}", e))?;
+
     let event_bus = Arc::new(EventBus::new(256));
     let state = AppState::new(registry, event_bus);
 
