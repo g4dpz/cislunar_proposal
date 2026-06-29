@@ -1,0 +1,73 @@
+# RADIANT Ground Station — G4DPZ (node 10)
+#
+# ION-DTN configuration for the G4DPZ ground station connecting to a
+# Hardy gateway node (node 20) via LTP/UDP on localhost.
+#
+# Usage:
+#   radiant-ion generate examples/g4dpz-ground-station.yaml
+#   radiant-ion start examples/g4dpz-ground-station.yaml
+#   radiant-ion serve examples/g4dpz-ground-station.yaml --port 3000
+
+version: "1.0"
+backend: "ion-dtn"
+
+local_node:
+  node_number: 10
+  name: "G4DPZ Ground Station"
+  endpoint_id:
+    node_number: 10
+    service_number: 0
+  callsign_eid:
+    authority: "g4dpz-1"
+    path: "gs"
+  services:
+    - service_number: 1
+      description: "Bundle delivery"
+    - service_number: 7
+      description: "Echo"
+
+neighbors:
+  - node_number: 20
+    name: "Hardy Gateway"
+    links:
+      - type: ltp_udp
+        id: "ltp-to-hardy"
+        local_engine_id: 10
+        remote_engine_id: 20
+        remote_host: "127.0.0.1"
+        remote_port: 1113
+        local_port: 2113
+        mtu: 1400
+
+contact_plan:
+  contacts:
+    - source_node: 10
+      dest_node: 20
+      start_time: 0
+      end_time: 86400
+      rate_bps: 10000000
+      confidence: 1.0
+    - source_node: 20
+      dest_node: 10
+      start_time: 0
+      end_time: 86400
+      rate_bps: 10000000
+      confidence: 1.0
+  ranges:
+    - source_node: 10
+      dest_node: 20
+      owlt_secs: 0.001
+    - source_node: 20
+      dest_node: 10
+      owlt_secs: 0.001
+
+routing:
+  strategy: cgr
+  static_routes: []
+
+security:
+  enabled: false
+
+storage:
+  path: "/tmp/radiant-ion/node10"
+  max_bytes: 104857600
