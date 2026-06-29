@@ -1,0 +1,20 @@
+[package]
+name = "radiant-ion"
+version = "0.1.0"
+edition = "2021"
+description = "ION-DTN configuration management and lifecycle control daemon with HTTP/JSON API"
+license = "MIT"
+
+[[bin]]
+name = "radiant-ion"
+path = "src/main.rs"
+
+[dependencies]
+radiant-dtn-abstraction = { path = "../radiant-dtn-abstraction" }
+axum = { version = "0.7", features = ["json"] }
+clap = { version = "4", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+serde_yaml = "0.9"
+serde_json = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
