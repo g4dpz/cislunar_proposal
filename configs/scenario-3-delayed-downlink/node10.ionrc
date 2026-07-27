@@ -1,0 +1,30 @@
+## Scenario 3: Delayed Downlink — Receiving After Delay
+##
+## ION starts up and is ready to receive.
+## The LTP peer (node 20) does not begin transmitting until +30 seconds.
+## After 30s, bundles arrive from the satellite and are delivered locally.
+##
+## This demonstrates receiving bundles from a peer that becomes available
+## after startup (e.g., satellite rises above horizon).
+
+1 10 ''
+s
+
+# Self-contact
+a contact +0 +86400 10 10 100000000
+
+# Terrestrial link (node 30) — available immediately
+a contact +0 +86400 10 30 100000000
+a contact +0 +86400 30 10 100000000
+
+# Satellite link (node 20) — DELAYED: peer starts sending at +30s
+# Outbound available immediately (we can queue), inbound arrives after +30s
+a contact +0 +86400 10 20 9600
+a contact +30 +86400 20 10 9600
+
+# Ranges
+a range +0 +86400 10 10 0
+a range +0 +86400 10 20 1
+a range +0 +86400 20 10 1
+a range +0 +86400 10 30 0
+a range +0 +86400 30 10 0

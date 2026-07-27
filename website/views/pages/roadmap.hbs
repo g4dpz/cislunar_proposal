@@ -3,6 +3,12 @@
     <h1>Project Roadmap</h1>
     <p class="lead">Five phases from terrestrial validation to cislunar deep-space communication.</p>
 
+    <div class="row justify-content-center mt-4 mb-5">
+      <div class="col-lg-11">
+        <img src="/images/diagrams/phased-roadmap.svg" alt="Visual timeline showing RADIANT's five development phases: Phase 1 Terrestrial (active), Phase 1.5 QO-100 GEO (planned), Phase 2 CubeSat Engineering Model (planned), Phase 3 LEO CubeSat (future), and Phase 4 Cislunar (future)." class="img-fluid" loading="lazy">
+      </div>
+    </div>
+
     <div class="row mt-4">
       <div class="col-lg-3 mb-4">
         <div class="card text-center">
@@ -22,6 +28,19 @@
     </div>
 
     {{#if futureEnhancements}}
+    <div class="row mt-5">
+      <div class="col-12">
+        <h2>Hardware &amp; Link Budget</h2>
+        <p class="text-muted">CubeSat payload architecture and link performance across mission phases.</p>
+      </div>
+      <div class="col-lg-6 mb-4">
+        <img src="/images/diagrams/cubesat-payload.svg" alt="Block diagram of CubeSat DTN payload: STM32U585 processor connected to IQ transceiver, power amplifier, omni antenna at 437 MHz, and non-volatile memory for bundle persistence." class="img-fluid" loading="lazy">
+      </div>
+      <div class="col-lg-6 mb-4">
+        <img src="/images/diagrams/link-budget-comparison.svg" alt="Link budget comparison table across LEO (437 MHz, 9.6 kbps, greater than 30 dB margin), GEO QO-100 (10 GHz, 2.4 kbps, 15 dB margin), and Cislunar (S-band 2.2 GHz, 500 bps, 7 dB margin)." class="img-fluid" loading="lazy">
+      </div>
+    </div>
+
     <div class="row mt-5">
       <div class="col-12">
         <h2>Future Enhancements</h2>

@@ -22,6 +22,7 @@ export function docsHandler(engine: HandlebarsEngine) {
       activeSection: "docs",
       content: {
         phases: siteContent.documentation.phases,
+        architectureDocs: siteContent.documentation.architectureDocs,
         externalRefs: siteContent.documentation.externalRefs,
         packages: siteContent.documentation.packages,
       },

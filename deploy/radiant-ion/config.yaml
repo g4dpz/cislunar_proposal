@@ -1,0 +1,71 @@
+# radiant-ion Configuration — G4DPZ Ground Station (Node 10)
+#
+# Edit this file to match your station's network configuration.
+# After changes: sudo systemctl restart radiant-ion
+#
+# Amateur radio compliance: No encryption is configured.
+# All bundle payloads are transmitted in the clear.
+
+version: "1.0"
+backend: "ion-dtn"
+
+local_node:
+  node_number: 10
+  name: "G4DPZ Ground Station"
+  endpoint_id:
+    node_number: 10
+    service_number: 0
+  callsign_eid:
+    authority: "g4dpz-1"
+    path: "gs"
+  services:
+    - service_number: 1
+      description: "Bundle delivery"
+    - service_number: 7
+      description: "Echo"
+
+neighbors:
+  - node_number: 20
+    name: "Satellite Node"
+    links:
+      - type: ltp_udp
+        id: "ltp-to-satellite"
+        local_engine_id: 10
+        remote_engine_id: 20
+        remote_host: "192.168.1.20"
+        remote_port: 1113
+        local_port: 2113
+        mtu: 1400
+
+contact_plan:
+  contacts:
+    - source_node: 10
+      dest_node: 20
+      start_time: 0
+      end_time: 86400
+      rate_bps: 9600
+      confidence: 0.95
+    - source_node: 20
+      dest_node: 10
+      start_time: 0
+      end_time: 86400
+      rate_bps: 9600
+      confidence: 0.95
+  ranges:
+    - source_node: 10
+      dest_node: 20
+      owlt_secs: 1.3
+    - source_node: 20
+      dest_node: 10
+      owlt_secs: 1.3
+
+routing:
+  strategy: cgr
+  static_routes: []
+
+security:
+  enabled: false
+
+storage:
+  path: "/var/lib/radiant-ion/ion"
+  max_bytes: 104857600

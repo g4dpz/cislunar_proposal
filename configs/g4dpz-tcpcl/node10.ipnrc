@@ -1,0 +1,8 @@
+## IPN routing for G4DPZ ground station (Node 10)
+## Routes to satellite via LTP, terrestrial peers via TCP
+
+# Satellite (node 20) — via LTP outduct
+a plan 20 ltp/20
+
+# Terrestrial peer (node 30) — via TCP outduct
+a plan 30 tcp/*:4556

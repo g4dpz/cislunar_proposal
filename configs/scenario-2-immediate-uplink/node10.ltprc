@@ -1,0 +1,12 @@
+## LTP configuration for G4DPZ ground station (Node 10)
+## Handles satellite link only — terrestrial uses TCP, not LTP
+## NO ENCRYPTION
+
+# Initialize LTP engine
+1 32
+
+# LTP span to satellite (engine 20)
+a span 20 32 32 1400 65000 1 'udplso 192.168.1.20:1113'
+
+# Start UDP link service input (for satellite return link)
+s 'udplsi 0.0.0.0:2113'

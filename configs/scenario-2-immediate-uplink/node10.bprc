@@ -1,0 +1,36 @@
+## BP configuration for G4DPZ ground station (Node 10)
+## Two convergence layers: LTP (satellite) + TCP (terrestrial)
+## NO ENCRYPTION — amateur radio compliance
+
+# Initialize BP
+1
+
+# Add scheme
+a scheme ipn 'ipnfw' 'ipnadminep'
+
+# Local endpoints
+a endpoint ipn:10.0 x
+a endpoint ipn:10.1 q
+a endpoint ipn:10.2 q
+
+# ─── LTP convergence layer (satellite link) ───────────────────────────────────
+
+a protocol ltp 1400 100
+a induct ltp 10 ltpcli
+a outduct ltp 20 ltpclo
+
+# ─── TCP convergence layer (terrestrial link) ─────────────────────────────────
+
+# TCPCLv3 protocol
+a protocol tcp 1400 100
+
+# TCP induct — listen on port 4556 for incoming terrestrial connections
+# Any DTN peer can connect and deliver bundles
+a induct tcp 0.0.0.0:4556 tcpcli
+
+# TCP outduct to terrestrial peer (node 30)
+# Used when we need to send bundles back to the terrestrial network
+a outduct tcp *:4556 tcpclo
+
+# Start BP
+s

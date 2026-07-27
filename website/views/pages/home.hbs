@@ -55,7 +55,31 @@
   </div>
 </section>
 
-<section class="py-5 bg-light" aria-labelledby="about-heading">
+<section class="py-5" aria-labelledby="store-forward-heading">
+  <div class="container">
+    <h2 id="store-forward-heading">How Store-and-Forward Works</h2>
+    <p class="mt-2">DTN bundles are uploaded during one pass window, stored persistently onboard, and forwarded to the destination when the next contact opens — no data lost due to disconnection.</p>
+    <div class="row justify-content-center mt-3">
+      <div class="col-lg-10">
+        <img src="/images/diagrams/store-and-forward.svg" alt="Sequence diagram showing DTN store-and-forward operation: Ground Station A uploads a bundle to the CubeSat during Pass 1, the bundle persists in non-volatile memory during a no-contact period, then the CubeSat forwards it to Ground Station B during Pass 2." class="img-fluid" loading="lazy">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5 bg-light" aria-labelledby="architecture-heading">
+  <div class="container">
+    <h2 id="architecture-heading">Network Architecture</h2>
+    <p class="mt-2">From terrestrial ground stations through GEO relay to cislunar deep space — all connected via standard DTN protocols.</p>
+    <div class="row justify-content-center mt-3">
+      <div class="col-lg-10">
+        <img src="/images/diagrams/network-architecture.svg" alt="RADIANT network architecture diagram showing ground segment (mission operations, ground gateway, ground stations) connected via RF links to LEO CubeSat, QO-100 GEO relay, and cislunar node near the Moon." class="img-fluid" loading="lazy">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5" aria-labelledby="about-heading">
   <div class="container">
     <h2 id="about-heading">What This Project Is</h2>
     <p class="mt-2">RADIANT is a <strong>networking-layer integration project</strong>, not a PHY-layer innovation project. The value is in making DTN work end-to-end over amateur radio links with proper regulatory compliance, contact scheduling, and store-and-forward semantics — then progressively improving the physical layer as we move toward space.</p>
@@ -107,22 +131,10 @@
 <section class="py-5" aria-labelledby="protocol-heading">
   <div class="container">
     <h2 id="protocol-heading">Protocol Stack</h2>
+    <p class="mt-2">RADIANT eliminates AX.25 and wraps LTP directly in KISS framing — reducing overhead and improving throughput by ~10%.</p>
     <div class="row justify-content-center mt-3">
-      <div class="col-lg-6">
-        <table class="table table-bordered text-center">
-          <thead class="table-dark">
-            <tr>
-              <th scope="col">Layer</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{#each content.protocolStack}}
-            <tr>
-              <td>{{this}}</td>
-            </tr>
-            {{/each}}
-          </tbody>
-        </table>
+      <div class="col-lg-8">
+        <img src="/images/diagrams/protocol-stack.svg" alt="Protocol stack comparison: RADIANT uses Application, BPv7, LTP, KISS framing, and G3RUH 9600 baud directly, while traditional packet radio adds an AX.25 layer with 15 bytes overhead per frame." class="img-fluid" loading="lazy">
       </div>
     </div>
   </div>

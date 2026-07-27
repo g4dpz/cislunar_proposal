@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 420" font-family="Arial, sans-serif">
+  <!-- Background -->
+  <rect width="750" height="420" fill="#1a1a2e"/>
+  
+  <!-- Title -->
+  <text x="375" y="30" text-anchor="middle" fill="#e0e0e0" font-size="16" font-weight="bold">DTN Store-and-Forward Operation</text>
+  
+  <!-- Lifelines -->
+  <!-- Ground Station A -->
+  <rect x="80" y="55" width="100" height="30" rx="4" fill="#16213e" stroke="#2ecc71" stroke-width="1.5"/>
+  <text x="130" y="74" text-anchor="middle" fill="#2ecc71" font-size="10">Ground Stn A</text>
+  <line x1="130" y1="85" x2="130" y2="400" stroke="#2ecc71" stroke-width="1" stroke-dasharray="4,3"/>
+  
+  <!-- CubeSat -->
+  <rect x="310" y="55" width="100" height="30" rx="4" fill="#16213e" stroke="#f39c12" stroke-width="1.5"/>
+  <text x="360" y="74" text-anchor="middle" fill="#f39c12" font-size="10">CubeSat</text>
+  <line x1="360" y1="85" x2="360" y2="400" stroke="#f39c12" stroke-width="1" stroke-dasharray="4,3"/>
+  
+  <!-- Ground Station B -->
+  <rect x="540" y="55" width="100" height="30" rx="4" fill="#16213e" stroke="#3498db" stroke-width="1.5"/>
+  <text x="590" y="74" text-anchor="middle" fill="#3498db" font-size="10">Ground Stn B</text>
+  <line x1="590" y1="85" x2="590" y2="400" stroke="#3498db" stroke-width="1" stroke-dasharray="4,3"/>
+  
+  <!-- Pass 1 window -->
+  <rect x="20" y="100" width="710" height="110" rx="4" fill="#0d2137" stroke="#2ecc71" stroke-width="1" stroke-dasharray="5,3" opacity="0.5"/>
+  <text x="40" y="118" fill="#2ecc71" font-size="9" font-weight="bold">PASS 1 — Station A visible (5 min)</text>
+  
+  <!-- Upload bundle -->
+  <line x1="135" y1="135" x2="355" y2="150" stroke="#2ecc71" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+  <text x="245" y="132" text-anchor="middle" fill="#ecf0f1" font-size="9">Upload Bundle (BPv7)</text>
+  
+  <!-- LTP ACK -->
+  <line x1="355" y1="165" x2="135" y2="175" stroke="#2ecc71" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arrowGreen)"/>
+  <text x="245" y="185" text-anchor="middle" fill="#7f8c8d" font-size="8">LTP Checkpoint ACK</text>
+  
+  <!-- Store indicator -->
+  <rect x="340" y="195" width="40" height="25" rx="3" fill="#2c3e50" stroke="#f39c12" stroke-width="1"/>
+  <text x="360" y="212" text-anchor="middle" fill="#f39c12" font-size="8">NVM</text>
+  <text x="405" y="212" fill="#95a5a6" font-size="8">← Bundle stored persistently</text>
+  
+  <!-- Gap period -->
+  <rect x="20" y="225" width="710" height="60" rx="4" fill="#1a0a0a" stroke="#c0392b" stroke-width="1" stroke-dasharray="5,3" opacity="0.3"/>
+  <text x="375" y="250" text-anchor="middle" fill="#e74c3c" font-size="10">NO CONTACT — Bundle persists in NVM</text>
+  <text x="375" y="265" text-anchor="middle" fill="#7f8c8d" font-size="8">(minutes to hours depending on orbit)</text>
+  
+  <!-- Pass 2 window -->
+  <rect x="20" y="295" width="710" height="95" rx="4" fill="#0d1f37" stroke="#3498db" stroke-width="1" stroke-dasharray="5,3" opacity="0.5"/>
+  <text x="40" y="313" fill="#3498db" font-size="9" font-weight="bold">PASS 2 — Station B visible (7 min)</text>
+  
+  <!-- CGR decision -->
+  <text x="395" y="330" fill="#f39c12" font-size="8">CGR: contact window open →</text>
+  
+  <!-- Forward bundle -->
+  <line x1="365" y1="340" x2="585" y2="355" stroke="#3498db" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+  <text x="475" y="338" text-anchor="middle" fill="#ecf0f1" font-size="9">Forward Bundle</text>
+  
+  <!-- LTP ACK from B -->
+  <line x1="585" y1="370" x2="365" y2="380" stroke="#3498db" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arrowBlue)"/>
+  <text x="475" y="392" text-anchor="middle" fill="#7f8c8d" font-size="8">LTP Checkpoint ACK → Bundle deleted from NVM</text>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0,0 8,3 0,6" fill="#2ecc71"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0,0 8,3 0,6" fill="#3498db"/>
+    </marker>
+  </defs>
+</svg>

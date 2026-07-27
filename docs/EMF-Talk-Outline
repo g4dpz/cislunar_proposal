@@ -50,10 +50,10 @@ Slide 4 — We're Entering a Second Space Age
 
 Images:
 
-Artemis
-Lunar Gateway
-Intuitive Machines lander
-ESA Moonlight concept
+Artemis (NASA public domain — nasa.gov/artemis imagery)
+Lunar Gateway render (NASA public domain — search "Gateway lunar station")
+Intuitive Machines lander (IM press kit)
+ESA Moonlight constellation concept (connectivity.esa.int/moonlight — CC-BY-SA 3.0 IGO)
 
 The challenge is no longer reaching the Moon.
 
@@ -72,8 +72,9 @@ Slide 5 — Why I'm Interested
 
 Photo:
 
-You at Goonhilly
-IM-1 / IM-2 mission imagery
+You at Goonhilly (docs/images/nasa-dtn/nasa-dsn-antenna-PIA24163.jpg as fallback — DSN antenna)
+IM-1 / IM-2 mission imagery (Intuitive Machines press kit)
+DSOC hybrid antenna (docs/images/nasa-dtn/nasa-dsoc-hybrid-antenna-PIA26148.jpg — NASA public domain)
 
 Through my work with Goonhilly Earth Station and Intuitive Machines I've seen first-hand how rapidly lunar infrastructure is evolving.
 
@@ -85,6 +86,11 @@ Can amateurs experiment with the same ideas?
 
 Slide 6 — Infrastructure We Take for Granted
 
+Images:
+
+ESA Moonlight LCNS concept art (connectivity.esa.int/moonlight — press images, CC-BY-SA 3.0 IGO)
+LunaNet architecture diagram (from NASA LunaNet page or NASA/TP-20210021073 — public domain)
+
 GPS: billions of users, every day, the most successful space system ever built.
 
 But GPS doesn't reach the Moon.
@@ -92,6 +98,8 @@ But GPS doesn't reach the Moon.
 Galileo doesn't reach the Moon.
 
 ESA's Moonlight programme is building "Galileo for the Moon" — communications, navigation, and timing for future lunar missions.
+
+ESA signed the Moonlight LCNS contract in October 2024 with a consortium led by Telespazio. It's not a concept — it's in procurement.
 
 We are already designing infrastructure beyond Earth.
 
@@ -123,6 +131,8 @@ Now try Mars: 3–22 minutes each way.
 
 A TCP handshake to Mars could take over an hour.
 
+NASA's own assessment (2023): "DTN automatically ensures the delivery of information using store-and-forward, which enables internet-like concepts in space."
+
 Slide 9 — Distances That Break Your Brain
 
 Destination         One-way Delay
@@ -139,6 +149,15 @@ You wait 22 minutes.
 They say hello back.
 You wait another 22 minutes to hear it.
 
+The speed of light is not a software bug you can patch.
+
+So the architecture is simple:
+
+On the Moon surface? Normal internet — just like a LAN.
+Between Earth and Moon? The bundle postal service.
+
+[Speaker note: For network engineers — the SSI report specifies IPv6 locally on celestial bodies, BP/LTP for long-haul between worlds, and no IPv4 in space, ever. You can drop this detail verbally if the audience seems technical enough.]
+
 Slide 10 — "But What About Starlink?"
 
 Someone's thinking it.
@@ -149,16 +168,16 @@ It doesn't solve the physics of cislunar or interplanetary distances.
 
 Even if you put Starlink around the Moon, you still have 1.3-second delays, orbital occlusion, and no continuous path to Mars.
 
-The problem isn't bandwidth. It's the speed of light.
+The problem isn't bandwidth. It's the speed of light. And nobody's shipping a firmware update for that.
 
 Slide 11 — The Future Looks Weirdly Like the Past
 
 Images:
 
-Postal service
-Mail coach
-UUCP bang paths
-Packet radio BBS
+Postal service / mail coach (public domain historical)
+UUCP bang paths (terminal screenshot or diagram)
+Packet radio BBS (period photo or screenshot)
+FidoNet logo / map
 
 For most of human history, messages were:
 
@@ -171,6 +190,10 @@ If you remember UUCP, FidoNet, or store-and-forward email in the 1980s...
 The future of interplanetary networking looks a lot like 1985.
 
 Slide 12 — A Solar System Postal Service
+
+Image:
+
+docs/diagrams/store-and-forward.svg (dark-themed, shows full sequence: upload → store in NVM → no contact → forward → ACK)
 
 Introduce:
 
@@ -191,6 +214,10 @@ When a bundle is "in flight" for 22 minutes to Mars — the sending node is resp
 
 Slide 13 — Routing by Time
 
+Image:
+
+docs/diagrams/contact-graph.svg (dark-themed, shows scheduled pass windows with CGR-computed route)
+
 Visual:
 
 Earth visible to relay 12:00–12:10
@@ -206,27 +233,48 @@ This is Contact Graph Routing — the network equivalent of a train timetable.
 
 For anyone who's only worked with IP routing, this is genuinely alien.
 
-Slide 14 — NASA and ESA Are Already Building It
+The IETF now has a dedicated Time-Variant Routing (TVR) Working Group standardising this concept for broader networking — it's not just a space thing anymore.
 
-DTN is not a hobby project:
+And here's a detail that'll amuse you: the SSI report discusses the need for UTC(Moon) — a separate lunar time standard. Relativistic effects at cislunar distances mean clocks on the Moon drift relative to Earth. Your contact plan literally needs a different clock.
 
-NASA Glenn: HDTN (open source)
-JPL: ION-DTN
-ESA: standardising through CCSDS
-ISS: has run DTN experiments since 2008
-KPLO: Bundle Protocol flying at the Moon today (Korea Pathfinder Lunar Orbiter)
+Slide 14 — It's Already Running in Space
 
-In 2023, the Internet Society's Interplanetary Chapter (IPNSIG) published a governance framework for the Solar System Internet — co-authored by Vint Cerf.
+Images:
 
-Their recommendation: BPv7 + LTP + Contact Graph Routing as the basis for all communications beyond Earth.
+ISS photograph (NASA public domain — "HDTN is running here")
+KPLO spacecraft render (KARI press kit — "BPv7 tested here, at the Moon")
+Side-by-side layout with captions
 
-RADIANT implements exactly this architecture.
+This is not theoretical:
 
-This is real infrastructure being built by space agencies right now.
+The International Space Station runs HDTN right now — NASA Glenn's DTN engine, acting as a gateway between payloads and ground. Won an R&D 100 Award in 2025.
+
+The Korea Pathfinder Lunar Orbiter (KPLO) tested Bundle Protocol at the Moon in 2024.
+
+ION-DTN (JPL) has flight heritage on multiple deep-space missions.
+
+ESA is standardising it through CCSDS.
+
+These protocols are operational. In space. Today.
 
 Slide 15 — The Solar System Internet
 
-The IPNSIG report envisions a "network of networks" in space — like the terrestrial Internet.
+Image:
+
+docs/images/nasa-dtn/nasa-dtn-networking-abstract.jpg (NASA DTN concept graphic)
+Or: a simplified diagram of the "network of networks" vision (Earth → GEO relay → Moon → Mars)
+
+In 2023, the Internet Society's Interplanetary Chapter (IPNSIG) published a governance framework for the Solar System Internet — co-authored by Vint Cerf.
+
+Their recommendation:
+
+"DTN and the BP suite should be the basis for all communications that might have to traverse paths that the IP protocol suite cannot support."
+
+That's Vint Cerf, NASA, ESA, CCSDS, and the IETF converging on one answer.
+
+The vision — and this is a direct quote from the report:
+
+"In 1983, three disparate networks (Arpanet, SATNET, PRNET) joined together using TCP/IP, giving birth to the operational Internet. Establishing a shared and interoperable network in space will follow a similar trajectory."
 
 The evolution:
 
@@ -234,11 +282,11 @@ Today: Space agency point-to-point links
 Transitional: Commercial and amateur networks emerge alongside agency backbones
 Future: Multiple interconnected networks, peering like ISPs on Earth
 
-Key insight:
+The report explicitly calls for multistakeholder governance:
 
-"In 1983, three disparate networks joined together using TCP/IP, giving birth to the Internet. The Solar System Internet will follow a similar trajectory."
+"Policy decisions should be made collaboratively amongst all stakeholders."
 
-The report calls for multistakeholder governance — not just space agencies deciding.
+They want non-agency stakeholders involved from the earliest stages.
 
 Amateur radio operators are a stakeholder.
 
@@ -246,11 +294,11 @@ RADIANT is how we earn our seat at that table.
 
 Slide 16 — Where Amateur Radio Fits
 
-Historical images:
+Images:
 
-OSCAR 1 (1961)
-Packet radio (1980s)
-AO-40, FO-29
+OSCAR 1 (1961) — public domain, first amateur satellite
+Packet radio TNC (1980s) — period photo
+AO-40, FO-29 — AMSAT imagery
 
 Amateurs have a long history of experimenting before technologies become mainstream.
 
@@ -269,14 +317,19 @@ That's RADIANT.
 
 Slide 18 — The Roadmap
 
+Image:
+
+docs/diagrams/phased-roadmap.svg (dark-themed visual timeline: Phase 1 → 1.5 → 2 → 3 → 4)
+docs/diagrams/link-budget-comparison.svg (optional secondary — shows progression from easy LEO to hard cislunar)
+
 Phase 1 — Terrestrial Radio (now)
-DTN over amateur packet radio links
+DTN over amateur packet radio links. Raspberry Pi, a TNC, a Yaesu radio.
 
 Phase 1.5 — QO-100
-DTN via geostationary amateur satellite
+DTN via geostationary amateur satellite. Real space delay.
 
 Phase 2 — CubeSat Engineering Model
-Flight-representative hardware on the ground
+Flight hardware on the ground. STM32U585 — the same chip some of you are probably using in your badge hacks this weekend.
 
 Phase 3 — LEO DTN Payload
 First amateur DTN node in orbit
@@ -288,17 +341,31 @@ Timeline: now → next year → 3 years → 5+ years
 
 Slide 19 — Demo: Live Simulation
 
+Images / visuals:
+
+docs/diagrams/network-architecture.svg (dark-themed — full RADIANT network map as context)
+docs/diagrams/protocol-stack.svg (optional — shows RADIANT vs traditional AX.25 stack comparison)
+Live or pre-recorded terminal screen capture overlaid on the architecture diagram
+
 Live or pre-recorded screen capture:
 
 Show a bundle traversing Earth → Moon with visible delay
 Show store-and-forward behaviour
 Show LTP acknowledgements arriving 2.6 seconds later
 
-Running on HDTN (NASA Glenn's open-source DTN engine).
+Running on HDTN (NASA Glenn's open-source DTN engine — the same software running on the ISS).
+
+Give the demo 2-3 minutes. For this audience, seeing it work is worth more than five slides of architecture.
 
 Mention:
 
-"We're also building Hardy — a Rust implementation with LTP support that targets CubeSat flight hardware. If you write Rust and want to contribute to space software, come find us at the AMSAT Village."
+"We're also building with Hardy — a modular Rust BPv7 implementation. You can `cargo add hardy-bpa` today. It has a `no_std` core, which means it targets CubeSat flight hardware directly."
+
+"Our other flight software candidate is µD3TN — a lightweight DTN stack originally designed for microcontrollers, space-tested, and architecturally refined for flexibility across platforms."
+
+"If you write Rust and want to contribute to space software, come find us at the AMSAT Village."
+
+"And if you just want to play — you can run the full 3-node simulation locally. It's open source, runs on a Mac or a Pi. Clone the repo, run it, send a bundle to the Moon."
 
 This makes RADIANT feel real rather than aspirational.
 
@@ -306,9 +373,9 @@ Slide 20 — The Partners
 
 Logos:
 
-AMSAT-UK
-AMSAT-DL
-Goonhilly
+AMSAT-UK (website/public/images/logos/amsat-uk.png)
+AMSAT-DL (website/public/images/logos/amsat-dl.png)
+Goonhilly (website/public/images/logos/goonhilly.png)
 
 This isn't just one person with an interesting idea.
 
@@ -329,6 +396,10 @@ All protocols are public. All software is open source. Anyone can run a node.
 
 The regulations that govern amateur radio mean everything we build is transparent and auditable by design.
 
+NASA's LunaNet Interoperability Specification mandates the same protocols we implement. RADIANT isn't building something incompatible — it's building something that could interoperate with NASA's lunar infrastructure.
+
+A governance insight: every DTN node needs a unique address. The SSI report worries about who allocates these fairly. Turns out amateur radio already has one — your callsign. It's globally unique, government-issued, and the allocation system has worked since 1927. No blockchain required.
+
 The IPNSIG report's key principles for the Solar System Internet:
 
 Collaboration
@@ -341,7 +412,10 @@ RADIANT already embodies all of these.
 
 Slide 22 — Closing Thought
 
-Large Earth-Moon image.
+Image:
+
+Large Earth-Moon photograph (NASA public domain — Earthrise AS8-14-2383 or Artemis-era imagery)
+Or: docs/images/nasa-dtn/nasa-dsn-antenna-PIA24163.jpg with Moon in background
 
 The first Internet connected universities.
 
@@ -367,38 +441,99 @@ Ground station operators
 
 "If you're interested in the amateur-radio side of this, come find us at the AMSAT Village — we'll be running a live demonstration and hack session."
 
+Slide 24 — Further Reading (leave up during Q&A)
+
+Solar System Internet Report       ipnsig.org
+NASA HDTN (open source)            github.com/nasa/HDTN
+LunaNet Spec                       NASA/TP-20210021073
+KPLO DTN Paper                     mdpi.com/2079-9292/13/15/3088
+IETF TVR Working Group             datatracker.ietf.org/wg/tvr/about/
+Hardy (Rust BPv7)                  lib.rs/crates/hardy-bpa
+µD3TN                              gitlab.com/d3tn/ud3tn
+ESA Moonlight                      connectivity.esa.int/moonlight
+RADIANT                            radiant.amsat-uk.org
+
 Speaker Notes
 
-Pacing: 23 slides for 40 minutes = ~1.7 minutes per slide. Comfortable pace with room for pauses and audience reactions.
+Pacing: 24 slides for 40 minutes = ~1.7 minutes per slide. Comfortable pace with room for pauses and audience reactions.
 
-The balance should be approximately:
+Suggested time budget:
 
-15% space context (slides 2–4)
-10% personal credibility and motivation (slides 5–6)
-30% the networking problem and DTN concepts (slides 7–13)
-15% professional context and SSI vision (slides 14–15)
-20% RADIANT and amateur radio (slides 16–21)
-10% close and call to action (slides 22–23)
+| Section | Slides | Time |
+|---------|--------|------|
+| Hook + context | 1–6 | 8 min |
+| The problem | 7–11 | 8 min |
+| DTN concepts | 12–13 | 5 min |
+| Professional context | 14–15 | 5 min |
+| Amateur + RADIANT | 16–18 | 5 min |
+| Demo | 19 | 3 min |
+| Partners + why | 20–21 | 3 min |
+| Close + Q&A prep | 22–24 | 3 min |
+
+~2 minutes buffer for pauses and audience reactions.
 
 Key principles for EMF:
 
+- The audience is makers, hackers, artists, crafters, scientists, and engineers. Not all of them are network engineers. Keep it accessible.
 - The audience leaves talking about "building infrastructure beyond Earth", not about protocol stacks.
 - Use analogies they know: UUCP, postal service, train timetables.
 - Pre-empt the Starlink question — it shows you've thought about it.
-- The TCP handshake example makes the problem visceral for anyone who's written networked code.
+- The TCP handshake example makes the problem visceral for anyone who's written networked code. For non-coders, the "3.9 seconds just to say hello" framing still works.
+- The "speed of light is not a firmware update" line gets a laugh and makes the point.
 - The IPNSIG/SSI reference adds institutional weight — this isn't just amateur radio people dreaming.
-- The demo (even pre-recorded) makes RADIANT tangible.
-- End on the emotional line (slide 22), keep the logistics (slide 23) as a backdrop for Q&A.
+- The HDTN R&D 100 Award and ISS deployment prove this is operational, not academic.
+- The KPLO reference proves DTN is at the Moon today — not "someday".
+- The 1983 Arpanet/SATNET/PRNET quote is the money line — it connects everyone's knowledge of Internet history to this vision.
+- The IETF TVR Working Group reference is the "wait, the IETF is standardising this?" moment for network engineers.
+- For Rust developers: Hardy's `no_std` core and availability on crates.io gives them an immediate engagement path.
+- For embedded/microcontroller people: µD3TN targets their world directly. The STM32U585 reference on slide 18 makes it tangible ("same chip as your badge hack").
+- The "No blockchain required" line on slide 21 gets a laugh at EMF and makes the governance point.
+- The LunaNet reference on slide 21 makes the point that RADIANT could interoperate with NASA infrastructure — powerful for credibility.
+- The demo (slide 19) is the centrepiece for this audience. Give it 2-3 minutes. Seeing it work beats explaining it.
+- Explicitly invite people to "clone and run" — EMF attendees will go back to their tent and try it.
+- End on the emotional line (slide 22), keep the logistics (slide 23) and references (slide 24) as a backdrop for Q&A.
 - Cross-reference the AMSAT Village session to funnel interested technical people.
-- QR code on the final slide — people will photograph it.
+- QR code on slide 23 — people will photograph it.
+- Leave slide 24 (Further Reading) visible during Q&A so people can photograph the URLs.
+- If families are in the audience: the "Imagine it's 2055, you live on the Moon" opening works for all ages. The postal analogy works for kids too.
+
+Audience-specific hooks:
+
+- Software developers → demo, Hardy crate, open-source contribution path
+- Hardware engineers → STM32U585, CubeSat EM, embedded µD3TN
+- Network engineers → IPv6/BP split, IETF TVR WG, CGR as "train timetable routing"
+- Space enthusiasts → KPLO, LunaNet, cislunar Phase 4 ambition
+- Amateur radio operators → AMSAT Village, callsign-EIDs, regulatory compliance
+- Curious non-specialists → postal service analogy, 2055 opener, Zoom-to-Mars joke
+- Artists/makers → "anyone can run a node", open source, the infrastructure-as-art framing
 
 Key references:
 
 - IPNSIG, "Solar System Internet Architecture and Governance", September 2023
   (Co-authored by Vint Cerf, Scott Burleigh, et al.)
   https://www.ipnsig.org/
+- NASA NTRS, "New Horizons for a Practical and Performance-Optimized Solar System Internet"
+  https://ntrs.nasa.gov/citations/20220003634
+- NASA NTRS, "Advances in High-rate DTN On-board the International Space Station" (2024)
+  https://ntrs.nasa.gov/citations/20240007078
+- NASA Glenn Teams Win 2025 R&D 100 Awards (HDTN)
+  https://www.nasa.gov/centers-and-facilities/nasa-glenn-teams-win-2025-rd-100-awards/
+- MDPI, "Operational Tests for DTN between the Moon and Earth Using KPLO" (2024)
+  https://www.mdpi.com/2079-9292/13/15/3088
+- IETF Time-Variant Routing (TVR) Working Group
+  https://datatracker.ietf.org/wg/tvr/about/
+- NASA, "LunaNet Interoperability Specification" (Rev 5)
+  https://ntrs.nasa.gov/citations/20230012811
+- ESA Moonlight programme
+  https://connectivity.esa.int/moonlight
+- arXiv, "The Architectural Refinement of µD3TN" (2024)
+  https://arxiv.org/abs/2407.17166
+- Hardy BPA (Rust BPv7 implementation)
+  https://www.lib.rs/crates/hardy-bpa
 - RFC 9171 — Bundle Protocol Version 7
 - RFC 5326 — Licklider Transmission Protocol
 - NASA HDTN — https://github.com/nasa/HDTN
 - LunaNet Interoperability Specification (NASA/TP-20210021073)
 - CCSDS 730.1-G-1 — Solar System Internetwork Architecture
+- ISOC Live, "Building the Interplanetary Internet" (2025)
+  https://isoclive.substack.com/p/building-the-interplanetary-internet

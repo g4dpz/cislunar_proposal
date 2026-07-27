@@ -1,0 +1,28 @@
+## Scenario 2: Immediate Uplink — No Delay
+##
+## TCP terrestrial peer delivers bundles.
+## LTP contact to satellite (node 20) is available from the start.
+## Bundles flow through immediately without queuing.
+##
+## This demonstrates real-time forwarding when contact is available.
+
+1 10 ''
+s
+
+# Self-contact
+a contact +0 +86400 10 10 100000000
+
+# Terrestrial link (node 30) — available immediately
+a contact +0 +86400 10 30 100000000
+a contact +0 +86400 30 10 100000000
+
+# Satellite link (node 20) — available immediately
+a contact +0 +86400 10 20 9600
+a contact +0 +86400 20 10 9600
+
+# Ranges
+a range +0 +86400 10 10 0
+a range +0 +86400 10 20 1
+a range +0 +86400 20 10 1
+a range +0 +86400 10 30 0
+a range +0 +86400 30 10 0

@@ -10,6 +10,12 @@
     <h2 class="mt-4">The Concept</h2>
     <p>{{content.concept}}</p>
 
+    <div class="row justify-content-center mt-4 mb-4">
+      <div class="col-lg-10">
+        <img src="/images/diagrams/store-and-forward.svg" alt="Sequence diagram showing DTN store-and-forward operation: Ground Station A uploads a bundle to the CubeSat during Pass 1, the bundle persists in non-volatile memory during a no-contact period, then the CubeSat forwards it to Ground Station B during Pass 2." class="img-fluid" loading="lazy">
+      </div>
+    </div>
+
     <h2 class="mt-4">RF Link Types</h2>
     <p>The project uses a variety of amateur and experimental RF links as practical analogues for cislunar communication constraints:</p>
     <ul class="list-group list-group-flush mb-4">
@@ -17,6 +23,14 @@
       <li class="list-group-item">{{this}}</li>
       {{/each}}
     </ul>
+
+    <div class="row justify-content-center mt-4 mb-4">
+      <div class="col-lg-10">
+        <h3 class="h5">Contact Graph Routing</h3>
+        <p class="text-muted">Bundles are routed through scheduled pass windows — CGR computes the optimal multi-hop path based on predicted contact times.</p>
+        <img src="/images/diagrams/contact-graph.svg" alt="Contact graph routing diagram showing scheduled pass windows between Station A, a LEO CubeSat, and Station B over time, with CGR computing the route A to CubeSat via Contact 1, then CubeSat to B via Contact 2." class="img-fluid" loading="lazy">
+      </div>
+    </div>
 
     <h2 class="mt-4">Why Amateur and Specialist Radio Communities Matter</h2>
     <p>These communities bring essential capabilities to the project:</p>

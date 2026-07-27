@@ -1,0 +1,27 @@
+## ION configuration for G4DPZ ground station (Node 10)
+## With TCPCLv3 terrestrial input + LTP/UDP satellite link
+## NO ENCRYPTION — amateur radio compliance
+
+# Initialize ION node 10
+1 10 ''
+
+# Start rfxclock
+s
+
+# Contacts: satellite link (node 20) via LTP
+a contact +0 +86400 10 20 9600
+a contact +0 +86400 20 10 9600
+
+# Contacts: terrestrial link (node 30) via TCP — always on
+a contact +0 +86400 10 30 100000000
+a contact +0 +86400 30 10 100000000
+
+# Self-contact
+a contact +0 +86400 10 10 100000000
+
+# Ranges
+a range +0 +86400 10 10 0
+a range +0 +86400 10 20 1
+a range +0 +86400 20 10 1
+a range +0 +86400 10 30 0
+a range +0 +86400 30 10 0

@@ -20,6 +20,22 @@
       {{/each}}
     </div>
 
+    <h2 class="mt-5">Architecture &amp; Design</h2>
+    <p>Technical design documents covering key protocol and architecture decisions.</p>
+    <div class="row g-3 mt-2">
+      {{#each content.architectureDocs}}
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <h3 class="card-title h5">{{name}}</h3>
+            <p class="card-text text-muted small">{{description}}</p>
+            <a href="/docs/architecture/{{slug}}" class="btn btn-sm btn-outline-primary">Read document</a>
+          </div>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+
     <h2 class="mt-5">External Protocol References</h2>
     <p>Standards and specifications used in this project.</p>
     <div class="list-group mt-3">

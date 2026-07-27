@@ -52,6 +52,7 @@ import {
   outreachDeleteHandler,
   outreachAdvanceHandler,
 } from "./outreach.ts";
+import { docsArchitectureHandler } from "./docs-architecture.ts";
 import { collaboratorsHandler } from "./collaborators.ts";
 import { requireAuth, requireAdmin, guestOnly } from "../middleware/auth.ts";
 import type { AuthService } from "../services/auth.ts";
@@ -98,6 +99,7 @@ export function createRouter(
 
   // Documentation (requires authentication)
   router.get("/docs", requireAuth(), docsHandler(engine));
+  router.get("/docs/architecture/:doc", requireAuth(), docsArchitectureHandler(engine));
   router.get("/docs/:phase/requirements", requireAuth(), docsPhaseHandler(engine));
 
   // ─── Admin Routes (requires admin role) ───────────────────────────────────

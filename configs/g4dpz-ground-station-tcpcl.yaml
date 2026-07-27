@@ -1,0 +1,96 @@
+# RADIANT Ground Station — G4DPZ (Node 10) with TCPCL Terrestrial Input
+#
+# ION-DTN configuration with:
+#   - LTP/UDP outbound to satellite (node 20)
+#   - TCPCLv3 inbound from terrestrial peers (listening on port 4556)
+#
+# Any DTN node on the internet can connect via TCP and deliver bundles.
+# No encryption (amateur radio compliance).
+
+version: "1.0"
+backend: "ion-dtn"
+
+local_node:
+  node_number: 10
+  name: "G4DPZ Ground Station"
+  endpoint_id:
+    node_number: 10
+    service_number: 0
+  callsign_eid:
+    authority: "g4dpz-1"
+    path: "gs"
+  services:
+    - service_number: 1
+      description: "Bundle delivery"
+    - service_number: 7
+      description: "Echo"
+
+neighbors:
+  # Satellite link via LTP/UDP
+  - node_number: 20
+    name: "Satellite Node"
+    links:
+      - type: ltp_udp
+        id: "ltp-to-satellite"
+        local_engine_id: 10
+        remote_engine_id: 20
+        remote_host: "192.168.1.20"
+        remote_port: 1113
+        local_port: 2113
+        mtu: 1400
+
+  # Terrestrial peers via TCPCLv3 (inbound only — we listen, they connect)
+  - node_number: 30
+    name: "Terrestrial Peer"
+    links:
+      - type: tcp_cl
+        id: "tcpcl-terrestrial"
+        listen_address: "0.0.0.0"
+        listen_port: 4556
+        direction: inbound
+
+contact_plan:
+  contacts:
+    - source_node: 10
+      dest_node: 20
+      start_time: 0
+      end_time: 86400
+      rate_bps: 9600
+      confidence: 0.95
+    - source_node: 20
+      dest_node: 10
+      start_time: 0
+      end_time: 86400
+      rate_bps: 9600
+      confidence: 0.95
+    # Terrestrial link — always available, high bandwidth
+    - source_node: 30
+      dest_node: 10
+      start_time: 0
+      end_time: 86400
+      rate_bps: 100000000
+      confidence: 1.0
+    - source_node: 10
+      dest_node: 30
+      start_time: 0
+      end_time: 86400
+      rate_bps: 100000000
+      confidence: 1.0
+  ranges:
+    - source_node: 10
+      dest_node: 20
+      owlt_secs: 1.3
+    - source_node: 10
+      dest_node: 30
+      owlt_secs: 0.001
+
+routing:
+  strategy: cgr
+  static_routes: []
+
+security:
+  enabled: false
+
+storage:
+  path: "/var/lib/radiant-ion/ion"
+  max_bytes: 104857600

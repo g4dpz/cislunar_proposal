@@ -74,10 +74,18 @@ export interface ConOpsContent {
   nasaReferences: ResourceLink[];
 }
 
+export interface ArchitectureDoc {
+  name: string;
+  slug: string;
+  filename: string;
+  description: string;
+}
+
 export interface DocumentationLinks {
   phases: { name: string; docsPath: string }[];
   externalRefs: ResourceLink[];
   packages: ResourceLink[];
+  architectureDocs: ArchitectureDoc[];
 }
 
 export interface PageData {
@@ -260,6 +268,22 @@ const documentation: DocumentationLinks = {
     { name: "Phase 2: Engineering Model", docsPath: "/docs/cubesat-em-phase2" },
     { name: "Phase 3: LEO CubeSat", docsPath: "/docs/leo-cubesat-phase3" },
     { name: "Phase 4: Cislunar", docsPath: "/docs/cislunar-phase4" },
+  ],
+  architectureDocs: [
+    {
+      name: "LTP-over-KISS Architecture",
+      slug: "ltp-kiss-architecture",
+      filename: "LTP-KISS-ARCHITECTURE.md",
+      description:
+        "Protocol design eliminating AX.25 in favour of wrapping LTP segments directly in KISS framing — reducing overhead, simplifying implementation, and maintaining regulatory compliance through callsign-embedded DTN EIDs.",
+    },
+    {
+      name: "DTN Callsign EID Configuration",
+      slug: "dtn-callsign-eid-configuration",
+      filename: "DTN-CALLSIGN-EID-CONFIGURATION.md",
+      description:
+        "Reference guide for configuring HDTN with callsign-embedded Endpoint Identifiers using the dtn:// scheme. Covers node configuration, routing, convergence layer setup, and multi-node network examples.",
+    },
   ],
   externalRefs: [
     {

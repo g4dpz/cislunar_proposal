@@ -1,0 +1,29 @@
+## Scenario 1: Delayed Uplink — Bundle Storage Demonstration
+##
+## TCP terrestrial peer delivers bundles immediately.
+## LTP contact to satellite (node 20) does not open until +30 seconds.
+## Bundles queue in ION's bundle storage until the contact window opens,
+## then burst out over LTP.
+##
+## This demonstrates DTN store-and-forward behavior.
+
+1 10 ''
+s
+
+# Self-contact (always available)
+a contact +0 +86400 10 10 100000000
+
+# Terrestrial link (node 30) — available immediately
+a contact +0 +86400 10 30 100000000
+a contact +0 +86400 30 10 100000000
+
+# Satellite link (node 20) — DELAYED: opens at +30s
+a contact +30 +86400 10 20 9600
+a contact +30 +86400 20 10 9600
+
+# Ranges
+a range +0 +86400 10 10 0
+a range +0 +86400 10 20 1
+a range +0 +86400 20 10 1
+a range +0 +86400 10 30 0
+a range +0 +86400 30 10 0
