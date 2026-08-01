@@ -16,7 +16,7 @@ RADIANT is an open-source collaboration between AMSAT-UK, AMSAT-DL, and Goonhill
 
 ## Why DTN for Amateur Satellites?
 
-Conventional internet protocols assume continuous connectivity. TCP's three-way handshake requires multiple round trips before data flows — workable when latency is milliseconds, but unacceptable when a LEO satellite is visible for only ten minutes, or when the Moon is 1.3 light-seconds away.
+Conventional internet protocols assume continuous connectivity. TCP's three-way handshake requires multiple round trips before data flows — workable when latency is milliseconds, but unacceptable when a LEO satellite is visible for only ten minutes, or when the Moon is 1.3 light-seconds away. Over a lunar link, that handshake takes nearly four seconds just to establish a connection — before any data moves. Mars is worse: a handshake could take over an hour. The architecture must accommodate the speed of light, not fight it.
 
 DTN solves this with a store-and-forward model familiar to anyone who operated packet radio BBS networks in the 1980s. Data is packaged into "bundles," stored at each network node, and forwarded when the next communication link becomes available. LTP (Licklider Transmission Protocol) handles reliable delivery with deferred acknowledgements — designed specifically for links where round-trip times are measured in seconds rather than milliseconds. Contact Graph Routing schedules transmissions based on predicted orbital passes, much like a railway timetable.
 
@@ -66,6 +66,8 @@ Each earlier phase validates critical elements needed for the orbital missions.
 
 The ground network deliberately mirrors the cislunar communications path: Mission Operations → Ground Gateway → Amateur RF link → Relay Node → Payload endpoint. Every terrestrial demonstration exercises the same protocols, store-and-forward behaviour, and contact scheduling that the orbital missions require.
 
+The architecture is designed with future growth in mind. The backend-agnostic abstraction layer — already operational — means the project is not locked to a single DTN engine. Looking ahead, a Contact Plan as a Service model would treat scheduled communication opportunities across the distributed ground segment as a shared resource, allowing applications to request delivery to a destination with specified priority and confidence, while the network determines the optimal path through available stations and passes.
+
 ---
 
 ## Protocol Stack and Regulatory Compliance
@@ -73,6 +75,8 @@ The ground network deliberately mirrors the cislunar communications path: Missio
 RADIANT carries DTN bundles directly in KISS frames, eliminating the AX.25 layer entirely. This saves 15 bytes per frame (approximately 10% throughput improvement) without sacrificing functionality.
 
 Station identification is built into the protocol: callsigns are embedded in DTN Endpoint Identifiers (`dtn://g4dpz-1/service`), meaning every bundle carries the operator's callsign as its source address. Periodic plaintext beacons every ten minutes transmit callsign, grid locator, node type, and EID — any station demodulating the signal can identify the transmitter even without full DTN decoding.
+
+Every DTN node needs a unique address. Amateur radio already has one — your callsign. Globally unique, government-issued, and the allocation system has worked since 1927. No new registry required.
 
 There is no encryption anywhere in the system. All data travels in the clear, fully compliant with ITU Radio Regulations Article 25 and national amateur radio rules. All protocols are publicly documented through IETF RFCs and open-source code. A formal protocol definition document specifying the callsign EID convention will be published, following the precedent of APRS, FT8, D-STAR, and Winlink.
 

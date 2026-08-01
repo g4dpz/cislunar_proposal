@@ -24,11 +24,15 @@ Delay-Tolerant Networking was designed for environments where conventional inter
 
 DTN's answer is store-and-forward. Data is packaged into "bundles," held at each node, and forwarded when the next communication link opens. LTP (Licklider Transmission Protocol) provides reliable delivery with deferred acknowledgements — it sends data and waits patiently for confirmation, however long the round trip takes.
 
+Consider the range of delays across space: a GEO satellite like QO-100 adds 250 ms each way. The Moon is 1.3 seconds. Mars ranges from 3 to 22 minutes. QO-100's delay is enough to exercise DTN protocols authentically while remaining fast enough to iterate during development.
+
 QO-100 provides the ideal environment to validate these protocols over a real space link. The approximately 250 milliseconds one-way delay (500 ms round-trip) to geostationary orbit is short enough to iterate quickly, but long enough to exercise LTP's deferred acknowledgement mechanisms authentically. Unlike a LEO satellite with 10-minute pass windows, QO-100 is always available — operators can test, debug, and refine without waiting for the next orbital pass.
 
 AMSAT-DL's transponder infrastructure makes this possible. Phase 1.5 will carry DTN bundles through QO-100's narrowband transponder using standard ground station equipment — the same setups hundreds of European operators already use daily. No new hardware required. Just new software and a new protocol stack.
 
 This is the critical stepping stone. If DTN works reliably through QO-100 at 500 ms round-trip, the same protocols will work at 2.6 seconds (Moon) and beyond.
+
+ESA signed the Moonlight LCNS contract in October 2024 with a consortium led by Telespazio — building communications, navigation, and timing infrastructure around the Moon. RADIANT implements the same protocol standards. The amateur community is not working in isolation; we are building on the same foundations as the agencies.
 
 ---
 
@@ -43,7 +47,7 @@ RADIANT is operational today, not merely a proposal. The project has demonstrate
 - **Direct ION controller** for ground station operations without abstraction overhead
 - **Three-node cislunar simulation** with true packet-level propagation delays (1.3s Moon, 3–12 minutes Mars)
 
-The architecture is backend-agnostic. ION-DTN provides NASA compatibility and flight heritage. Hardy offers a modern Rust implementation with proven interoperability. µD3TN provides a lightweight option for constrained platforms. Operators choose the engine that fits their station requirements.
+The architecture is backend-agnostic. ION-DTN provides NASA compatibility and flight heritage. Hardy offers a modern Rust implementation with proven interoperability. µD3TN — a lightweight DTN engine with German academic origins (TU Dresden / D3TN) — provides another backend option, particularly relevant for European collaboration and resource-constrained platforms. Operators choose the engine that fits their station requirements.
 
 All code is open-source under the MIT licence, with automated CI ensuring quality with every change.
 
@@ -65,6 +69,8 @@ The European ground segment currently includes:
 Contact Graph Routing computes optimal paths across this distributed ground segment. If a bundle needs to reach a station in Germany but the direct path is unavailable, CGR routes it via QO-100 or through an intermediate terrestrial node — automatically, without operator intervention.
 
 This distributed European infrastructure is not merely convenient — it is essential for the LEO CubeSat mission. A single ground station sees a LEO satellite for perhaps 10 minutes per pass, 4–6 times per day. Multiple stations across Europe multiply the available contact time, enabling higher data throughput and faster message delivery.
+
+Looking ahead, this distributed European infrastructure lays the foundation for a Contact Plan as a Service model — treating scheduled communication opportunities as a shared network resource. Rather than each station independently managing its contact schedule, a coordinated service would optimise bundle routing across all available European stations, QO-100 links, and terrestrial paths. An operator could request delivery to a destination with a specified priority, and the network would determine the best path through the available infrastructure — much like commercial Ground Station as a Service platforms, but built on open-source amateur radio principles.
 
 **[FIGURE 2: Protocol stack diagram — BPv7 → LTP → KISS → Radio modem, with annotations showing callsign EIDs and no encryption. Caption: "The RADIANT protocol stack: space-grade DTN protocols delivered through familiar amateur radio interfaces."]**
 

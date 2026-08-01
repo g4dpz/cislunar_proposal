@@ -24,9 +24,11 @@ Most of us take the internet for granted. When you browse a website, your comput
 
 Space is none of those things.
 
+The numbers are stark: London to New York is 30 milliseconds. A geostationary satellite adds 120 ms. The Moon is 1.3 seconds. Mars at closest approach is three minutes; at average distance, twelve minutes. Jupiter is 35 to 50 minutes.
+
 Consider what happens when you try to use conventional internet protocols (TCP/IP) to communicate with the Moon. The TCP handshake alone — the "hello, are you there?" exchange that happens before any data moves — requires three messages to travel between Earth and the Moon. At 1.3 seconds each way, that is nearly four seconds just to establish a connection. And that is the Moon, our nearest neighbour.
 
-Mars, at its closest approach, is about three light-minutes away. At average distance, it is twelve minutes. A TCP handshake to Mars could take over an hour. Clearly, this approach does not scale.
+Mars, at its closest approach, is about three light-minutes away. At average distance, it is twelve minutes. A TCP handshake to Mars could take over an hour. Clearly, this approach does not scale. The speed of light is not a software bug anyone can patch. The architecture must accommodate it.
 
 The problem is not bandwidth. Modern radio links can achieve reasonable data rates even over enormous distances. The problem is latency — the time it takes for signals to travel at the speed of light — and intermittency. A satellite in low Earth orbit is only visible to a ground station for perhaps ten minutes per pass. A cislunar spacecraft may have its antenna pointed away from Earth for hours at a time. The links we take for granted on the ground simply do not exist in space.
 
@@ -183,6 +185,7 @@ RADIANT has been designed from the ground up to operate within amateur radio reg
 - **No encryption** — all data transmitted over amateur links is unencrypted, fully compliant with ITU Radio Regulations Article 25 and national rules. The sole exception, as permitted by regulations, would be encrypted telecommand for satellite command and control.
 - **Published protocols** — all protocols are publicly documented through IETF RFCs and open-source code. Any operator or regulator can inspect exactly how data is encoded and transmitted.
 - **Station identification** — callsigns are embedded in every transmission through the EID scheme, plus periodic plaintext beacons, exceeding the minimum regulatory identification requirements.
+- **Callsign as network address** — every DTN node requires a globally unique address. Amateur radio already provides one — the callsign. Government-issued, internationally coordinated, and the allocation system has worked reliably since 1927.
 
 ---
 
@@ -223,6 +226,8 @@ The cislunar phase is tighter: approximately 7 dB margin at 500 bits per second 
 ## A Future GEO Backbone
 
 Looking beyond the immediate roadmap, RADIANT has proposed a DTN payload for the next-generation GEO amateur satellite (the "Future GEO" project). A DTN payload onboard a geostationary satellite would transform it from a real-time transponder into an intelligent store-and-forward node — always available, delivering bundles to ground stations whenever they come online. Unlike a conventional transponder, the sender and receiver need not be active simultaneously.
+
+Beyond individual DTN nodes, RADIANT's architecture is evolving toward what might be called Contact Plan as a Service — treating scheduled communication opportunities as a shared network resource, managed independently of any single DTN engine. Rather than operators managing individual links, applications would express requirements: a destination, a priority, and a desired delivery confidence. The underlying network determines the optimal path and resources. This mirrors the evolution seen in commercial Ground Station as a Service platforms, where users request a communication opportunity rather than access to a specific antenna. For amateur radio, this means an operator could simply say 'deliver this bundle to the lunar node' and the ground segment — distributed across multiple stations and countries — would coordinate delivery automatically.
 
 ---
 

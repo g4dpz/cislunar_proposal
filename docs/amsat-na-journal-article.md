@@ -22,6 +22,8 @@ In September 2023, the Internet Society's Interplanetary Networking Special Inte
 
 The report draws an explicit parallel with 1983, when three disparate networks — ARPANET, SATNET, and PRNET — were unified by TCP/IP to create the internet. Space networking, the report argues, will follow the same trajectory: multiple organisations operating independent networks, interconnecting through standard protocols and peering agreements.
 
+The IETF now has a dedicated Time-Variant Routing (TVR) Working Group standardising contact-scheduled routing concepts for broader networking — DTN's time-aware routing is going mainstream beyond just space applications.
+
 Critically, the IPNSIG report calls for multistakeholder governance. Decisions about space networking architecture should not be made solely by space agencies. Other participants — including the amateur radio community — have a legitimate role. NASA's LunaNet Interoperability Specification mandates the same protocols RADIANT implements. ESA's Moonlight programme builds on identical standards.
 
 But legitimacy requires demonstrated operational competence. Amateur radio operators cannot simply claim a seat at the table — we must earn it by running operational DTN nodes, contributing open-source tools, and generating performance data that validates the protocols in real-world conditions. RADIANT is how the amateur community builds that credibility.
@@ -72,7 +74,9 @@ The amateur radio community brings unique strengths to space networking that age
 
 **Geographic diversity:** Amateur ground stations span every continent. For LEO satellite passes lasting 5–10 minutes, continuous coverage requires stations distributed around the globe. A coordinated amateur ground network provides this at near-zero marginal cost — operators volunteer their time and equipment.
 
-**Regulatory transparency:** Amateur radio regulations require published protocols and prohibit encryption. This aligns perfectly with open networking standards. Every protocol RADIANT uses is documented in public IETF RFCs and open-source code. Callsign-based addressing (`dtn://callsign/service`) provides globally unique identifiers without a central registration authority — every licensed amateur already has one.
+**Regulatory transparency:** The regulations that govern amateur radio mean everything we build is transparent and auditable by design. NASA's LunaNet Interoperability Specification mandates the same protocols we implement — RADIANT is not building something incompatible, it is building something that could interoperate with NASA's lunar infrastructure. Every protocol RADIANT uses is documented in public IETF RFCs and open-source code. Callsign-based addressing (`dtn://callsign/service`) provides globally unique identifiers without a central registration authority — every licensed amateur already has one.
+
+A practical governance insight: every DTN node needs a globally unique address. The IPNSIG report worries about fair allocation. Amateur radio solved this in 1927 — your callsign is globally unique, government-issued, and requires no blockchain or central registry beyond what already exists.
 
 **Operational culture:** Amateur operators are accustomed to operating with limited power, marginal links, and intermittent propagation. These are precisely the conditions DTN was designed for. The discipline of moonbounce operation — precise scheduling, low signal-to-noise ratios, patience — translates directly to cislunar DTN operations.
 
@@ -121,6 +125,8 @@ Geographic diversity across North America complements the European ground statio
 RADIANT is operational today. The project has a functioning three-node cislunar simulation demonstrating store-and-forward with realistic propagation delays (1.3 seconds to 12 minutes). Multi-implementation LTP interoperability is proven. A TCPCLv3 gateway is deployed and accepting connections. The production system runs on dedicated infrastructure with automated CI ensuring code quality.
 
 Partners include AMSAT-UK (organisational lead), AMSAT-DL (European ground segment, QO-100 heritage), and Goonhilly Earth Station (professional ground station expertise). Active collaborators include operators contributing UHF ground stations and Hardy BPv7 development. The project is seeking North American partners — ground station operators, CubeSat teams, and universities interested in space networking research.
+
+Looking further ahead, RADIANT's architecture is designed to evolve beyond individual DTN nodes toward a network orchestration layer. A key concept under development is Contact Plan as a Service: treating scheduled communication opportunities as a shared network resource independent of any specific DTN engine. Applications would express delivery requirements — destination, priority, confidence level — and the distributed ground segment would determine the optimal path. This mirrors the evolution in commercial Ground Station as a Service platforms and positions RADIANT as a coordination platform for amateur space networking, not merely a collection of independent nodes. The DTN implementation abstraction layer already operational today is the foundation for this future evolution.
 
 The amateur radio community built the packet networks that predated the internet. We launched satellites before commercial operators existed. Now the frontier extends beyond Earth, and the protocols that will underpin cislunar and interplanetary communications are standardised, open, and ready for us to implement. RADIANT is how we demonstrate that amateur radio belongs in the Solar System Internet — not as observers, but as operators.
 
