@@ -66,7 +66,7 @@ RADIANT uses the same KISS framing that TNCs have used for decades — so the ra
 
 Instead of AX.25 packets, RADIANT carries DTN data directly in KISS frames. At the top level, messages are packaged as "bundles" using the Bundle Protocol (the space networking standard). Below that, LTP (Licklider Transmission Protocol) handles reliable delivery — designed specifically for links where acknowledgements take a long time to come back. And at the bottom, KISS feeds the data to your TNC and radio as normal.
 
-The key advantage of this approach is simplicity. By skipping the AX.25 layer entirely (which would add overhead without benefit for DTN traffic), we get a cleaner, more efficient link. The system runs on NASA Glenn Research Centre's open-source HDTN software, though the architecture supports other DTN engines as well — giving operators flexibility in how they set up their stations.
+The key advantage of this approach is simplicity. By skipping the AX.25 layer entirely (which would add overhead without benefit for DTN traffic), we get a cleaner, more efficient link. The architecture is backend-agnostic, currently supporting ION-DTN with the design allowing additional engines such as Hardy and µD3TN — giving operators flexibility in how they set up their stations.
 
 ---
 
