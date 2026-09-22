@@ -40,6 +40,8 @@ The solution is an approach called Delay-Tolerant Networking, or DTN. Rather tha
 
 If the next hop is not available — perhaps the satellite has not yet risen above the horizon, or the link is currently occupied — the node simply holds onto the bundle until the path opens up. When the bundle finally reaches its destination, the receiving node sends an acknowledgement back through the chain.
 
+**[IMAGE: Diagram showing LTP store-and-forward flow with Earth station, satellite, and destination. Shows data being stored at intermediate nodes when links are unavailable, with timeline showing delayed forwarding. Caption: "LTP store-and-forward operation: bundles wait at each node until communication opportunities arise, enabling reliable delivery across intermittent links."]**
+
 This store-and-forward model will be very familiar to anyone who remembers packet radio bulletin boards in the 1980s and 1990s. Messages were stored at each BBS node and forwarded overnight to the next station when propagation or scheduled links allowed. DTN formalises this concept using modern protocols standardised by the Internet Engineering Task Force (IETF) and the Consultative Committee for Space Data Systems (CCSDS) — the same body that standardises protocols for all major space missions.
 
 The core protocols are:
@@ -49,6 +51,10 @@ The core protocols are:
 - **Contact Graph Routing (CGR)** — a routing algorithm that computes paths through the network based on predicted contact windows, much like a railway timetable
 
 These are not experimental curiosities. NASA has been developing DTN since the early 2000s. The International Space Station has run DTN experiments. The Korean Pathfinder Lunar Orbiter (KPLO), currently in orbit around the Moon, carries Bundle Protocol as a development test objective. ESA's Moonlight programme — which is building communications and navigation infrastructure around the Moon — uses these same protocols as its foundation.
+
+The protocols RADIANT uses aren't experimental — they're becoming the standard for space communications. In 2023, the Internet Society's Interplanetary Chapter published a Solar System Internet governance framework co-authored by Vint Cerf, widely recognized as one of the "fathers of the Internet" for creating TCP/IP. Their recommendation: DTN and Bundle Protocol should be the foundation for all space communications that exceed IP's capabilities.
+
+Both ESA's Moonlight programme and NASA's LunaNet specification mandate these same protocols. Through RADIANT, amateur radio participates as a stakeholder in this emerging interplanetary infrastructure.
 
 **[IMAGE 2: A simple diagram comparing TCP/IP (continuous connection, fails with delay) versus DTN (store-and-forward, tolerates delay and disruption). Perhaps showing a TCP handshake timing diagram over a lunar link versus DTN's "send, store, forward when available" approach. Caption: "TCP requires continuous connectivity. DTN stores data and forwards it when the next link becomes available — essential for space communications."]**
 
@@ -66,9 +72,9 @@ The cislunar region presents the communication challenges that DTN was designed 
 
 RADIANT uses the same KISS framing that TNCs have used for decades — so the radio side of things will be familiar to anyone who has operated packet. The difference is what sits inside those frames.
 
-Instead of AX.25 packets, RADIANT carries DTN data directly in KISS frames. At the top level, messages are packaged as "bundles" using the Bundle Protocol (the space networking standard). Below that, LTP (Licklider Transmission Protocol) handles reliable delivery — designed specifically for links where acknowledgements take a long time to come back. And at the bottom, KISS feeds the data to your TNC and radio as normal.
+Instead of AX.25 packets, RADIANT carries DTN data directly in KISS frames, eliminating AX.25 entirely — 15 bytes saved per frame (~10% improvement). At the top level, messages are packaged as "bundles" using the Bundle Protocol (the space networking standard). Below that, LTP (Licklider Transmission Protocol) handles reliable delivery — designed specifically for links where acknowledgements take a long time to come back. And at the bottom, KISS feeds the data to your TNC and radio as normal.
 
-The key advantage of this approach is simplicity. By skipping the AX.25 layer entirely (which would add overhead without benefit for DTN traffic), we get a cleaner, more efficient link. The architecture is backend-agnostic, currently supporting ION-DTN with the design allowing additional engines such as Hardy and µD3TN — giving operators flexibility in how they set up their stations.
+The key advantage of this approach is simplicity. By skipping the AX.25 layer entirely (which would add overhead without benefit for DTN traffic), we get a cleaner, more efficient link. The architecture uses ION-DTN as the primary implementation, ensuring compatibility with NASA's reference DTN system used across professional space missions.
 
 ---
 
@@ -104,13 +110,23 @@ RADIANT follows a phased approach, with each phase validating critical technolog
 
 ### Phase 1: Terrestrial Validation (In Progress)
 
-The first phase uses equipment already familiar to many packet radio operators: a Raspberry Pi, a Mobilinkd TNC4, and a Yaesu FT-817 operating at 9600 baud. This validates the complete software stack over real amateur radio links before we commit to more complex (and expensive) hardware.
+The first phase uses equipment already familiar to many packet radio operators: a Raspberry Pi, a Mobilinkd TNC4, and a Yaesu FT-817 operating at 9600 baud BPSK. This validates the complete software stack over real amateur radio links before we commit to more complex (and expensive) hardware.
+
+**[IMAGE: Photo of RADIANT Phase 1 test setup showing Yaesu FT-817, Mobilinkd TNC4, and Raspberry Pi. Caption: "RADIANT Phase 1 terrestrial testing uses familiar amateur packet radio equipment - proving DTN works over standard VHF/UHF links."]**
 
 Phase 1 proves that DTN works over amateur radio. It establishes the baseline.
 
 ### Phase 1.5: QO-100 (Planned)
 
-The Es'hail-2 geostationary satellite (QO-100) provides an ideal testbed for space-based DTN. With its always-on transponder and approximately 250 milliseconds one-way delay, it offers a genuine space environment without the complexity of orbital tracking. This phase validates LTP's deferred acknowledgement mechanism over a real space link — the critical stepping stone between ground-based millisecond delays and cislunar 1.3-second delays.
+The Es'hail-2 geostationary satellite (QO-100) provides an ideal testbed for space-based DTN. With its always-on transponder and approximately 250 milliseconds one-way delay, it offers a genuine space environment without the complexity of orbital tracking. Technical specifications:
+- 1200 baud QPSK modulation  
+- Standard QO-100 ground station equipment
+
+**[IMAGE: Photo of QO-100 ground station setup with dish, feeds, and transceiver equipment. Caption: "RADIANT Phase 2 leverages standard QO-100 ground station equipment - connecting to the large amateur community already active on Es'hail-2."]**
+
+**[IMAGE: Photo of Ettus B200 QPSK test bench setup. Caption: "RADIANT QPSK development and testing using Ettus B200 SDR platform - preparing for QO-100 and space-based operations."]**
+
+This phase validates LTP's deferred acknowledgement mechanism over a real space link — the critical stepping stone between ground-based millisecond delays and cislunar 1.3-second delays.
 
 ### Phase 2: CubeSat Engineering Model (Planned)
 
@@ -118,27 +134,48 @@ A ground-based "flatsat" — a bench-top replica of the flight hardware — usin
 
 ### Phase 3: LEO CubeSat (Planned)
 
-The first RADIANT node in orbit. A CubeSat payload operating on 437 MHz UHF at 9.6 kbps, accessible to amateur ground stations worldwide with modest equipment (a Yagi antenna and SDR or TNC). This demonstrates ground-to-space DTN ping and store-and-forward messaging from orbit — a genuine first for amateur radio.
+The first RADIANT node in orbit. A CubeSat payload operating on 437 MHz UHF at 4.8 kbps QPSK, accessible to amateur ground stations worldwide with modest equipment (a Yagi antenna and SDR or TNC). This demonstrates ground-to-space DTN ping and store-and-forward messaging from orbit — a genuine first for amateur radio.
+
+Technical specifications:
+- STM32U585 microcontroller (160 MHz, 2 MB flash)
+- 437 MHz UHF at 9.6 kbps GMSK
+- 31 dB link budget margin with standard UHF Yagi
+- 64-256 MB persistent storage
+- Compatible with existing amateur satellite equipment
+
+Ground operations will leverage the distributed amateur satellite community through shared contact plans.
 
 ### Phase 4: Cislunar (Planned)
 
-The ultimate goal: an amateur DTN node in the region between Earth and the Moon. Operating on S-band at 500 bits per second with strong forward error correction. This would be the first amateur-operated interplanetary-style communication system, proving that the amateur community can participate in the emerging architecture of space networking.
+The ultimate goal: an amateur DTN node in the region between Earth and the Moon. Operating on S-band at 500 bps QPSK with strong forward error correction. This would be the first amateur-operated interplanetary-style communication system, proving that the amateur community can participate in the emerging architecture of space networking.
 
-**[IMAGE 4: A timeline/roadmap diagram showing all five phases with their key milestones. Phase 1 (packet radio, 9600 baud), Phase 1.5 (QO-100), Phase 2 (engineering model), Phase 3 (LEO CubeSat, 437 MHz), Phase 4 (Cislunar, S-band). Caption: "The RADIANT roadmap: each phase validates technology needed for the next, building toward cislunar communications."]**
+Technical specifications:
+- S-band 2.2 GHz at 500 bps, 5W + 10 dBi spacecraft antenna
+- 35 dBi ground dish (3-5m, EME-class), 7 dB link margin
+- 2.6-second lunar round-trip delay handling
+- Operation in cislunar space where Artemis and commercial lunar missions operate
+
+Success would position amateur radio as a permanent interplanetary communications stakeholder.
+
+**[IMAGE 4: A timeline/roadmap diagram showing all five phases with their key milestones. Phase 1 (packet radio, 9600 baud BPSK), Phase 1.5 (QO-100, 1200 baud QPSK), Phase 2 (engineering model), Phase 3 (LEO CubeSat, 437 MHz, 4.8 kbps QPSK), Phase 4 (Cislunar, S-band, 500 bps QPSK). Caption: "The RADIANT roadmap: each phase validates technology needed for the next, building toward cislunar communications."]**
 
 ---
 
 ## What We Have Already Achieved
 
-RADIANT is not merely a paper exercise. The project has a functioning three-node simulation that demonstrates store-and-forward with realistic propagation delays — 1.3 seconds for Earth-Moon distances, and configurable up to 12 minutes for Mars scenarios. We can observe the system managing deferred acknowledgements, computing routing paths, and delivering data successfully despite the delays.
+RADIANT is not merely a paper exercise. The project operates a three-node cislunar simulation with true 1.3-second Earth-Moon delays. Contact Graph Routing computes multi-hop paths while LTP manages extended round-trips. The system successfully manages deferred acknowledgements, computing routing paths, and delivering data despite the delays.
 
-The entire codebase is open-source under the MIT licence, with automated testing ensuring reliability with every change.
+The project uses ION-DTN as the primary implementation, validating compatibility with NASA's standard DTN stack used across professional space missions. This ensures amateur radio operates with the same protocols NASA deploys for deep space communications.
+
+The entire codebase is open-source under the MIT licence, with automated testing ensuring reliability with every change. Project gained visibility through EMF Camp 2026 "Internet for the Solar System" presentation.
 
 ---
 
 ## The Bigger Picture: A Solar System Internet
 
 RADIANT is not happening in isolation. In September 2023, the Internet Society's Interplanetary Networking Special Interest Group (IPNSIG) — co-chaired by Vint Cerf, one of the fathers of the internet — published a report on "Solar System Internet Architecture and Governance." Their recommendation: the same protocols RADIANT implements should form the basis for all communications beyond Earth.
+
+**[IMAGE: NASA/ESA Solar System Internet concept diagram showing DTN nodes connecting Earth, Moon, Mars, and outer planets. Caption: "NASA and ESA vision for a Solar System Internet using DTN protocols - demonstrating the professional space community's commitment to the same technology RADIANT implements for amateur radio."]**
 
 The report envisions a "network of networks" in space, much like the terrestrial internet — multiple organisations operating their own networks, interconnecting through standard protocols and peering agreements. It calls for multistakeholder governance, meaning that decisions about space networking architecture should not be made solely by space agencies. Other stakeholders — including the amateur radio community — have a legitimate role to play.
 
@@ -259,4 +296,4 @@ Source code: https://github.com/g4dpz/cislunar_proposal
 
 ---
 
-*David Johnson, G4DPZ, is the project lead for RADIANT. He is Honorary Secretary of AMSAT-UK and a Senior Software Engineer at Goonhilly Earth Station, where he works on commercial lunar communications.*
+*David Johnson, G4DPZ, is the project lead for RADIANT and Honorary Secretary of AMSAT-UK.*
