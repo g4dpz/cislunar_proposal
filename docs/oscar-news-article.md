@@ -58,9 +58,9 @@ Ground segment requirements for the cislunar phase are comparable to EME (moonbo
 
 Each earlier phase validates critical elements needed for the orbital missions.
 
-**Phase 1 — Terrestrial Validation (In Progress):** A Raspberry Pi, Mobilinkd TNC4, and Yaesu FT-817 at 9600 baud G3RUH. This validates the complete software stack — LTP-over-KISS, callsign EIDs, store-and-forward, and DTN ping — over real amateur radio links. Two-node testing is underway at G4DPZ.
+**Phase 1 — Terrestrial Validation (Complete):** A Raspberry Pi, Mobilinkd TNC4, and Yaesu FT-817 at 9600 baud G3RUH. Validated the complete software stack — LTP-over-KISS, callsign EIDs, store-and-forward, and DTN ping — over real amateur radio links. Three operational scenarios confirmed: delayed uplink, immediate forwarding, and delayed downlink.
 
-**Phase 1.5 — QO-100 (Planned):** DTN data through Es'hail-2's narrowband transponder. The approximately 250 ms one-way delay provides a genuine space environment, validating LTP's deferred acknowledgement mechanism over an authentic space link before committing to orbital hardware. This phase will resonate with the large QO-100 operator community — standard narrowband ground stations are all that is required.
+**Phase 1.5 — QO-100 (In Progress):** DTN data through Es'hail-2's narrowband transponder using QPSK modulation via Ettus B200 SDR at 9600 bps, occupying approximately 6.5 kHz within the transponder's 500 kHz passband. Kuhne transverters provide the microwave front-end (144 MHz IF uplink, 432 MHz IF downlink). The approximately 250 ms one-way delay provides a genuine space environment, validating LTP's deferred acknowledgement mechanism over an authentic space link before committing to orbital hardware. An alternative lower-rate configuration using standard TNC equipment at 1200 baud is also under consideration for stations without SDR capability.
 
 **Phase 2 — CubeSat Engineering Model (Planned):** A ground-based flatsat using the flight-representative STM32U585 OBC with an Ettus B200mini SDR for IQ baseband. Simulated orbital passes, power budget profiling, fault injection, and thermal readiness testing — validating identical flight software on identical flight hardware before launch.
 
@@ -84,7 +84,7 @@ There is no encryption anywhere in the system. All data travels in the clear, fu
 
 ## Current Achievements
 
-RADIANT is not a paper exercise. The project has a functioning three-node cislunar simulation with true packet-level propagation delays (1.3 seconds for Earth–Moon, configurable to 12 minutes for Mars scenarios). Contact Graph Routing computes multi-hop relay paths while LTP manages round-trip times from 2.6 seconds to 24 minutes. Multi-implementation LTP interoperability is proven between ION-DTN and Hardy at 1 MB bundle transfers. A TCPCLv3 terrestrial gateway allows any DTN node on the internet to connect and deliver bundles.
+RADIANT is not a paper exercise. The project has a functioning three-node cislunar simulation with true packet-level propagation delays (1.3 seconds for Earth–Moon, configurable to 12 minutes for Mars scenarios). Contact Graph Routing computes multi-hop relay paths while LTP manages round-trip times from 2.6 seconds to 24 minutes. Multi-implementation LTP interoperability is proven between ION-DTN and Hardy at 1 MB bundle transfers. A TCPCLv3 terrestrial gateway allows any DTN node on the internet to connect and deliver bundles. The project was demonstrated at EMF Camp 2026 (see accompanying article) and has attracted several European collaborators contributing ground station infrastructure and DTN implementation expertise.
 
 The entire codebase is open-source under the MIT licence, with automated CI testing ensuring reliability.
 

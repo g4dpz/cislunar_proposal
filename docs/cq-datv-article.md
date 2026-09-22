@@ -30,7 +30,7 @@ The transponder is always there. Always visible from Europe. No tracking require
 
 Here is how a DTN bundle travels through QO-100:
 
-1. **Your station** — a Raspberry Pi or laptop runs the RADIANT software, which manages a DTN engine (ION-DTN, Hardy, or µD3TN). You compose a bundle — perhaps a JPEG image, a text message, or a telemetry file — addressed to a destination node by its callsign.
+1. **Your station** — a Raspberry Pi or laptop runs the RADIANT software, which manages ION-DTN. You compose a bundle — perhaps a JPEG image, a text message, or a telemetry file — addressed to a destination node by its callsign.
 
 2. **Uplink** — the bundle is segmented by LTP, wrapped in baseband frames, and transmitted on your 2.4 GHz uplink carrier to Es'hail-2. The transponder simply translates it to 10 GHz and retransmits. No processing onboard — it is a bent-pipe transponder like any other.
 
@@ -59,7 +59,7 @@ If you run DATV through QO-100's wideband transponder, your RF chain is ready:
 **Computing:**
 - Raspberry Pi 4/5 or any Linux machine
 - RADIANT software (open-source, MIT licence)
-- A DTN engine: ION-DTN for NASA compatibility, Hardy for a lightweight Rust implementation, or µD3TN for minimal resource usage
+- A DTN engine: ION-DTN for NASA compatibility, or µD3TN for minimal resource usage
 
 The difference from your DATV setup is purely in software. Instead of encoding video with OBS and transmitting an MPEG-TS stream, you run the RADIANT client, which manages bundle creation, LTP segmentation, and contact scheduling. The RF path is identical.
 
@@ -98,7 +98,7 @@ Both can coexist on the wideband transponder. A DATV operator streaming live and
 The RADIANT software is freely available:
 
 1. Install the RADIANT client on a Raspberry Pi or Linux machine
-2. Choose a DTN engine (ION-DTN, Hardy, or µD3TN) — installation scripts provided
+2. Choose a DTN engine (ION-DTN or µD3TN) — installation scripts provided
 3. Configure your callsign as your DTN Endpoint Identifier (`dtn://yourcall/service`)
 4. Point your dish at QO-100 and configure your RF chain as you would for DATV
 5. Connect to the RADIANT network and begin exchanging bundles

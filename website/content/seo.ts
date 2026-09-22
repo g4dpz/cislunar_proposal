@@ -21,7 +21,7 @@ const BASE_KEYWORDS = [
   "Bundle Protocol",
   "cislunar communication",
   "BPv7",
-  "HDTN",
+  "ION-DTN",
   "space networking",
 ];
 

@@ -1,0 +1,20 @@
+Current status of the AMSAT-UK payload for Jovian-1.
+ 
+We delivered the deployable antenna system and associated RF and data cables for our payload mid 2025. This will either be in the clean room, or stored in its Pelicase awaiting integration. The remaining 4 boards for flight have all been assembled and tested as far as is possible.  Of the 4 boards, there are two for RF communication, while the other 2 boards, let's call them Command Control and Telemetry ( CCT), are microprocessor and CPLD based and they need to be programmed to communicate with the Jovian-1 payload processor via CAN.
+ 
+To add further detail
+ 
+RF Communications.
+These 2 boards completed their lab / acceptance testing in June 2025.
+In July 2025, we took the boards on a 'field trip' to the top of Dunstable Downs in Bedfordshire where we ran a series of tests with 2 ground stations located 25 and 60km away. The tests were successful and we used the data gathered to verify our performance predictions and extrapolate out to the >1500km range we will need from orbit. Both boards have now been cleaned and any component over 1 gram has been glued in preparation for integration and environmental testing.
+ 
+CCT boards
+Our CCT / CAN interface flight boards have been assembled and limited tests have been undertaken to simulate communication via CAN.
+However, all work on these boards ceased at the end of November last year.  To function, our CCT boards need to be programmed to communicate with the Jovian-1 payload processor. As far as I'm aware neither the software for the real time operating system on the satellite's main computer, nor the software for the payload processor on Jovian-1 has been written. Consequently, at present our CCT boards have nothing to communicate with.
+ 
+At this point, it is quite reasonable for you to ask why we can't deliver our payload while other teams can? The answer is 'The direction of data flow'. Let me give you an example.  The radiation payload, led by Dr. Clewer, is an instrument that when switched on, gathers data and stores it in a specific area of it's memory. Dr. Clewer is able to deliver this payload because it is at the start of a data transmission chain. In the operation manual, he can say something like...30 seconds after applying power the instrument will complete a period of detecting and will store 10k bytes of measurement data in a specific area of memory.
+While this may be a simplistic overview, it is enough information for the instrument to be delivered and integrated. It generates data and is at the start of a chain. At some point in the future the payload processor programmers will write software to operate the instrument. Data flows from the instrument, to the payload processor, then to the Jovian-1 computer, then to the satellite's communication system for transmission to the ground station.
+ 
+In the case of the AMSAT-UK payload, our task is to make requests to each sub system in the satellite via the payload processor. The data can then be transferred to the ground by our payload. For example, GPS data, Electrical power system data, solar panels, reaction wheels etc etc. Our payload is at the end of a chain. Data needs to be collected from each sub-system by the Jovian-1 computer ( this software does not exist yet) then it needs to be transferred to the payload processor ( this software does not exist yet) and finally we need to request it from a currently unknown specific address within the payload computer via CAN. Until this detailed information is available, we are unable to complete the payload.
+ 
+Our CCT team estimate that once the information we require becomes available, it will take around 3 months to programme and test the payload. If a simulator is not available,  some of this work will need to take place at The University, with the payload connected to Jovian-1 via CAN.

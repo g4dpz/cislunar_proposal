@@ -164,15 +164,13 @@ const overview: OverviewContent = {
     "G3RUH GFSK over VHF/UHF). All subsequent phases are in design or planning.",
   missionSummary2:
     "The project implements Bundle Protocol version 7 (BPv7) over amateur radio links using " +
-    "LTP wrapped directly in KISS framing. The architecture is DTN-implementation-agnostic — " +
-    "a common abstraction layer supports multiple DTN engines (NASA Glenn's HDTN, JPL's ION-DTN, " +
-    "µD3TN, and Hardy) through a unified interface, allowing operators to select the engine " +
-    "best suited to their platform and mission phase. Station identification is achieved through " +
+    "LTP wrapped directly in KISS framing. The architecture uses JPL's ION-DTN " +
+    "through a standardized interface, ensuring compatibility with NASA's reference DTN implementation. Station identification is achieved through " +
     "callsign-embedded DTN Endpoint Identifiers (e.g. dtn://g4dpz/spacecraft) carried in every " +
     "bundle's metadata, ensuring regulatory compliance while using numeric ipn:// addresses for " +
     "efficient routing.",
   features: [
-    "DTN-implementation-agnostic — supports HDTN, ION-DTN, µD3TN, and Hardy via a common abstraction layer",
+    "Uses JPL's ION-DTN — NASA's reference DTN implementation with proven flight heritage",
     "Working 3-node cislunar simulation with true packet-level propagation delay",
     "Validated DTN store-and-forward with simulated cislunar (1.3s) and interplanetary (3–12 min) propagation delays",
     "LTP-over-KISS with callsign-embedded DTN Endpoint Identifiers (amateur radio compliance)",
@@ -182,7 +180,7 @@ const overview: OverviewContent = {
     "No encryption or cryptography (amateur radio regulatory compliance)",
     "Priority-based bundle handling (critical, expedited, normal, bulk)",
     "Persistent bundle storage surviving power cycles",
-    "Real-time telemetry and health monitoring via HDTN REST API",
+    "Real-time telemetry and health monitoring via ION-DTN tools",
   ],
   protocolStack: [
     "Application (bping, bpsendfile)",
@@ -282,15 +280,10 @@ const documentation: DocumentationLinks = {
       slug: "dtn-callsign-eid-configuration",
       filename: "DTN-CALLSIGN-EID-CONFIGURATION.md",
       description:
-        "Reference guide for configuring HDTN with callsign-embedded Endpoint Identifiers using the dtn:// scheme. Covers node configuration, routing, convergence layer setup, and multi-node network examples.",
+        "Reference guide for configuring ION-DTN with callsign-embedded Endpoint Identifiers using the dtn:// scheme. Covers node configuration, routing, convergence layer setup, and multi-node network examples.",
     },
   ],
   externalRefs: [
-    {
-      title: "NASA Glenn: High-Rate Delay Tolerant Networking",
-      url: "https://www.nasa.gov/glenn/glenn-expertise-space-exploration/scan/high-rate-delay-tolerant-networking/",
-      description: "NASA Glenn Research Center's HDTN programme — the foundation software stack used by RADIANT.",
-    },
     {
       title: "RFC 9171: Bundle Protocol Version 7",
       url: "https://www.rfc-editor.org/rfc/rfc9171.html",
@@ -308,11 +301,6 @@ const documentation: DocumentationLinks = {
     },
   ],
   packages: [
-    {
-      title: "HDTN Wrapper",
-      url: "#",
-      description: "Go wrapper for NASA Glenn's HDTN library. (Source not yet public — repository under development.)",
-    },
     {
       title: "Contact Plan Manager + CGR",
       url: "#",
@@ -444,11 +432,6 @@ const conops: ConOpsContent = {
       description: "NASA educational resource introducing DTN concepts and architecture.",
     },
     {
-      title: "High-rate Delay Tolerant Networking (HDTN)",
-      url: "https://github.com/nasa/HDTN",
-      description: "NASA Glenn's high-performance DTN software suite.",
-    },
-    {
       title: "Delay/Disruption Tolerant Networking Overview",
       url: "https://www.nasa.gov/dtn-overview",
       description: "High-level overview of NASA's DTN programme.",
@@ -489,7 +472,7 @@ const futureEnhancements: FutureEnhancement[] = [
       "Cross-phase comparison — normalized goodput, plan adherence, and delivery success metrics",
       "Planned vs. actual — contact plan snapshot alongside observed timing and throughput",
       "Phase-aware metadata — link type, frequency band, OWLT, orbital parameters per session",
-      "Integrates with Contact Plan Manager and HDTN telemetry automatically",
+      "Integrates with Contact Plan Manager and ION-DTN telemetry automatically",
       "Machine-readable and human-readable — queryable by phase, time range, node pair, and outcome",
     ],
     specPath: ".kiro/specs/contact-log/requirements.md",
@@ -505,7 +488,7 @@ const futureEnhancements: FutureEnhancement[] = [
     highlights: [
       "Regulatory compliance — plaintext callsign readable by any demodulating third party",
       "Analogous to FT8/WSPR — callsign in payload via well-known beacon service number (2048)",
-      "Independent of data traffic — configurable timer (default 10 min) via HDTN infrastructure",
+      "Independent of data traffic — configurable timer (default 10 min) via ION-DTN infrastructure",
       "Includes station metadata — callsign, Maidenhead grid square, and node type",
       "Cross-phase — required for all phases from terrestrial through cislunar",
     ],
@@ -516,8 +499,8 @@ const futureEnhancements: FutureEnhancement[] = [
     name: "Test Framework — Requirements-Based Verification (NASA TM Methodology)",
     status: "planned",
     summary:
-      "A property-based test framework modeled after NASA Glenn's HDTN Test Framework " +
-      "(TM-20240014467 / LEW-20818-1), providing automated verification across all mission phases.",
+      "A property-based test framework providing automated verification across all mission phases " +
+      "with comprehensive test coverage and validation.",
     highlights: [
       "Property-based testing — correctness properties verified for all inputs via randomized generation",
       "Requirements traceability — each test traces to system requirements for flight proposals",
@@ -545,7 +528,7 @@ const futureEnhancements: FutureEnhancement[] = [
       "OTA distribution — space nodes receive plan updates as administrative DTN bundles (≤5KB)",
       "Bootstrap plans — pre-loaded from initial TLE; converges to operational plan on first OTA update",
       "Plan versioning — monotonic versions with latest-wins conflict resolution",
-      "HDTN-compatible export — local node view in NASA HDTN JSON format",
+      "ION-DTN-compatible export — local node view in ION command format",
     ],
     specPath: ".kiro/specs/multi-node-contact-graph/requirements.md",
   },
@@ -554,16 +537,13 @@ const futureEnhancements: FutureEnhancement[] = [
     name: "DTN Abstraction Layer — Multi-Engine Support",
     status: "planned",
     summary:
-      "An abstraction layer decoupling RADIANT services from any single DTN implementation, " +
-      "enabling support for multiple DTN engines (HDTN, ION-DTN, ESA DTN) through a common " +
-      "Go interface and plugin/adapter architecture.",
+      "An abstraction layer decoupling RADIANT services from DTN implementation details, " +
+      "providing a unified interface for ION-DTN integration and future DTN engine support.",
     highlights: [
       "Common Engine interface — unified API for bundle creation, sending, receiving, and status",
       "Plugin registry — adapters registered by name with factory functions for dynamic instantiation",
-      "HDTN adapter — wraps existing HDTN integration via REST API lifecycle management",
       "ION-DTN adapter — interfaces with JPL's Interplanetary Overlay Network via bp library",
       "µD3TN adapter — lightweight, space-tested implementation for microcontrollers (candidate flight software for CubeSat phases)",
-      "Hardy adapter — modular Rust BPv7 implementation with no_std core libraries (candidate for memory-safe flight software)",
       "ESA DTN adapter — integrates European Space Agency's DTN daemon",
       "YAML configuration — switch engines without code changes",
       "Contact plan abstraction — shared contact plans independent of engine implementation",
@@ -586,7 +566,7 @@ const futureEnhancements: FutureEnhancement[] = [
       "REST CRUD API — create, query, update, and delete contacts programmatically",
       "Orbital prediction — automatic contact generation from TLE data with confidence decay",
       "Conflict detection — configurable resolution policies for overlapping contacts",
-      "Multi-format export — HDTN JSON, ION commands, and canonical JSON serialization",
+      "Multi-format export — ION commands and canonical JSON serialization",
       "Push subscriptions — webhook/websocket notifications on plan changes",
       "OTA distribution — BPv7 plan update bundles for space nodes (≤5KB per bundle)",
       "Plan versioning — per-node and global monotonic versions with diff queries",

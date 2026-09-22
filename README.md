@@ -71,9 +71,8 @@ ION-DTN (node 10)  ←─ LTP/UDP ─→  Hardy BPA (node 20)
 
 **The `radiant-dtn-abstraction` crate** (`radiant-dtn-abstraction/`) provides:
 - Vendor-neutral canonical data model (nodes, neighbors, contacts, routing)
-- Backend adapters for ION-DTN and Hardy (config gen, lifecycle, hot-reconfig, telemetry)
+- Backend adapters for ION-DTN (config gen, lifecycle, hot-reconfig, telemetry)
 - Automatic generation of ION admin scripts (`.ionrc`, `.bprc`, `.ltprc`, `.ipnrc`) including loopback entries
-- Hardy YAML + LTP CLA config generation
 - HTTP/JSON management API (axum) with SSE event streaming
 - Engine lifecycle state machine and event bus
 - 232 tests (unit, property-based, integration) all passing
@@ -120,7 +119,7 @@ The project uses a DTN-engine-agnostic architecture. The orchestrator, KISS fram
 
 - Rust 1.78+ (stable toolchain)
 - macOS or Linux
-- A DTN engine installed (ION-DTN, µD3TN, or Hardy)
+- A DTN engine installed (ION-DTN or µD3TN)
 
 ### Quick Start
 
@@ -157,7 +156,7 @@ cargo run -- --config configs/dtn-node-a.yaml
 │   └── radiant-ffi/        # C-ABI exports for engine plugins
 ├── radiant-dtn-abstraction/ # DTN abstraction layer (Rust crate)
 │   ├── src/                # Core library (model, adapters, API)
-│   ├── examples/           # ION↔Hardy interop examples
+│   ├── examples/           # ION-DTN configuration examples
 │   └── tests/              # Property + integration tests
 ├── src/
 │   └── main.rs             # dtn-node orchestrator binary
@@ -199,7 +198,6 @@ cargo build -p radiant-kiss --no-default-features --target thumbv7em-none-eabihf
 
 - **ION-DTN** — JPL's Interplanetary Overlay Network — *reference implementation with flight heritage*
 - **µD3TN** — Lightweight, space-tested DTN implementation for microcontrollers and POSIX — *candidate flight software*
-- **Hardy** — Modular Rust BPv7 implementation with `no_std` core libraries — *candidate flight software*
 
 ### Protocols and Standards
 

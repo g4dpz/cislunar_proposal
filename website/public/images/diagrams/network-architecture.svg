@@ -17,7 +17,7 @@
   <!-- Ground Gateway -->
   <rect x="220" y="300" width="120" height="55" rx="6" fill="#2c3e50" stroke="#2ecc71" stroke-width="1.5"/>
   <text x="280" y="325" text-anchor="middle" fill="#ecf0f1" font-size="10">Ground Gateway</text>
-  <text x="280" y="340" text-anchor="middle" fill="#95a5a6" font-size="9">(HDTN Node)</text>
+  <text x="280" y="340" text-anchor="middle" fill="#95a5a6" font-size="9">(ION-DTN Node)</text>
   
   <!-- Ground Station -->
   <rect x="390" y="300" width="120" height="55" rx="6" fill="#2c3e50" stroke="#e67e22" stroke-width="1.5"/>
